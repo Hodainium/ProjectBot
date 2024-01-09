@@ -196,7 +196,7 @@ void UHItemSlotComponent::EquipItemInSlot()
 			}
 			default:
 			{
-				UE_LOG(LogHGame, Error, TEXT("ITEMSLOTCOMP::Bruh you didn't include equipItemInSlot logic. For item: %s"), *SlotItem->GetName());
+				UE_LOG(LogHGame, Error, TEXT("ITEMSLOTCOMP::Bruh you didn't include equipItemInSlot logic. For item: %s"), *SlotItem->GetItemDefinition()->ItemName.ToString());
 			}
 		}
 
