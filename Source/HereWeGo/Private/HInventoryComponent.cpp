@@ -68,6 +68,11 @@ void FHInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndice
 	}
 }
 
+void FHInventoryList::PostReplicatedReceive(const FPostReplicatedReceiveParameters& Parameters)
+{
+
+}
+
 void FHInventoryList::RemoveEntry(UHInventoryItemInstance* Instance)
 {
 	for (auto EntryIt = Entries.CreateIterator(); EntryIt; ++EntryIt)

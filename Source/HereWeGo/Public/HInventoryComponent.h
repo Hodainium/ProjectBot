@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Net/Serialization/FastArraySerializer.h"
 #include "NativeGameplayTags.h"
+#include "HereWeGo/Inventory/Components/HGridInventoryComponent.h"
 #include "HInventoryComponent.generated.h"
 
 
@@ -50,6 +51,7 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
+	friend UHLocalInventoryEntry;
 
 private:
 	UPROPERTY()
@@ -91,6 +93,7 @@ public:
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
 	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize);
+	void PostReplicatedReceive(const FPostReplicatedReceiveParameters& Parameters);
 	//~End of FFastArraySerializer contract
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
@@ -122,27 +125,6 @@ template<>
 struct TStructOpsTypeTraits<FHInventoryList> : public TStructOpsTypeTraitsBase2<FHInventoryList>
 {
 	enum { WithNetDeltaSerializer = true };
-};
-
-//A UObject that wraps the InventoryEntry struct. Is instantiated locally
-UCLASS(BlueprintType)
-class UHInventoryEntryWrapper : public UObject
-{
-	GENERATED_BODY()
-
-public:
-
-	UHInventoryEntryWrapper(): Entry(nullptr)
-	{
-	}
-
-	UHInventoryEntryWrapper(FHInventoryEntry* InEntry) : Entry(InEntry)
-	{
-	}
-
-	TArray<FHInventoryEntry*> Entries;
-
-	FHInventoryEntry* Entry;
 };
 
 UCLASS(BlueprintType)

@@ -49,6 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	UHItemDefinition* GetItemDefinition() const;
 
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	FIntPoint GetItemDimensions() const;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
 	const UHInventoryItemFragment* FindFragmentByClass(TSubclassOf<UHInventoryItemFragment> FragmentClass) const;
 

@@ -47,6 +47,11 @@ UHItemDefinition* UHInventoryItemInstance::GetItemDefinition() const
 	return ItemDefinition;
 }
 
+FIntPoint UHInventoryItemInstance::GetItemDimensions() const
+{
+	return FIntPoint(ItemDefinition->InventorySizeX, ItemDefinition->InventorySizeY);
+}
+
 const UHInventoryItemFragment* UHInventoryItemInstance::FindFragmentByClass(
 	TSubclassOf<UHInventoryItemFragment> FragmentClass) const
 {
