@@ -10,6 +10,7 @@
 #include "HInventoryComponent.generated.h"
 
 
+class UHLocalInventoryEntry;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;

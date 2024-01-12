@@ -47,8 +47,8 @@ UHGridInventoryComponent::UHGridInventoryComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
+	PrimaryComponentTick.bCanEverTick = false;
+	bIsDirty = false;
 	// ...
 }
 
@@ -62,13 +62,20 @@ void UHGridInventoryComponent::BeginPlay()
 	
 }
 
-
-// Called every frame
-void UHGridInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+TArray<UHLocalInventoryEntry*> UHGridInventoryComponent::GetAllEntries()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	return 
+}
 
-	// ...
+FIntPoint UHGridInventoryComponent::GetInventorySize()
+{
+	return FIntPoint(InventoryWidth, InventoryHeight);
+}
+
+void UHGridInventoryComponent::SetInventorySize(int32 Width, int32 Height)
+{
+	InventoryWidth = Width;
+	InventoryHeight = Height;
 }
 
 void UHGridInventoryComponent::RebuildLocalGrid()
@@ -85,7 +92,7 @@ void UHGridInventoryComponent::RebuildLocalGrid()
 	}
 }
 
-void UHGridInventoryComponent::ForceAddEntryToGrid(UHLocalInventoryEntry* EntryToAdd) //todo not done
+void UHGridInventoryComponent::AddProjectionToGrid(UHLocalInventoryEntry* EntryToAdd) //todo not done
 {
 	TArray<int32> ItemIndicesToAdd;
 	GetItemIndices(EntryToAdd, ItemIndicesToAdd);
@@ -93,15 +100,24 @@ void UHGridInventoryComponent::ForceAddEntryToGrid(UHLocalInventoryEntry* EntryT
 	{
 		if (LocalInventoryGridArray[Index] != nullptr && LocalInventoryGridArray[Index] != EntryToAdd)
 		{
-			ResolveGridConflict(LocalInventoryGridArray[Index]);
+			//ResolveGridConflict(LocalInventoryGridArray[Index]);
+			UE_LOGFMT(LogHGame, Error, "There is a conflict in position {x} between {item1} and {item2}. Breaking out this shouldnt happen", Index, LocalInventoryGridArray[Index], EntryToAdd);
+			break;
 		}
 
 		LocalInventoryGridArray[Index] = EntryToAdd;
 	}
 }
 
-void UHGridInventoryComponent::RemoveEntryFromGrid(UHLocalInventoryEntry* EntryToRemove)
+void UHGridInventoryComponent::ForcePendingGridUpdate()
 {
+	UE_LOGFMT(LogHGame, Warning, "Forcing early grid update");
+	UpdatePendingEntryPositionsGrid();
+}
+
+void UHGridInventoryComponent::RemoveProjectionFromGrid(UHLocalInventoryEntry* EntryToRemove)
+{
+	bIsDirty = true;
 	TArray<int32> ItemIndicesToRemove;
 	GetItemIndices(EntryToRemove, ItemIndicesToRemove);
 	for (int32 Index : ItemIndicesToRemove)
@@ -110,25 +126,27 @@ void UHGridInventoryComponent::RemoveEntryFromGrid(UHLocalInventoryEntry* EntryT
 	}
 }
 
-void UHGridInventoryComponent::UpdateSingleEntryPositionGrid(UHLocalInventoryEntry* EntryToMove)
+void UHGridInventoryComponent::UpdateProjectionPositionGrid(UHLocalInventoryEntry* EntryToMove)
 {
-	RemoveEntryFromGrid(EntryToMove);
-	ForceAddEntryToGrid(EntryToMove);
+	RemoveProjectionFromGrid(EntryToMove);
+	AddProjectionToGrid(EntryToMove);
+	
 }
 
 void UHGridInventoryComponent::UpdatePendingEntryPositionsGrid()
 {
 	for (UHLocalInventoryEntry* Entry : LocalItemsToMove)
 	{
-		RemoveEntryFromGrid(Entry);
+		RemoveProjectionFromGrid(Entry);
 	}
 
 	for (UHLocalInventoryEntry* Entry : LocalItemsToMove)
 	{
-		ForceAddEntryToGrid(Entry);
+		AddProjectionToGrid(Entry);
 	}
 
 	LocalItemsToMove.Reset();
+	bIsDirty = false;
 }
 
 bool UHGridInventoryComponent::ResolveGridConflict(UHLocalInventoryEntry* ConflictingEntry)
@@ -138,7 +156,7 @@ bool UHGridInventoryComponent::ResolveGridConflict(UHLocalInventoryEntry* Confli
 
 	if(bPositionChanged)
 	{
-		UpdateSingleEntryPositionGrid(ConflictingEntry);
+		UpdateProjectionPositionGrid(ConflictingEntry);
 	}
 	else
 	{
@@ -150,13 +168,15 @@ bool UHGridInventoryComponent::ResolveGridConflict(UHLocalInventoryEntry* Confli
 
 void UHGridInventoryComponent::RemoveLocalItem(FHInventoryEntry& Entry)
 {
+	bIsDirty = true;
+
 	UHLocalInventoryEntry* EntryToRemove = nullptr;
 
 	EntryToRemove = FindItemByID(Entry.ReplicationID);
 
 	if (EntryToRemove)
 	{
-		RemoveEntryFromGrid(EntryToRemove);
+		RemoveProjectionFromGrid(EntryToRemove);
 		LocalInventoryGridAccelerationArray.Remove(EntryToRemove);
 	}
 	else
@@ -167,6 +187,8 @@ void UHGridInventoryComponent::RemoveLocalItem(FHInventoryEntry& Entry)
 
 void UHGridInventoryComponent::AddLocalItem(FHInventoryEntry& EntryToAdd)
 {
+	bIsDirty = true;
+
 	UHLocalInventoryEntry* NewLocalEntry = NewObject<UHLocalInventoryEntry>();
 	NewLocalEntry->Initialize(EntryToAdd);
 	LocalInventoryGridAccelerationArray.Add(NewLocalEntry);
@@ -175,6 +197,8 @@ void UHGridInventoryComponent::AddLocalItem(FHInventoryEntry& EntryToAdd)
 
 void UHGridInventoryComponent::UpdateLocalItem(FHInventoryEntry& Entry)
 {
+	bIsDirty = true;
+
 	UHLocalInventoryEntry* EntryToUpdate = nullptr;
 
 	EntryToUpdate = FindItemByID(Entry.ReplicationID);

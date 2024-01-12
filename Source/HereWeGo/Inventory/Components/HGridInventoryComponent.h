@@ -10,6 +10,68 @@
 
 class UHInventoryItemInstance;
 
+USTRUCT()
+struct FHInventoryPredictionKey
+{
+	GENERATED_BODY()
+
+	FHInventoryPredictionKey()
+	{
+		KeyID = INDEX_NONE;
+	}
+	FHInventoryPredictionKey(int32 InID)
+	{
+		KeyID = InID;
+	}
+
+	UPROPERTY()
+	int32 KeyID;
+
+	static FHInventoryPredictionKey GenerateUniqueKey()
+	{
+		static int32 NextKeyID = 0;
+		return FHInventoryPredictionKey(NextKeyID++);  // Atomically increment and return
+	}
+};
+
+UENUM(BlueprintType)
+enum class EHUInventoryOperationType : uint8
+{
+	Move = 0,  // Operation for moving an item within the inventory grid
+	Rotate = 1, // Operation for rotating an item (if applicable)
+	Swap = 2 
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryOperation
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	EHUInventoryOperationType OperationType;
+
+	UPROPERTY()
+	int32 ItemIdSource;
+
+	UPROPERTY()
+	int32 ItemIdTarget;
+
+	UPROPERTY()
+	FIntPoint CurrentPosition;
+
+	// For MOVE operation:
+	UPROPERTY(EditAnywhere)
+	FIntPoint TargetPosition;
+
+	// For ROTATE operation:
+	UPROPERTY(EditAnywhere)
+	bool bRotate;
+
+	// Additional property for prediction:
+	UPROPERTY()
+	FHInventoryPredictionKey PredictionKey;  // Unique identifier for prediction tracking
+};
+
 //A UObject that wraps the InventoryEntry struct. Is instantiated locally
 UCLASS(BlueprintType)
 class UHLocalInventoryEntry : public UObject
@@ -46,7 +108,6 @@ public:
 	int32 StackCount = 0;
 
 	UPROPERTY(BlueprintReadWrite)
-
 	int32 LinkedRepID = INDEX_NONE;
 };
 
@@ -63,33 +124,64 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+public:
 
-	UFUNCTION(Server, Reliable)
-	void InitializeSlots();
+	///////// For blueprint
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Functions")
-	FIntPoint& GetInventorySize();
+	TArray<UHLocalInventoryEntry*> GetAllEntries();
+
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Functions")
+	FIntPoint GetInventorySize();
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory Functions")
+	void SetInventorySize(int32 Width, int32 Height);
+
+	void RebuildLocalGrid();
+
+private:
 
 	//GRID FUNCTIONS
-	void RebuildLocalGrid();
-	void ForceAddEntryToGrid(UHLocalInventoryEntry* EntryToAdd);
-	void RemoveEntryFromGrid(UHLocalInventoryEntry* EntryToRemove);
-	void UpdateSingleEntryPositionGrid(UHLocalInventoryEntry* EntryToMove);
-	void UpdatePendingEntryPositionsGrid();
+	
+	void UpdateProjectionPositionGrid(UHLocalInventoryEntry* EntryToMove);
+	//SHouldnt be used
 	bool ResolveGridConflict(UHLocalInventoryEntry* ConflictingEntry);
+
 	///////////////////
+	void FindNextBestSpot();
+
+#pragma region Fast array handlers
+
+	//Handles fast array events. Handles management between local items, entries, and the grid
+
+	//PreReplicatedRemove
 
 	UFUNCTION()
 	void RemoveLocalItem(FHInventoryEntry& Entry);
+	void RemoveProjectionFromGrid(UHLocalInventoryEntry* EntryToRemove);
+
+	//PostReplicatedAdd
 
 	UFUNCTION()
 	void AddLocalItem(FHInventoryEntry& EntryToAdd);
 
+	//PostReplicatedChange
+
 	UFUNCTION()
 	void UpdateLocalItem(FHInventoryEntry& Entry);
+
+	//PostReplicatedReceive
+
+	UFUNCTION()
+	void UpdatePendingEntryPositionsGrid();
+	void AddProjectionToGrid(UHLocalInventoryEntry* EntryToAdd);
+	//////////////////////////////////////////////////////////////
+	///
+#pragma endregion Fast array handlers
+
+	UFUNCTION()
+	void ForcePendingGridUpdate();
 
 	UFUNCTION()
 	int32 TileToIndex(const FIntPoint& TileIndex) const;
@@ -107,28 +199,25 @@ public:
 	bool FindServerEntryByID(int32 ItemID, FHInventoryEntry& OutEntry);
 
 private:
+
 	UPROPERTY(Replicated)
 	FHInventoryList MasterList;
 
-public:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalInventoryGridArray;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalInventoryGridAccelerationArray;
 
-	UPROPERTY(BlueprintReadOnly)
-	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalItemsToAdd;
-
-	UPROPERTY(BlueprintReadOnly)
-	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalItemsToChange;
-
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalItemsToMove;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	int32 InventoryHeight;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	int32 InventoryWidth;
+
+	UPROPERTY()
+	bool bIsDirty;
 };
