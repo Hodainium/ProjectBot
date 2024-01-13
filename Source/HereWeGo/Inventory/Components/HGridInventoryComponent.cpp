@@ -6,6 +6,10 @@
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
 
+UHLocalGridEntry::UHLocalGridEntry()
+{
+}
+
 FHInventoryPoint UHLocalGridEntry::GetCurrentDimensions() const
 {
 	FHInventoryPoint UnrotatedItemDimensions = Instance->GetItemDimensions();
@@ -202,7 +206,7 @@ void UHGridInventoryComponent::HandlePreRemove(FHInventoryEntry& Entry)
 
 	UHLocalGridEntry* EntryToRemove = nullptr;
 
-	EntryToRemove = FindItemByID(Entry.ReplicationID);
+	EntryToRemove = FindEntryInGridByIDSmart(Entry.ReplicationID);
 
 	if (EntryToRemove)
 	{
@@ -231,7 +235,7 @@ void UHGridInventoryComponent::HandlePostChange(FHInventoryEntry& Entry)
 
 	UHLocalGridEntry* EntryToUpdate = nullptr;
 
-	EntryToUpdate = FindItemByID(Entry.ReplicationID);
+	EntryToUpdate = FindEntryInGridByIDSmart(Entry.ReplicationID);
 
 	if (EntryToUpdate)
 	{
@@ -251,7 +255,7 @@ void UHGridInventoryComponent::HandlePostChange(FHInventoryEntry& Entry)
 
 int32 UHGridInventoryComponent::InventoryPointToIndex(const FHInventoryPoint& InPoint) const
 {
-	if(InPoint.IsValid() && IsPointInBounds(InPoint))
+	if(IsPointInBoundsAndValid(InPoint))
 	{
 		return InPoint.X + InPoint.Y * InventorySize.X;
 	}
@@ -275,59 +279,59 @@ FHInventoryPoint UHGridInventoryComponent::IndexToInventoryPoint(int32 Index) co
 	
 }
 
-bool UHGridInventoryComponent::IsPointInBounds(const FHInventoryPoint& InPoint) const
+bool UHGridInventoryComponent::IsPointInBoundsAndValid(const FHInventoryPoint& InPoint) const
 {
-	return (InPoint.X < InventorySize.X && InPoint.Y < InventorySize.Y);
+	//Implicitly performs IsValid on point because invalid is 255
+	return ( (InPoint.X < InventorySize.X) && (InPoint.Y < InventorySize.Y) );
 }
 
 bool UHGridInventoryComponent::IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const
 {
-	const FHInventoryPoint ItemSize = GridEntry->GetCurrentDimensions();
-	return (InPoint.X + ItemSize.X < InventorySize.X && InPoint.Y + ItemSize.Y < InventorySize.Y);
+	if(GridEntry && IsPointInBoundsAndValid(InPoint))
+	{
+		const FHInventoryPoint ItemSize = GridEntry->GetCurrentDimensions();
+		return ((InPoint.X + ItemSize.X < InventorySize.X) && (InPoint.Y + ItemSize.Y < InventorySize.Y));
+	}
+
+	return false;
+	
 }
 
-bool UHGridInventoryComponent::IsRoomAvailableAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const
+bool UHGridInventoryComponent::IsFreeRoomAvailableAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const
 {
-	if(GridEntry && InPoint.IsValid()) 
+	if(GridEntry && IsPointInBoundsAndValid(InPoint))
 	{
-		const FHInventoryPoint CurrentDimensions = GridEntry->GetCurrentDimensions();
-		FHInventoryPoint CurrentTile = FHInventoryPoint();
+		TArray<UHLocalGridEntry*> BlockingItems;
 
-		for (int i = 0; i < CurrentDimensions.X; i++)
+		if(GetAllBlockingItemsAtPoint(InPoint, GridEntry, BlockingItems))
 		{
-			CurrentTile.X = InPoint.X + i;
-
-			for (int j = 0; j < CurrentDimensions.Y; j++)
+			if(BlockingItems.IsEmpty())
 			{
-				CurrentTile.Y = CurrentTile.Y + j;
-
-
+				return true;
 			}
 		}
-
-		return true;
 	}
 
 	return false;
 }
 
-void UHGridInventoryComponent::GetBlockingItems(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry,
-	TArray<UHLocalGridEntry*>& OutBlockingItems) const
+bool UHGridInventoryComponent::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry,
+                                                   TArray<UHLocalGridEntry*>& OutBlockingItems) const
 {
-	if (GridEntry && InPoint.IsValid())
+	OutBlockingItems.Reset();
+
+	if (GridEntry && IsPointInBoundsAndValid(InPoint))
 	{
-		const FHInventoryPoint CurrentDimensions = GridEntry->GetCurrentDimensions();
-		FHInventoryPoint CurrentTile = FHInventoryPoint();
+		TArray<int32> ItemIndices;
+		GetCurrentItemIndices(GridEntry, ItemIndices);
 
-		for (int i = 0; i < CurrentDimensions.X; i++)
+		for (int32 Index : ItemIndices)
 		{
-			CurrentTile.X = InPoint.X + i;
+			UHLocalGridEntry* Entry = GetItemAtIndex(Index);
 
-			for (int j = 0; j < CurrentDimensions.Y; j++)
+			if(Entry && Entry != GridEntry)
 			{
-				CurrentTile.Y = CurrentTile.Y + j;
-
-
+				OutBlockingItems.AddUnique(Entry);
 			}
 		}
 
@@ -339,7 +343,19 @@ void UHGridInventoryComponent::GetBlockingItems(const FHInventoryPoint& InPoint,
 
 bool UHGridInventoryComponent::GetCurrentInventoryPoints(const UHLocalGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
 {
-	if (GridEntry && GridEntry->TopLeftTilePoint.IsValid())
+	if (GridEntry && IsPointInBoundsAndValid(GridEntry->TopLeftTilePoint))
+	{
+		return GetCurrentInventoryPointsAtPoint(GridEntry->TopLeftTilePoint, GridEntry, OutPoints);
+	}
+	return false;
+}
+
+bool UHGridInventoryComponent::GetCurrentInventoryPointsAtPoint(const FHInventoryPoint& InPoint,
+	const UHLocalGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
+{
+	OutPoints.Reset();
+
+	if (GridEntry && IsPointInBoundsAndValid(GridEntry->TopLeftTilePoint))
 	{
 		const FHInventoryPoint CurrentDimensions = GridEntry->GetCurrentDimensions();
 		FHInventoryPoint CurrentPoint = FHInventoryPoint();
@@ -349,7 +365,7 @@ bool UHGridInventoryComponent::GetCurrentInventoryPoints(const UHLocalGridEntry*
 
 			for (int j = 0; j < CurrentDimensions.Y; j++)
 			{
-				CurrentPoint.Y = GridEntry->TopLeftTilePoint.Y + j * InventorySize.X;
+				CurrentPoint.Y = GridEntry->TopLeftTilePoint.Y + j;
 
 				OutPoints.Add(CurrentPoint);
 			}
@@ -363,17 +379,29 @@ bool UHGridInventoryComponent::GetCurrentInventoryPoints(const UHLocalGridEntry*
 
 bool UHGridInventoryComponent::GetCurrentItemIndices(const UHLocalGridEntry* GridEntry, TArray<int32>& OutIndices) const
 {
-	if(GridEntry && GridEntry->TopLeftTileIndex != INDEX_NONE)
+	
+	if (GridEntry && IsPointInBoundsAndValid(GridEntry->TopLeftTilePoint))
 	{
-		const FIntPoint CurrentDimensions = GridEntry->GetCurrentDimensions();
-		int32 CurrentIndex = 0;
+		return GetCurrentItemIndicesAtPoint(GridEntry->TopLeftTilePoint, GridEntry, OutIndices);
+	}
+	return false;
+}
+
+bool UHGridInventoryComponent::GetCurrentItemIndicesAtPoint(const FHInventoryPoint& InPoint, const UHLocalGridEntry* GridEntry,
+                                                            TArray<int32>& OutIndices) const
+{
+	OutIndices.Reset();  // Clear the output array
+
+	if (GridEntry && IsPointInBoundsAndValid(InPoint))
+	{
+		const FHInventoryPoint CurrentDimensions = GridEntry->GetCurrentDimensions();
+
+		int32 InitialIndex = InventoryPointToIndex(InPoint);
 		for (int i = 0; i < CurrentDimensions.X; i++)
 		{
-			CurrentIndex = GridEntry->TopLeftTileIndex + i;
-
 			for (int j = 0; j < CurrentDimensions.Y; j++)
 			{
-				CurrentIndex = GridEntry->TopLeftTileIndex + j* InventorySize.X;
+				int32 CurrentIndex = InitialIndex + i + j * InventorySize.X;
 
 				OutIndices.Add(CurrentIndex);
 			}
@@ -387,70 +415,78 @@ bool UHGridInventoryComponent::GetCurrentItemIndices(const UHLocalGridEntry* Gri
 
 bool UHGridInventoryComponent::RefreshLocalEntry(UHLocalGridEntry* LocalEntry, bool& bOutPositionChanged)
 {
-	FHInventoryEntry ServerEntry;
+	FHInventoryEntry StructEntry = FHInventoryEntry();
 
-	if(FindServerEntryByID(LocalEntry->LinkedRepID, ServerEntry))
+	if(FindStructEntryByID(LocalEntry->LinkedRepID, StructEntry))
 	{
-		LocalEntry->UpdateData(ServerEntry, bOutPositionChanged);
+		LocalEntry->UpdateData(StructEntry, bOutPositionChanged);
 		return true;
 	}
 
 	return false;
 }
 
-UHLocalGridEntry* UHGridInventoryComponent::FindItemByID(int32 ItemID)
+UHLocalGridEntry* UHGridInventoryComponent::FindEntryInGridByIDSmart(const int32 ItemID)
 {
-	for(FHInventoryEntry& Entry : MasterList)
+	const FHInventoryPoint InventorySize = GetInventorySize();
+
+	for (int i = 0; i < LocalGridArray.Num();)
+	{
+		UHLocalGridEntry* Entry = GetItemAtIndex(i);
+
+		if(Entry)
+		{
+			if(Entry->LinkedRepID == ItemID)
+			{
+				return Entry;
+			}
+
+			i += Entry->GetCurrentDimensions().X;
+		}
+		else
+		{
+			i++;
+		}
+	}
+
+	UE_LOGFMT(LogHGame, Error, "Could not find item by ID, {id} in local grid", ItemID);
+
+	return nullptr;
+}
+
+bool UHGridInventoryComponent::FindStructEntryByID(int32 ItemID, FHInventoryEntry& OutEntry)
+{
+	for (const FHInventoryEntry& Entry : MasterList)
 	{
 		if (Entry.ReplicationID == ItemID)
-		{
-			return Entry;
-		}
-	}
-
-	/*for(UHLocalGridEntry* Entry : LocalInventoryGridAccelerationArray)
-	{
-		if(Entry->LinkedRepID == ItemID)
-		{
-			return Entry;
-		}
-	}*/
-	//UE_LOGFMT(LogHGame, Error, "dd");
-
-	UE_LOG(LogHGame, Error, TEXT("Could not find item by ID in local grid"));
-
-	return nullptr;
-}
-
-UHLocalGridEntry* UHGridInventoryComponent::GetItemAtPoint(const FHInventoryPoint& InPoint)
-{
-	if(IsPointInBounds(InPoint))
-	{
-		return LocalGridArray[InventoryPointToIndex(InPoint)];
-	}
-
-	return nullptr;
-}
-
-UHLocalGridEntry* UHGridInventoryComponent::GetItemAtIndex(int32 Index)
-{
-	if (Index >= 0 && Index < LocalGridArray.Num())
-	{
-		return LocalGridArray[Index];
-	}
-}
-
-bool UHGridInventoryComponent::FindServerEntryByID(int32 ItemID, FHInventoryEntry& OutEntry)
-{
-	for(const FHInventoryEntry& Entry : MasterList)
-	{
-		if(Entry.ReplicationID == ItemID)
 		{
 			OutEntry = Entry;
 			return true;
 		}
 	}
 
+	UE_LOGFMT(LogHGame, Error, "Could not find struct entry by ID, {id} in InventoryList", ItemID);
+
 	return false;
+}
+
+UHLocalGridEntry* UHGridInventoryComponent::GetItemAtPoint(const FHInventoryPoint& InPoint)
+{
+	if(IsPointInBoundsAndValid(InPoint))
+	{
+		return	GetItemAtIndex(InventoryPointToIndex(InPoint));
+	}
+
+	return nullptr;
+}
+
+UHLocalGridEntry* UHGridInventoryComponent::GetItemAtIndex(int32 Index) const
+{
+	if (Index >= 0 && Index < LocalGridArray.Num())
+	{
+		return LocalGridArray[Index];
+	}
+
+	return nullptr;
 }
 
