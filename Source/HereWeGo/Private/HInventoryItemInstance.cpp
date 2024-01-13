@@ -5,6 +5,7 @@
 
 #include "HEquipmentDefinition.h"
 #include "HGameplayAbility.h"
+#include "HInventoryComponent.h"
 #include "HItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 
@@ -47,9 +48,9 @@ UHItemDefinition* UHInventoryItemInstance::GetItemDefinition() const
 	return ItemDefinition;
 }
 
-FIntPoint UHInventoryItemInstance::GetItemDimensions() const
+FHInventoryPoint UHInventoryItemInstance::GetItemDimensions() const
 {
-	return FIntPoint(ItemDefinition->InventorySizeX, ItemDefinition->InventorySizeY);
+	return FHInventoryPoint(ItemDefinition->InventorySizeX, ItemDefinition->InventorySizeY);
 }
 
 const UHInventoryItemFragment* UHInventoryItemInstance::FindFragmentByClass(

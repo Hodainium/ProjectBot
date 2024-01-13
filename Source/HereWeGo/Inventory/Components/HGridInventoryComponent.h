@@ -57,11 +57,11 @@ struct FInventoryOperation
 	int32 ItemIdTarget;
 
 	UPROPERTY()
-	FIntPoint CurrentPosition;
+	FHInventoryPoint CurrentPosition;
 
 	// For MOVE operation:
 	UPROPERTY(EditAnywhere)
-	FIntPoint TargetPosition;
+	FHInventoryPoint TargetPosition;
 
 	// For ROTATE operation:
 	UPROPERTY(EditAnywhere)
@@ -74,14 +74,14 @@ struct FInventoryOperation
 
 //A UObject that wraps the InventoryEntry struct. Is instantiated locally
 UCLASS(BlueprintType)
-class UHLocalInventoryEntry : public UObject
+class UHLocalGridEntry : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UHLocalInventoryEntry();
+	UHLocalGridEntry();
 
-	FIntPoint GetCurrentDimensions() const;
+	FHInventoryPoint GetCurrentDimensions() const;
 
 	void Initialize(const FHInventoryEntry& Entry);
 
@@ -92,19 +92,12 @@ public:
 	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	FIntPoint TopLeftTileIndex;
-
-	UPROPERTY(BlueprintReadWrite)
-	FIntPoint PreviousTopLeftTileIndex;
+	FHInventoryPoint TopLeftTilePoint;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool IsRotated = false;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool PreviousIsRotated = false;
-
-	UPROPERTY(BlueprintReadWrite)
-
 	int32 StackCount = 0;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -129,27 +122,30 @@ public:
 	///////// For blueprint
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Functions")
-	TArray<UHLocalInventoryEntry*> GetAllEntries();
+	TArray<UHLocalGridEntry*> GetAllEntries();
 
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Functions")
-	FIntPoint GetInventorySize();
+	FHInventoryPoint GetInventorySize();
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory Functions")
 	void SetInventorySize(int32 Width, int32 Height);
 
-	void RebuildLocalGrid();
+	void InitializedLocalGrid();
 
 private:
 
 	//GRID FUNCTIONS
 	
-	void UpdateProjectionPositionGrid(UHLocalInventoryEntry* EntryToMove);
+	
 	//SHouldnt be used
-	bool ResolveGridConflict(UHLocalInventoryEntry* ConflictingEntry);
+	bool ResolveGridConflict(UHLocalGridEntry* ConflictingEntry);
 
 	///////////////////
 	void FindNextBestSpot();
+
+	void UpdateProjectionGrid(UHLocalGridEntry* EntryToMove);
+	void RemoveProjectionFromGrid(UHLocalGridEntry* EntryToRemove);
 
 #pragma region Fast array handlers
 
@@ -158,42 +154,80 @@ private:
 	//PreReplicatedRemove
 
 	UFUNCTION()
-	void RemoveLocalItem(FHInventoryEntry& Entry);
-	void RemoveProjectionFromGrid(UHLocalInventoryEntry* EntryToRemove);
+	void HandlePreRemove(FHInventoryEntry& Entry);
+	
 
 	//PostReplicatedAdd
 
 	UFUNCTION()
-	void AddLocalItem(FHInventoryEntry& EntryToAdd);
+	void HandlePostAdd(FHInventoryEntry& EntryToAdd);
 
 	//PostReplicatedChange
 
 	UFUNCTION()
-	void UpdateLocalItem(FHInventoryEntry& Entry);
+	void HandlePostChange(FHInventoryEntry& Entry);
 
 	//PostReplicatedReceive
 
 	UFUNCTION()
 	void UpdatePendingEntryPositionsGrid();
-	void AddProjectionToGrid(UHLocalInventoryEntry* EntryToAdd);
+	void AddProjectionToGrid(UHLocalGridEntry* EntryToAdd);
 	//////////////////////////////////////////////////////////////
 	///
 #pragma endregion Fast array handlers
 
+#pragma region Fast array functions
+
+	UFUNCTION()
+	bool GetEntryForItemID(int32 ItemID, FHInventoryEntry& OutEntry);
+
+	UFUNCTION()
+	bool GetSlotPointForItemID(int32 ItemID, FHInventoryPoint& OutPoint);
+
+#pragma endregion Fast array functions
+
 	UFUNCTION()
 	void ForcePendingGridUpdate();
 
-	UFUNCTION()
-	int32 TileToIndex(const FIntPoint& TileIndex) const;
+	UFUNCTION(BlueprintCallable)
+	int32 InventoryPointToIndex(const FHInventoryPoint& InvPoint) const;
+
+	UFUNCTION(BlueprintCallable)
+	FHInventoryPoint IndexToInventoryPoint(int32 Index) const;
 
 	UFUNCTION()
-	bool GetItemIndices(const UHLocalInventoryEntry* LocalEntry, TArray<int32>& OutIndices) const;
+	bool IsPointInBounds(const FHInventoryPoint& InPoint) const;
 
 	UFUNCTION()
-	bool RefreshLocalEntry(UHLocalInventoryEntry* LocalEntry, bool& bOutPositionChanged);
+	bool IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsRoomAvailableAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const;
+
+	UFUNCTION(BlueprintCallable)
+	bool GetBlockingItems(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry, TArray<UHLocalGridEntry*>& OutBlockingItems) const;
+
+	//Returns itemref if there is single blocking item. Otherwise return null. Returns null if multiple items blocking
+	UFUNCTION(BlueprintCallable)
+	UHLocalGridEntry* IsSingleBlockingItemAtPoint(const FHInventoryPoint& InPoint, UHLocalGridEntry* GridEntry) const;
 
 	UFUNCTION()
-	UHLocalInventoryEntry* FindItemByID(int32 ItemID);
+	bool GetCurrentInventoryPoints(const UHLocalGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const;
+
+	UFUNCTION()
+	bool GetCurrentItemIndices(const UHLocalGridEntry* GridEntry, TArray<int32>& OutIndices) const;
+
+	UFUNCTION()
+	bool RefreshLocalEntry(UHLocalGridEntry* LocalEntry, bool& bOutPositionChanged);
+
+	UFUNCTION()
+	UHLocalGridEntry* FindItemByID(int32 ItemID);
+
+	UFUNCTION()
+	UHLocalGridEntry* GetItemAtPoint(const FHInventoryPoint& InPoint);
+
+	UFUNCTION()
+	UHLocalGridEntry* GetItemAtIndex(int32 Index);
 
 	UFUNCTION()
 	bool FindServerEntryByID(int32 ItemID, FHInventoryEntry& OutEntry);
@@ -204,20 +238,26 @@ private:
 	FHInventoryList MasterList;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalInventoryGridArray;
+	TArray<TObjectPtr<UHLocalGridEntry>> LocalGridArray;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalInventoryGridAccelerationArray;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UHLocalGridEntry>> LocalPendingItemsToMove;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UHLocalInventoryEntry>> LocalItemsToMove;
+	/*UPROPERTY()
+	TArray<TObjectPtr<UHLocalGridEntry>> LocalInventoryGridAccelerationArray;*/
 
-	UPROPERTY()
+	/*UPROPERTY()
 	int32 InventoryHeight;
 
 	UPROPERTY()
-	int32 InventoryWidth;
+	int32 InventoryWidth;*/
+
+	UPROPERTY()
+	FHInventoryPoint InventorySize;
 
 	UPROPERTY()
 	bool bIsDirty;
+
+	UPROPERTY()
+	bool bGridInitialized;
 };

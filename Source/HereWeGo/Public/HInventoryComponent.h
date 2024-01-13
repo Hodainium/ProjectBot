@@ -10,7 +10,8 @@
 #include "HInventoryComponent.generated.h"
 
 
-class UHLocalInventoryEntry;
+class UHGridInventoryComponent;
+class UHLocalGridEntry;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;
@@ -38,12 +39,77 @@ struct FHInventoryChangeMessage
 	int32 Delta = 0;
 };
 
+//USTRUCT(BlueprintType)
+//struct FHInventorySize
+//{
+//	GENERATED_BODY()
+//
+//	FHInventorySize()
+//	{
+//		SizeX = MAX_uint8;
+//		SizeY = MAX_uint8;
+//	}
+//
+//	UPROPERTY(BlueprintReadOnly)
+//	uint8 SizeX;
+//
+//	UPROPERTY(BlueprintReadOnly)
+//	uint8 SizeY;
+//
+//	bool IsValid()
+//	{
+//		return !(SizeX == MAX_uint8 || SizeY == MAX_uint8);
+//	}
+//};
+
+USTRUCT(BlueprintType)
+struct FHInventoryPoint
+{
+	GENERATED_BODY()
+
+	FHInventoryPoint()
+	{
+		X = MAX_uint8;
+		Y = MAX_uint8;
+	}
+
+	FHInventoryPoint(int32 InX, int32 InY) : X(InX), Y(InY)
+	{}
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 X;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 Y;
+
+	bool operator==(const FHInventoryPoint& Other) const
+	{
+		return Equals(Other);
+	}
+
+	bool operator!=(const FHInventoryPoint& Other) const
+	{
+		return !Equals(Other);
+	}
+
+	bool Equals (const FHInventoryPoint& Other) const
+	{
+		return (X == Other.X && Y == Other.Y);
+	}
+
+public:
+	bool IsValid() const
+	{
+		return !(X == MAX_uint8 || Y == MAX_uint8);
+	}
+};
+
 USTRUCT(BlueprintType)
 struct FHInventoryEntry : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 
-	FHInventoryEntry(): TopLeftTileIndex()
+	FHInventoryEntry(): TopLeftTilePoint()
 	{
 	}
 
@@ -52,14 +118,15 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
-	friend UHLocalInventoryEntry;
+	friend UHGridInventoryComponent;
+	friend UHLocalGridEntry;
 
 private:
 	UPROPERTY()
 	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
 
 	UPROPERTY()
-	FIntPoint TopLeftTileIndex;
+	FHInventoryPoint TopLeftTilePoint;
 
 	UPROPERTY()
 	bool IsRotated = false;
