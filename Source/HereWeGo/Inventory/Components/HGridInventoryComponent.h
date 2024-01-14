@@ -150,53 +150,63 @@ private:
 	void FindNextBestSpot();
 
 	void UpdateProjectionGrid(UHLocalGridEntry* EntryToMove);
-	void RemoveProjectionFromGrid(UHLocalGridEntry* EntryToRemove);
+	
 
 #pragma region Fast array handlers
 
 	//Handles fast array events. Handles management between local items, entries, and the grid
 
-	//PreReplicatedRemove
+	//Gets called from StructEntry's PreReplicatedRemove
 
 	UFUNCTION()
 	void HandlePreRemove(FHInventoryEntry& Entry);
 	
 
-	//PostReplicatedAdd
+	//Gets called from StructEntry's PostReplicatedAdd
 
 	UFUNCTION()
 	void HandlePostAdd(FHInventoryEntry& EntryToAdd);
 
-	//PostReplicatedChange
+	//Gets called from StructEntry's PostReplicatedChange
 
 	UFUNCTION()
 	void HandlePostChange(FHInventoryEntry& Entry);
 
-	//PostReplicatedReceive
+	//Gets called from StructEntry's PostReplicatedReceive
 
 	UFUNCTION()
 	void UpdatePendingEntryPositionsGrid();
-	void AddProjectionToGrid(UHLocalGridEntry* EntryToAdd);
+
+	//Removes specified item from grid using the entry's set dimensions and point
+	//Skips indices that return a different item.
+	//Returns false if item has invalid location, returns true otherwise
+	bool RemoveItemFromGrid(UHLocalGridEntry* EntryToRemove);
+
+	//Adds specified item to grid using the entry's set dimensions and point
+	//Skips indices that return a different item.
+	//Returns false if item has invalid location, returns true otherwise
+	bool AddItemToGrid(UHLocalGridEntry* EntryToAdd);
+
 	//////////////////////////////////////////////////////////////
 	///
 #pragma endregion Fast array handlers
 
-#pragma region Fast array functions
-
+	//Gets struct item from StructList via id and returns its pointdata
+	//Returns false if not found
 	UFUNCTION()
-	bool GetEntryForItemID(int32 ItemID, FHInventoryEntry& OutEntry);
+	bool GetEntrySlotPointFromID(int32 ItemID, FHInventoryPoint& OutPoint);
 
-	UFUNCTION()
-	bool GetSlotPointForItemID(int32 ItemID, FHInventoryPoint& OutPoint);
+	//In case grid is dirty while trying to access. Is this even possible to happen?
+	/*UFUNCTION()
+	void ForcePendingGridUpdate();*/
 
-#pragma endregion Fast array functions
-
-	UFUNCTION()
-	void ForcePendingGridUpdate();
-
+	//Validates that invPoint is in bounds and valid then returns index for current inventory size
+	//If invalid returns INDEX_NONE
 	UFUNCTION(BlueprintCallable)
 	int32 InventoryPointToIndex(const FHInventoryPoint& InvPoint) const;
 
+	//Converts index to inventoryPoint based on current inventory size
+	//Checks if index is invalid or out of range for gridArray if so returns empty InvPoint
 	UFUNCTION(BlueprintCallable)
 	FHInventoryPoint IndexToInventoryPoint(int32 Index) const;
 
@@ -267,6 +277,16 @@ private:
 	UFUNCTION()
 	UHLocalGridEntry* GetItemAtIndex(int32 Index) const;
 
+	//Sets item at specified index. Validates index before using. Returns false if invalid index
+	UFUNCTION()
+	bool SetItemAtIndex(int32 Index, UHLocalGridEntry* Entry);
+
+	//OnRep function for inventory size. Unimplemented right now but should resize grid and reposition items
+	//Will get called in SP as well. Should resize grid array and reorganize items here
+	//Will need to eventually change positions of struct vars if on server or maybe server should have separate function
+	UFUNCTION()
+	void OnRep_InventorySize();
+
 private:
 
 	UPROPERTY(Replicated)
@@ -283,11 +303,12 @@ private:
 	//This will be overlaid on top of a constructed grid. The plan is to send these to server, server responds with same key and confirms it or not.
 	//May return a correction rather than just outright denying. So user will be able to predict in case server sends an item in the occupying slot.
 	//Server always overrides predicted items and sends to "Next best slot" if no next slot is available we drop item.
-	//Will that be a another prediction or linked to awaiting prediction key?
+	//Will that be another prediction or linked to awaiting prediction key?
 	UPROPERTY(Transient)
 	TArray<FHInventoryOperation> PredictedOperations;
 
-	UPROPERTY()
+	//Current inventory size. Will be replicated
+	UPROPERTY(Replicated, ReplicatedUsing="OnRep_InventorySize")
 	FHInventoryPoint InventorySize;
 
 	UPROPERTY()

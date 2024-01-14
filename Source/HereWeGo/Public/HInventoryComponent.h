@@ -98,6 +98,11 @@ struct FHInventoryPoint
 	}
 
 public:
+	FString ToString() const
+	{
+		return TEXT("({X},{Y})", X, Y);
+	}
+
 	bool IsValid() const
 	{
 		return !(X == MAX_uint8 || Y == MAX_uint8);

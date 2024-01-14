@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "HGameplayTagStackContainer.h"
+#include "HInventoryComponent.h"
 #include "UObject/NoExportTypes.h"
 #include "HInventoryItemInstance.generated.h"
 

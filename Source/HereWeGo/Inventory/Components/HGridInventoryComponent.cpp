@@ -98,72 +98,81 @@ void UHGridInventoryComponent::InitializedLocalGrid()
 
 }
 
-void UHGridInventoryComponent::AddProjectionToGrid(UHLocalGridEntry* EntryToAdd) //todo not done
+bool UHGridInventoryComponent::RemoveItemFromGrid(UHLocalGridEntry* EntryToRemove)
 {
-	TArray<int32> ItemIndicesToAdd;
-	GetCurrentItemIndices(EntryToAdd, ItemIndicesToAdd);
-	for (int32 Index : ItemIndicesToAdd)
+	bIsDirty = true;
+	TArray<int32> ItemIndicesToRemove;
+
+	if (GetCurrentItemIndices(EntryToRemove, ItemIndicesToRemove))
 	{
-		if (LocalGridArray[Index] != nullptr && LocalGridArray[Index] != EntryToAdd)
+		for (int32 Index : ItemIndicesToRemove)
 		{
-			//ResolveGridConflict(LocalGridArray[Index]);
-			UE_LOGFMT(LogHGame, Error, "There is a conflict in position {x} between {item1} and {item2}. Breaking out this shouldnt happen", Index, LocalGridArray[Index], EntryToAdd);
-			break;
+			UHLocalGridEntry* OccupyingEntry = GetItemAtIndex(Index);
+			if (OccupyingEntry == nullptr || OccupyingEntry == EntryToRemove)
+			{
+				SetItemAtIndex(Index, nullptr);
+			}
+			else
+			{
+				UE_LOGFMT(LogHGame, Error, "While deleting an item from grid one of its indices had a different item at {index}", Index);
+			}
 		}
 
-		LocalGridArray[Index] = EntryToAdd;
-	}
-}
-
-bool UHGridInventoryComponent::GetEntryForItemID(int32 ItemID, FHInventoryEntry& OutEntry)
-{
-	FHInventoryEntry Found = FHInventoryEntry();
-
-	for (FHInventoryEntry& Entry : MasterList)
-	{
-		if (Entry.ReplicationID == ItemID)
-		{
-			OutEntry = Entry;
-			return true;
-		}
+		return true;
 	}
 
 	return false;
 }
 
-bool UHGridInventoryComponent::GetSlotPointForItemID(int32 ItemID, FHInventoryPoint& OutPoint)
+bool UHGridInventoryComponent::AddItemToGrid(UHLocalGridEntry* EntryToAdd) //todo not done
 {
-	FHInventoryEntry Entry = FHInventoryEntry();
-	if(GetEntryForItemID(ItemID, Entry))
+	TArray<int32> ItemIndicesToAdd;
+
+	if(GetCurrentItemIndices(EntryToAdd, ItemIndicesToAdd))
+	{
+		for (int32 Index : ItemIndicesToAdd)
+		{
+			UHLocalGridEntry* ObjectAtIndex = GetItemAtIndex(Index);
+
+			if (ObjectAtIndex != nullptr && ObjectAtIndex != EntryToAdd)
+			{
+				UE_LOGFMT(LogHGame, Error, "There is a conflict in position {x} between {item1} and {item2}. Breaking out this shouldnt happen", Index, LocalGridArray[Index], EntryToAdd);
+				break;
+			}
+
+			SetItemAtIndex(Index, EntryToAdd);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool UHGridInventoryComponent::GetEntrySlotPointFromID(int32 ItemID, FHInventoryPoint& OutPoint)
+{
+	FHInventoryEntry Entry;
+
+	if(FindStructEntryByID(ItemID, Entry))
 	{
 		OutPoint = Entry.TopLeftTilePoint;
-		return false;
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
-void UHGridInventoryComponent::ForcePendingGridUpdate()
-{
-	UE_LOGFMT(LogHGame, Warning, "Forcing early grid update");
-	UpdatePendingEntryPositionsGrid();
-}
-
-void UHGridInventoryComponent::RemoveProjectionFromGrid(UHLocalGridEntry* EntryToRemove)
-{
-	bIsDirty = true;
-	TArray<int32> ItemIndicesToRemove;
-	GetCurrentItemIndices(EntryToRemove, ItemIndicesToRemove);
-	for (int32 Index : ItemIndicesToRemove)
-	{
-		LocalGridArray[Index] = nullptr;
-	}
-}
+//void UHGridInventoryComponent::ForcePendingGridUpdate()
+//{
+//	UE_LOGFMT(LogHGame, Warning, "Forcing early grid update");
+//	UpdatePendingEntryPositionsGrid();
+//}
 
 void UHGridInventoryComponent::UpdateProjectionGrid(UHLocalGridEntry* EntryToMove)
 {
-	RemoveProjectionFromGrid(EntryToMove);
-	AddProjectionToGrid(EntryToMove);
+	RemoveItemFromGrid(EntryToMove);
+	AddItemToGrid(EntryToMove);
 	
 }
 
@@ -171,12 +180,12 @@ void UHGridInventoryComponent::UpdatePendingEntryPositionsGrid()
 {
 	for (UHLocalGridEntry* Entry : LocalPendingItemsToMove)
 	{
-		RemoveProjectionFromGrid(Entry);
+		RemoveItemFromGrid(Entry);
 	}
 
 	for (UHLocalGridEntry* Entry : LocalPendingItemsToMove)
 	{
-		AddProjectionToGrid(Entry);
+		AddItemToGrid(Entry);
 	}
 
 	LocalPendingItemsToMove.Reset();
@@ -210,8 +219,7 @@ void UHGridInventoryComponent::HandlePreRemove(FHInventoryEntry& Entry)
 
 	if (EntryToRemove)
 	{
-		RemoveProjectionFromGrid(EntryToRemove);
-		LocalInventoryGridAccelerationArray.Remove(EntryToRemove);
+		RemoveItemFromGrid(EntryToRemove);
 	}
 	else
 	{
@@ -225,7 +233,6 @@ void UHGridInventoryComponent::HandlePostAdd(FHInventoryEntry& EntryToAdd)
 
 	UHLocalGridEntry* NewLocalEntry = NewObject<UHLocalGridEntry>();
 	NewLocalEntry->Initialize(EntryToAdd);
-	//LocalInventoryGridAccelerationArray.Add(NewLocalEntry);
 	LocalPendingItemsToMove.AddUnique(NewLocalEntry);
 }
 
@@ -261,6 +268,7 @@ int32 UHGridInventoryComponent::InventoryPointToIndex(const FHInventoryPoint& In
 	}
 	else
 	{
+		UE_LOGFMT(LogHGame, Error, "Could not convert index for point {point}", InPoint.ToString());
 		return INDEX_NONE;
 	}
 	
@@ -268,12 +276,13 @@ int32 UHGridInventoryComponent::InventoryPointToIndex(const FHInventoryPoint& In
 
 FHInventoryPoint UHGridInventoryComponent::IndexToInventoryPoint(int32 Index) const
 {
-	if(Index != INDEX_NONE)
+	if(Index != INDEX_NONE && Index < LocalGridArray.Num())
 	{
 		return FHInventoryPoint{ Index % InventorySize.X, Index / InventorySize.X };
 	}
 	else
 	{
+		UE_LOGFMT(LogHGame, Error, "Could not convert index: {idx}, with inv size: {size}", Index, InventorySize.ToString());
 		return FHInventoryPoint{};
 	}
 	
@@ -488,5 +497,21 @@ UHLocalGridEntry* UHGridInventoryComponent::GetItemAtIndex(int32 Index) const
 	}
 
 	return nullptr;
+}
+
+bool UHGridInventoryComponent::SetItemAtIndex(int32 Index, UHLocalGridEntry* Entry)
+{
+	if (Index >= 0 && Index < LocalGridArray.Num())
+	{
+		LocalGridArray[Index] = Entry;
+		return true;
+	}
+
+	return false;
+}
+
+void UHGridInventoryComponent::OnRep_InventorySize()
+{
+	UE_LOGFMT(LogHGame, Warning, "OnRep: Inventory Size has changed. Should have logic here");
 }
 
