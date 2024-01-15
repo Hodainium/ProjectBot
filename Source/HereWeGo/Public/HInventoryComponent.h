@@ -10,8 +10,9 @@
 #include "HInventoryComponent.generated.h"
 
 
+class UHGridArray;
 class UHGridInventoryComponent;
-class UHLocalGridEntry;
+class UHGridEntry;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;
@@ -124,7 +125,8 @@ private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
 	friend UHGridInventoryComponent;
-	friend UHLocalGridEntry;
+	friend UHGridEntry;
+	friend UHGridArray;
 
 private:
 	UPROPERTY()
