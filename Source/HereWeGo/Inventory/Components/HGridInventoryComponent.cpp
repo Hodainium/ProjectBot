@@ -19,6 +19,11 @@ UHGridInventoryComponent::UHGridInventoryComponent()
 	// ...
 }
 
+void UHGridInventoryComponent::HandleMoveRequest()
+{
+	//Somehow get data in here that represents a desired move
+}
+
 // Called when the game starts
 void UHGridInventoryComponent::BeginPlay()
 {
@@ -39,13 +44,6 @@ void UHGridInventoryComponent::OnRep_InventorySize()
 	UE_LOGFMT(LogHGame, Warning, "OnRep: Inventory Size has changed. Should have logic here");
 }
 
-bool UHGridInventoryComponent::TryAddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
-{
-	
-
-	
-}
-
 bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount)
 {
 	//Here we need to somehow send itemDef to grid and have it check if there's room,
@@ -61,28 +59,44 @@ bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemI
 	{
 		if (LocalGridArray->FindNextSlotPointForInstance(ItemInstance, Point))
 		{
-			////Add item to grid while making a predictive or fentry
-			//LocalGridArray->TryAddItemAtPoint(Point, ItemInstance, Count);
-
-			//Imagine this is TryAddItemToSlot(). We're trying to figure out where it should go
 			UHGridItem* GridItemAtPoint = LocalGridArray->GetItemAtPoint(Point);
 
 			if(GridItemAtPoint)
 			{
 				if(GridItemAtPoint->CanStackWith(ItemInstance))
 				{
-					RemainingStacks = GridItemAtPoint->TryToAddInstanceStack(ItemInstance, RemainingStacks);
-					continue;
+					int32 StacksAdded = GridItemAtPoint->TryToAddInstanceStack(ItemInstance, RemainingStacks);
+
+					if(StacksAdded > 0)
+					{
+						if(InventoryList.MarkItemIDDirty(GridItemAtPoint->LinkedRepID))
+						{
+							RemainingStacks -= StacksAdded;
+						}
+					}
 				}
 			}
-
-			if(UHGridItem* NewEntry = LocalGridArray->AddItemInstanceToGridAtPoint(Point, ItemInstance, RemainingStacks))
+			else
 			{
-				
-			}
-			
+				int32 MaxStackCanCreate = ItemInstance->GetMaxStack();
+				int32 StacksToCreate = RemainingStacks;
 
-			/////////
+				if(MaxStackCanCreate < RemainingStacks)
+				{
+					StacksToCreate = MaxStackCanCreate;
+				}
+
+				FHInventoryEntry NewInventoryEntry = FHInventoryEntry(ItemInstance, Point, false, StacksToCreate);
+				InventoryList.AddEntry(NewInventoryEntry);
+
+				UHGridItem* NewItem = NewObject<UHGridItem>();
+				NewItem->LoadEntryData(NewInventoryEntry);
+
+				LocalGridArray->AddItemToGrid(NewItem);
+
+				RemainingStacks -= StacksToCreate;
+			}
+			return true;
 		}
 		else
 		{
@@ -92,179 +106,5 @@ bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemI
 
 	
 	
-}
-
-UHGridInventoryComponent::UHGridInventoryComponent(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-	, InventoryList(this)
-{
-	SetIsReplicatedByDefault(true);
-}
-
-bool UHGridInventoryComponent::CanAddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
-{
-	//We can do logic here for item limits and such
-
-	LocalGridArray.
-
-	return true;
-}
-
-bool UHGridInventoryComponent::CanStackItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
-{
-	/*if(ItemDef->GetCanItemBeStacked)
-	{
-		for (FHInventoryEntry& Entry : InventoryList.Entries)
-		{
-			InventoryGrid[0] = nullptr;
-		}
-	}*/
-
-	return false;
-}
-
-UHInventoryItemInstance* UHGridInventoryComponent::AddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
-{
-	UHInventoryItemInstance* Result = nullptr;
-	if (ItemDef != nullptr)
-	{
-		Result = InventoryList.AddEntry(ItemDef, StackCount);
-
-		if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && Result)
-		{
-			AddReplicatedSubObject(Result);
-		}
-	}
-	return Result;
-}
-
-void UHGridInventoryComponent::AddItemInstance(UHInventoryItemInstance* ItemInstance)
-{
-	InventoryList.AddEntry(ItemInstance);
-	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && ItemInstance)
-	{
-		AddReplicatedSubObject(ItemInstance);
-	}
-}
-
-void UHGridInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, InventoryList);
-}
-
-void UHGridInventoryComponent::RemoveItemInstance(UHInventoryItemInstance* ItemInstance)
-{
-	InventoryList.RemoveEntry(ItemInstance);
-
-	if (ItemInstance && IsUsingRegisteredSubObjectList())
-	{
-		RemoveReplicatedSubObject(ItemInstance);
-	}
-}
-
-TArray<UHInventoryItemInstance*> UHGridInventoryComponent::GetAllItems() const
-{
-	return InventoryList.GetAllItems();
-}
-
-UHInventoryItemInstance* UHGridInventoryComponent::FindFirstItemStackByDefinition(
-	UHItemDefinition* ItemDef) const
-{
-	for (const FHInventoryEntry& Entry : InventoryList.Entries)
-	{
-		UHInventoryItemInstance* Instance = Entry.Instance;
-
-		if (IsValid(Instance))
-		{
-			if (Instance->GetItemDefinition() == ItemDef)
-			{
-				return Instance;
-			}
-		}
-	}
-
-	return nullptr;
-}
-
-int32 UHGridInventoryComponent::GetTotalItemCountByDefinition(UHItemDefinition* ItemDef) const
-{
-	int32 TotalCount = 0;
-	for (const FHInventoryEntry& Entry : InventoryList.Entries)
-	{
-		UHInventoryItemInstance* Instance = Entry.Instance;
-
-		if (IsValid(Instance))
-		{
-			if (Instance->GetItemDefinition() == ItemDef)
-			{
-				TotalCount++;
-			}
-		}
-	}
-
-	return TotalCount;
-}
-
-bool UHGridInventoryComponent::ConsumeItemsByDefinition(UHItemDefinition* ItemDef, int32 NumToConsume)
-{
-	AActor* OwningActor = GetOwner();
-	if (!OwningActor || !OwningActor->HasAuthority())
-	{
-		return false;
-	}
-
-	int32 TotalConsumed = 0;
-	while (TotalConsumed < NumToConsume)
-	{
-		if (UHInventoryItemInstance* Instance = UHGridInventoryComponent::FindFirstItemStackByDefinition(ItemDef))
-		{
-			InventoryList.RemoveEntry(Instance);
-			TotalConsumed++;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	return TotalConsumed == NumToConsume;
-}
-
-bool UHGridInventoryComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-
-	for (FHInventoryEntry& Entry : InventoryList.Entries)
-	{
-		UHInventoryItemInstance* Instance = Entry.Instance;
-
-		if (Instance && IsValid(Instance))
-		{
-			WroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
-		}
-	}
-
-	return WroteSomething;
-}
-
-void UHGridInventoryComponent::ReadyForReplication()
-{
-	Super::ReadyForReplication();
-
-	// Register existing UHInventoryItemInstance
-	if (IsUsingRegisteredSubObjectList())
-	{
-		for (const FHInventoryEntry& Entry : InventoryList.Entries)
-		{
-			UHInventoryItemInstance* Instance = Entry.Instance;
-
-			if (IsValid(Instance))
-			{
-				AddReplicatedSubObject(Instance);
-			}
-		}
-	}
 }
 

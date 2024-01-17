@@ -86,6 +86,19 @@ void FHInventoryList::RemoveEntry(UHInventoryItemInstance* Instance)
 	}
 }
 
+bool FHInventoryList::MarkItemIDDirty(int32 ItemID)
+{
+	for (FHInventoryEntry& Entry :Entries)
+	{
+		if(Entry.ReplicationID == ItemID)
+		{
+			MarkItemDirty(Entry);
+			return true;
+		}
+	}
+	return false;
+}
+
 void FHInventoryList::BroadcastChangeMessage(FHInventoryEntry& Entry, int32 OldCount, int32 NewCount)
 {
 	FHInventoryChangeMessage Message;
@@ -136,6 +149,12 @@ void FHInventoryList::AddEntry(UHInventoryItemInstance* Instance)
 	unimplemented();
 }
 
+void FHInventoryList::AddEntry(FHInventoryEntry& InEntry)
+{
+	Entries.Add(InEntry);
+	MarkItemDirty(InEntry);
+}
+
 UHInventoryComponent::UHInventoryComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, InventoryList(this)
@@ -152,9 +171,9 @@ bool UHInventoryComponent::CanAddItemDefinition(UHItemDefinition* ItemDef, int32
 
 bool UHInventoryComponent::CanStackItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
 {
-	/*if(ItemDef->IsStackable)
+	/*if(ItemDef->CanBeStacked)
 	{
-		for (FHInventoryEntry& Entry : InventoryList.Entries)
+		for (FHInventoryEntry& Entry : InventoryArray.Entries)
 		{
 			InventoryGrid[0] = nullptr;
 		}

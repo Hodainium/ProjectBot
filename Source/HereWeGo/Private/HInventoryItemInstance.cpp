@@ -60,7 +60,7 @@ int32 UHInventoryItemInstance::GetMaxStack() const
 	return INDEX_NONE;
 }
 
-bool UHInventoryItemInstance::IsStackable()
+bool UHInventoryItemInstance::GetCanBeStacked()
 {
 	return ItemDefinition->CanBeStacked;
 }

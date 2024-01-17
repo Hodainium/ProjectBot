@@ -7,6 +7,7 @@
 #include "Net/Serialization/FastArraySerializer.h"
 #include "NativeGameplayTags.h"
 #include "HereWeGo/Inventory/Components/HGridInventoryComponent.h"
+#include "HereWeGo/Inventory/Grid/HInventoryGrid.h"
 #include "HInventoryComponent.generated.h"
 
 
@@ -120,8 +121,25 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 
-	FHInventoryEntry(): TopLeftTilePoint()
+	FHInventoryEntry()
 	{
+	}
+
+	FHInventoryEntry(UHInventoryItemInstance* InInstance, FHInventoryPoint InPoint, bool bIsRotated, int32 InStackCount) : Instance(InInstance),
+		TopLeftTilePoint(InPoint), IsRotated(bIsRotated), StackCount(InStackCount)
+	{
+	}
+
+	FHInventoryEntry(UHGridItem* Item)
+	{
+		if(Item)
+		{
+			Instance = Item->Instance;
+			TopLeftTilePoint = Item->TopLeftTilePoint;
+			IsRotated = Item->IsRotated;
+			StackCount = Item->StackCount;
+		}
+		
 	}
 
 	FString GetDebugString() const;
@@ -185,7 +203,11 @@ public:
 	UHInventoryItemInstance* AddEntry(UHItemDefinition* ItemDef, int32 StackCount);
 	void AddEntry(UHInventoryItemInstance* Instance);
 
+	void AddEntry(FHInventoryEntry& InEntry);
+
 	void RemoveEntry(UHInventoryItemInstance* Instance);
+
+	bool MarkItemIDDirty(int32 ItemID);
 	
 
 private:

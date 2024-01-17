@@ -22,6 +22,11 @@ FHInventoryPoint UHGridItem::GetCurrentDimensions() const
 	return (IsRotated ? FHInventoryPoint(UnrotatedItemDimensions.Y, UnrotatedItemDimensions.X) : UnrotatedItemDimensions);
 }
 
+void UHGridItem::SetReplicatedID(int32 RepID)
+{
+	LinkedRepID = RepID;
+}
+
 void UHGridItem::LoadEntryData(const FHInventoryEntry& Entry)
 {
 	Instance = Entry.Instance;
@@ -48,6 +53,15 @@ void UHGridItem::UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionCha
 	IsRotated = Entry.IsRotated;
 	int32 StackCount = Entry.StackCount;
 	int32 LinkedRepID = Entry.ReplicationID;
+}
+
+void UHGridItem::InitializeData(UHInventoryItemInstance* ItemInstance, FHInventoryPoint Point, bool bIsRotated,
+	int32 InStackCount)
+{
+	Instance = ItemInstance;
+	TopLeftTilePoint = Point;
+	IsRotated = bIsRotated;
+	StackCount = InStackCount;
 }
 
 int32 UHGridItem::GetMaxStackCount()
@@ -84,17 +98,17 @@ bool UHGridItem::CanStackWith(UHInventoryItemInstance* ItemInstance)
 }
 
 //Attempts to add to stack if instance matches.
-//Returns amount remaining that was not added to stack. If adds all then returns 0.
-//If error than returns stackcountstoadd back
+//Returns amount added
+//Returns 0 if error
 int32 UHGridItem::TryToAddInstanceStack(UHInventoryItemInstance* IncomingInstance, int32 StackCountToAdd)
 {
 	if(CanStackWith(IncomingInstance))
 	{
 		int32 StacksAdded = AddStackCountSafe(StackCountToAdd);
-		return StackCountToAdd - StacksAdded;
+		return StacksAdded;
 	}
 
-	return StackCountToAdd;
+	return 0;
 }
 
 bool UHGridArray::RemoveItemFromGrid(UHGridItem* EntryToRemove)
@@ -290,7 +304,7 @@ bool UHGridArray::IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHGridI
 
 }
 
-bool UHGridArray::IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InPoint, FHInventoryPoint& InSize) const
+bool UHGridArray::IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InPoint, const FHInventoryPoint& InSize) const
 {
 	if (InSize.IsValid() && IsPointInBoundsAndValid(InPoint))
 	{
@@ -345,7 +359,7 @@ bool UHGridArray::FindNextSlotPointForInstance(UHInventoryItemInstance* Incoming
 		}
 		else
 		{
-			if (IsFreeRoomAvailableAtPointForEntry(IndexToInventoryPoint(i), Entry))
+			if (IsFreeRoomAvailableAtPointWithSize(IndexToInventoryPoint(i), IncomingInstance->GetItemDimensions()))
 			{
 				OutPoint = IndexToInventoryPoint(i);
 				return true;
@@ -394,7 +408,15 @@ bool UHGridArray::FindNextBestSlotPoint(UHGridItem* Entry, FHInventoryPoint& Out
 UHGridItem* UHGridArray::AddItemInstanceToGridAtPoint(const FHInventoryPoint& InPoint,
 	UHInventoryItemInstance* ItemInstance, int32 StackCount)
 {
-
+	if(IsFreeRoomAvailableAtPointWithSize(InPoint, ItemInstance->GetItemDimensions()))
+	{
+		UHGridItem* NewItem = NewObject<UHGridItem>();
+		NewItem->InitializeData(ItemInstance, InPoint, false, StackCount);
+		if(AddItemToGrid(NewItem))
+		{
+			
+		}
+	}
 }
 
 bool UHGridArray::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHGridItem* GridEntry,

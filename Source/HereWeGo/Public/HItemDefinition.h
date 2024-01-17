@@ -58,7 +58,7 @@ public:
 
 	UHItemDefinition()
 		: ItemQuality(0), Price(0)
-		  , IsStackable(false), MaxStack(1)
+		  , CanBeStacked(false), MaxStack(1)
 		  , MaxDurability(0), InventorySizeX(1)
 		  , InventorySizeY(1)
 		  , Weight(0), MaxLevel(1)
@@ -96,7 +96,7 @@ public:
 
 	/** Can this item stack? */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
-	bool IsStackable;
+	bool CanBeStacked;
 
 	/** Maximum number of instances that can be in inventory at once, <= 0 means infinite */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Max)

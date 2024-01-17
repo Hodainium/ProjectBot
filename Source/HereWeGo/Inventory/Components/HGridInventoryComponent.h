@@ -26,25 +26,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool CanStackItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
 
+	UFUNCTION(BlueprintCallable)
+	void HandleMoveRequest();
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	UHInventoryItemInstance* AddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
-	void AddItemInstance(UHInventoryItemInstance* ItemInstance);
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
-	void RemoveItemInstance(UHInventoryItemInstance* ItemInstance);
-
-	UFUNCTION(BlueprintCallable, Category = Inventory, BlueprintPure = false)
-	TArray<UHInventoryItemInstance*> GetAllItems() const;
-
-	UFUNCTION(BlueprintCallable, Category = Inventory, BlueprintPure)
-	UHInventoryItemInstance* FindFirstItemStackByDefinition(UHItemDefinition* ItemDef) const;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	int32 GetTotalItemCountByDefinition(UHItemDefinition* ItemDef) const;
-	bool ConsumeItemsByDefinition(UHItemDefinition* ItemDef, int32 NumToConsume);
 
 	//~UObject interface
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
@@ -61,6 +47,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Inventory Functions")
 	void SetInventorySize(int32 Width, int32 Height);
+
+	
 
 private:
 

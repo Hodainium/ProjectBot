@@ -54,7 +54,7 @@ public:
 	int32 GetMaxStack() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	bool IsStackable();
+	bool GetCanBeStacked();
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const;

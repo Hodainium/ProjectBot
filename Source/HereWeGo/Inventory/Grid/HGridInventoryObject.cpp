@@ -4,3 +4,6 @@
 #include "HGridInventoryObject.h"
 
 
+bool UHGridInventoryObject::TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount)
+{
+}

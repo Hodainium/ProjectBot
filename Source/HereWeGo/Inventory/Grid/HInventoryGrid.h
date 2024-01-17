@@ -90,10 +90,15 @@ public:
 
 	FHInventoryPoint GetCurrentDimensions() const;
 
+	void SetReplicatedID(int32 RepID);
+
 	void LoadEntryData(const FHInventoryEntry& Entry);
 
 	//Updates data in object. Returns true if position changed
 	void UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionChanged);
+
+	//Updates data in object. Returns true if position changed
+	void InitializeData(UHInventoryItemInstance* ItemInstance, FHInventoryPoint Point, bool bIsRotated, int32 InStackCount);
 
 	int32 GetStackCount()
 	{
@@ -274,7 +279,7 @@ private:
 	bool FindNextSlotPointForInstance(UHInventoryItemInstance* IncomingInstance, FHInventoryPoint& OutPoint) const;
 
 	UFUNCTION()
-	bool IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InPoint, FHInventoryPoint& InSize) const;
+	bool IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InPoint, const FHInventoryPoint& InSize) const;
 
 	UFUNCTION()
 	bool GetIndicesForSizeAtPoint(const FHInventoryPoint& InPoint, const FHInventoryPoint& InSize, TArray<int32>& OutIndices) const;
