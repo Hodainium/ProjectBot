@@ -58,7 +58,7 @@ public:
 
 	UHItemDefinition()
 		: ItemQuality(0), Price(0)
-		  , IsStackable(false), MaxCount(1)
+		  , IsStackable(false), MaxStack(1)
 		  , MaxDurability(0), InventorySizeX(1)
 		  , InventorySizeY(1)
 		  , Weight(0), MaxLevel(1)
@@ -100,7 +100,7 @@ public:
 
 	/** Maximum number of instances that can be in inventory at once, <= 0 means infinite */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Max)
-	int32 MaxCount;
+	int32 MaxStack;
 
 	/** Maximum number of instances that can be in inventory at once, <= 0 means infinite */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Durability)
@@ -115,7 +115,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
 	float Weight;
 
-	/** Returns if the item is consumable (MaxCount <= 0)*/
+	/** Returns if the item is consumable (MaxStack <= 0)*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Max)
 	bool IsConsumable() const;
 

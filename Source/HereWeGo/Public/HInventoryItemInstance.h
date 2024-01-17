@@ -51,6 +51,15 @@ public:
 	UHItemDefinition* GetItemDefinition() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
+	int32 GetMaxStack() const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	bool IsStackable();
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	bool IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	FHInventoryPoint GetItemDimensions() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))

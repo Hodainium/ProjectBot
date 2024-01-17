@@ -12,7 +12,7 @@
 
 class UHGridArray;
 class UHGridInventoryComponent;
-class UHGridEntry;
+class UHGridItem;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;
@@ -108,6 +108,11 @@ public:
 	{
 		return !(X == MAX_uint8 || Y == MAX_uint8);
 	}
+
+	FHInventoryPoint operator+(const FHInventoryPoint& Other) const
+	{
+		return FHInventoryPoint(this->X + Other.X, this->Y + Other.Y);
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -125,8 +130,9 @@ private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
 	friend UHGridInventoryComponent;
-	friend UHGridEntry;
+	friend UHGridItem;
 	friend UHGridArray;
+	friend UHGridInventoryComponent;
 
 private:
 	UPROPERTY()
@@ -184,6 +190,7 @@ public:
 
 private:
 	friend UHInventoryComponent;
+	friend UHGridInventoryComponent;
 
 	void BroadcastChangeMessage(FHInventoryEntry& Entry, int32 OldCount, int32 NewCount);
 

@@ -71,7 +71,7 @@ const UHInventoryItemFragment* UHItemDefinition::FindFragmentByClass(
 
 bool UHItemDefinition::IsConsumable() const
 {
-	if (MaxCount <= 0)
+	if (MaxStack <= 0)
 	{
 		return true;
 	}

@@ -10,6 +10,9 @@
  * 
  */
 
+class UHGridInventoryObject;
+class UHGridInventoryComponent;
+
 USTRUCT()
 struct FHInventoryPredictionKey
 {
@@ -76,19 +79,78 @@ struct FHInventoryOperation
 //A UObject that wraps the InventoryEntry struct. Is instantiated locally
 //Needs to be initialized before inserting into Grid
 UCLASS(BlueprintType)
-class UHGridEntry : public UObject
+class UHGridItem : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UHGridEntry();
+	UHGridItem();
+
+	UHGridItem(UHInventoryItemInstance* InInstance);
 
 	FHInventoryPoint GetCurrentDimensions() const;
 
-	void Initialize(const FHInventoryEntry& Entry);
+	void LoadEntryData(const FHInventoryEntry& Entry);
 
 	//Updates data in object. Returns true if position changed
 	void UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionChanged);
+
+	int32 GetStackCount()
+	{
+		return StackCount;
+	}
+
+	void SetStackCount(int32 NewCount)
+	{
+		StackCount = NewCount;
+		//Broadcast a change here
+	}
+
+	//Adds stack to entry item. Is safe caps max and checks for neg.
+	//Returns amount succesfully added
+	int32 AddStackCountSafe(int32 CountToAdd)
+	{
+		if(CountToAdd < 1)
+		{
+			return 0;
+		}
+
+		int32 OldCount = StackCount;
+		int32 NewCount = StackCount + CountToAdd;
+		int32 MaxStack = GetMaxStackCount();
+
+		if (NewCount > MaxStack)
+		{
+			NewCount = MaxStack;
+			CountToAdd = NewCount - OldCount;
+		}
+
+		SetStackCount(NewCount);
+		return CountToAdd;
+	}
+
+	void DecrementStackCount(int32 CountToRemove)
+	{
+		int32 NewCount = StackCount - CountToRemove;
+
+		if(NewCount < 0)
+		{
+			NewCount = 0;
+		}
+
+		SetStackCount(NewCount);
+	}
+
+	int32 GetMaxStackCount();
+
+	UFUNCTION()
+	bool GetCanItemBeStacked();
+
+	UFUNCTION()
+	bool CanStackWith(UHGridItem* OtherEntry);
+	bool CanStackWith(UHInventoryItemInstance* ItemInstance);
+
+	int32 TryToAddInstanceStack(UHInventoryItemInstance* IncomingInstance, int32 StackCountToAdd);
 
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
@@ -117,10 +179,21 @@ class HEREWEGO_API UHGridArray : public UObject
 
 	UHGridArray();
 
+	friend UHGridInventoryComponent;
+	friend UHGridInventoryObject;
+
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Functions")
 	FHInventoryPoint GetInventorySize();
+
+	//Only returns true if no other items are blocking this point and data is valid
+	//Returns false if a single item is blocking or data is invalid
+	UFUNCTION(BlueprintCallable)
+	bool FindNextBestSlotPoint(UHGridItem* Entry, FHInventoryPoint& OutPoint) const;
+
+	UFUNCTION()
+	UHGridItem* AddItemInstanceToGridAtPoint(const FHInventoryPoint& InPoint, UHInventoryItemInstance* ItemInstance, int32 StackCount);
 
 private:
 #pragma region Fast array handlers
@@ -151,12 +224,12 @@ private:
 	//Removes specified item from grid using the entry's set dimensions and point
 	//Skips indices that return a different item.
 	//Returns false if item has invalid location, returns true otherwise
-	bool RemoveItemFromGrid(UHGridEntry* EntryToRemove);
+	bool RemoveItemFromGrid(UHGridItem* EntryToRemove);
 
 	//Adds specified item to grid using the entry's set dimensions and point
 	//Skips indices that return a different item.
 	//Returns false if item has invalid location, returns true otherwise
-	bool AddItemToGrid(UHGridEntry* EntryToAdd);
+	bool AddItemToGrid(UHGridItem* EntryToAdd);
 
 	//////////////////////////////////////////////////////////////
 	///
@@ -188,49 +261,60 @@ private:
 	//Returns true if item dimensions don't extend past inventorygrid boundaries
 	//Returns false if invalid data passed in or is past boundaries
 	UFUNCTION()
-	bool IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry) const;
+	bool IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHGridItem* GridEntry) const;
+
+	
 
 	//Only returns true if no other items are blocking this point and data is valid
 	//Returns false if a single item is blocking or data is invalid
 	UFUNCTION(BlueprintCallable)
-	bool IsFreeRoomAvailableAtPoint(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry) const;
+	bool IsFreeRoomAvailableAtPointForEntry(const FHInventoryPoint& InPoint, UHGridItem* GridEntry) const;
+
+	UFUNCTION()
+	bool FindNextSlotPointForInstance(UHInventoryItemInstance* IncomingInstance, FHInventoryPoint& OutPoint) const;
+
+	UFUNCTION()
+	bool IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InPoint, FHInventoryPoint& InSize) const;
+
+	UFUNCTION()
+	bool GetIndicesForSizeAtPoint(const FHInventoryPoint& InPoint, const FHInventoryPoint& InSize, TArray<int32>& OutIndices) const;
 
 	//Gets an array of unique blocking entries at specified point using item's current dimensions. Does not include itself in the array
 	//Returns false if input was invalid
 	UFUNCTION(BlueprintCallable)
-	bool GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry,
-		TArray<UHGridEntry*>& OutBlockingItems) const;
+	bool GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHGridItem* GridEntry,
+		TArray<UHGridItem*>& OutBlockingItems) const;
 
 	//Calls GetCurrentInventoryPointsAtPoint() with GridEntry's current location
 	//Returns false if invalid input provided
 	UFUNCTION()
-	bool GetCurrentInventoryPoints(const UHGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const;
+	bool GetCurrentInventoryPoints(const UHGridItem* GridEntry, TArray<FHInventoryPoint>& OutPoints) const;
 
 	//Get array of slotPoints that the item occupies at the specified location using it's currentDimensions. Validates input but does not validate output. Although all outputted indices should be valid
 	//Returns false if invalid input provided
 	UFUNCTION()
-	bool GetCurrentInventoryPointsAtPoint(const FHInventoryPoint& InPoint, const UHGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const;
+	bool GetCurrentInventoryPointsAtPoint(const FHInventoryPoint& InPoint, const UHGridItem* GridEntry, TArray<FHInventoryPoint>& OutPoints) const;
 
 	//Calls GetCurrentItemIndicesAtPoint() with GridEntry's current location
 	//Returns false if invalid input provided
 	UFUNCTION()
-	bool GetCurrentItemIndices(const UHGridEntry* GridEntry, TArray<int32>& OutIndices) const;
+	bool GetCurrentItemIndices(const UHGridItem* GridEntry, TArray<int32>& OutIndices) const;
 
 	//Get array of int indices that the item occupies at the specified location using it's currentDimensions. Validates input but does not validate output. Although all outputted indices should be valid
 	//Returns false if invalid input provided
 	UFUNCTION()
-	bool GetCurrentItemIndicesAtPoint(const FHInventoryPoint& InPoint, const UHGridEntry* GridEntry, TArray<int32>& OutIndices) const;
+	bool GetCurrentItemIndicesAtPoint(const FHInventoryPoint& InPoint, const UHGridItem* GridEntry, TArray<int32>& OutIndices) const;
 
 	//This function refreshes the data of LocalGridEntry with it's linkedRepID
 	//It returns true if item is found and refresh was succesful. Returns false otherwise.
 	//Also returns if position was changed via update
 	UFUNCTION()
-	bool RefreshLocalEntry(UHGridEntry* LocalEntry, bool& bOutPositionChanged);
+	bool RefreshLocalEntry(UHGridItem* LocalEntry, bool& bOutPositionChanged);
 
 	//Tries to find GridEntry with specified itemID. Returns false if it can't find it, true otherwise.
 	//This function uses an algorithm that skips indexes based on item size
 	UFUNCTION()
-	UHGridEntry* FindEntryInGridByIDSmart(const int32 ItemID);
+	UHGridItem* FindEntryInGridByIDSmart(const int32 ItemID);
 
 	//Tries to find FHInventoryEntry with specified itemID. Returns false if it can't find it, true otherwise
 	UFUNCTION()
@@ -238,24 +322,27 @@ private:
 
 	//Gets item pointer at specified point. Validates index before using. Returns nullptr if invalid index or no item found
 	UFUNCTION()
-	UHGridEntry* GetItemAtPoint(const FHInventoryPoint& InPoint);
+	UHGridItem* GetItemAtPoint(const FHInventoryPoint& InPoint);
 
 	//Gets item pointer at specified index. Validates index before using. Returns nullptr if invalid index or no item found
 	UFUNCTION()
-	UHGridEntry* GetItemAtIndex(int32 Index) const;
+	UHGridItem* GetItemAtIndex(int32 Index) const;
 
 	//Sets item at specified index. Validates index before using. Returns false if invalid index
 	UFUNCTION()
-	bool SetItemAtIndex(int32 Index, UHGridEntry* Entry);
+	bool SetItemAtIndex(int32 Index, UHGridItem* Entry);
+
+	UFUNCTION()
+	bool CanEntriesStack(UHGridItem* BaseEntry, UHGridItem* StackingEntry);
 
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<UHGridEntry>> LocalGridArray;
+	TArray<TObjectPtr<UHGridItem>> GridArray;
 
 	//Because we are working with fastarray we need to handle the order that the onrep functions are called.
 	//We cache PendingItemsToMove in the postadd and postchange functions and finally add them in the last called function postRep
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<UHGridEntry>> LocalPendingItemsToMove;
+	TArray<TObjectPtr<UHGridItem>> LocalPendingItemsToMove;
 
 	//This will be overlaid on top of a constructed grid. The plan is to send these to server, server responds with same key and confirms it or not.
 	//May return a correction rather than just outright denying. So user will be able to predict in case server sends an item in the occupying slot.
@@ -265,7 +352,7 @@ private:
 	TArray<FHInventoryOperation> PredictedOperations;
 
 	//Current inventory size. Will be replicated
-	UPROPERTY(Replicated, ReplicatedUsing = "OnRep_InventorySize")
+	UPROPERTY()
 	FHInventoryPoint InventorySize;
 
 	UPROPERTY()

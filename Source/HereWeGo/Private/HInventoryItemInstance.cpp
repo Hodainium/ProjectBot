@@ -7,6 +7,8 @@
 #include "HGameplayAbility.h"
 #include "HInventoryComponent.h"
 #include "HItemDefinition.h"
+#include "HLogChannels.h"
+#include "Logging/StructuredLog.h"
 #include "Net/UnrealNetwork.h"
 
 UHInventoryItemInstance::UHInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
@@ -46,6 +48,37 @@ bool UHInventoryItemInstance::HasStatTag(FGameplayTag Tag) const
 UHItemDefinition* UHInventoryItemInstance::GetItemDefinition() const
 {
 	return ItemDefinition;
+}
+
+int32 UHInventoryItemInstance::GetMaxStack() const
+{
+	if(ItemDefinition)
+	{
+		return ItemDefinition->MaxStack;
+	}
+
+	return INDEX_NONE;
+}
+
+bool UHInventoryItemInstance::IsStackable()
+{
+	return ItemDefinition->CanBeStacked;
+}
+
+bool UHInventoryItemInstance::IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const
+{
+	if (UHItemDefinition* IncomingItemDef = IncomingItem->GetItemDefinition())
+	{
+		if(ItemDefinition == IncomingItemDef)
+		{
+			UE_LOGFMT(LogHGame, Warning, "INVENTORY: Can stack item");
+			return true;
+		}
+	}
+
+	UE_LOGFMT(LogHGame, Warning, "INVENTORY: Cannot stack item");
+
+	return false;
 }
 
 FHInventoryPoint UHInventoryItemInstance::GetItemDimensions() const
