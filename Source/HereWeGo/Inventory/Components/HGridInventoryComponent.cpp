@@ -9,19 +9,26 @@
 #include "Logging/StructuredLog.h"
 #include "Net/UnrealNetwork.h"
 
-
-// Sets default values for this component's properties
-UHGridInventoryComponent::UHGridInventoryComponent()
+UHGridInventoryComponent::UHGridInventoryComponent(const FObjectInitializer& ObjectInitializer)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
-	// ...
 }
 
-void UHGridInventoryComponent::HandleMoveRequest()
+bool UHGridInventoryComponent::CanStackEntries(UHGridEntry* BaseItem, UHGridEntry* RequestingItem)
 {
-	//Somehow get data in here that represents a desired move
+	return BaseItem->CanStackWith(RequestingItem);
+}
+
+int32 UHGridInventoryComponent::StackEntries(UHGridEntry* BaseItem, UHGridEntry* RequestingItem)
+{
+	return LocalGridArray->TryToStackEntries(BaseItem, RequestingItem);
+}
+
+bool UHGridInventoryComponent::GetAllBlockingEntriesAtPointForEntry(FHInventoryPoint Point, UHGridEntry* RequestingEntry,
+                                                                    TArray<UHGridEntry*> OutBlockingEntries)
+{
+	OutBlockingEntries.Reset();
+
+	return LocalGridArray->GetAllBlockingItemsAtPoint(Point, RequestingEntry, OutBlockingEntries);
 }
 
 // Called when the game starts
@@ -44,7 +51,13 @@ void UHGridInventoryComponent::OnRep_InventorySize()
 	UE_LOGFMT(LogHGame, Warning, "OnRep: Inventory Size has changed. Should have logic here");
 }
 
-bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount)
+bool UHGridInventoryComponent::TryAddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount)
+{
+	UE_LOGFMT(LogHGame, Error, "Cannot add itemDef. This is unimplemented for now TryAddItemDefinition inv comp");
+	return false;
+}
+
+int32 UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount)
 {
 	//Here we need to somehow send itemDef to grid and have it check if there's room,
 	//If so needs to return new Farray member or prediction
@@ -59,13 +72,13 @@ bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemI
 	{
 		if (LocalGridArray->FindNextSlotPointForInstance(ItemInstance, Point))
 		{
-			UHGridItem* GridItemAtPoint = LocalGridArray->GetItemAtPoint(Point);
+			UHGridEntry* GridItemAtPoint = LocalGridArray->GetItemAtPoint(Point);
 
 			if(GridItemAtPoint)
 			{
 				if(GridItemAtPoint->CanStackWith(ItemInstance))
 				{
-					int32 StacksAdded = GridItemAtPoint->TryToAddInstanceStack(ItemInstance, RemainingStacks);
+					int32 StacksAdded = LocalGridArray->TryToAddInstanceStackToEntry(GridItemAtPoint, ItemInstance, RemainingStacks);
 
 					if(StacksAdded > 0)
 					{
@@ -89,22 +102,19 @@ bool UHGridInventoryComponent::TryAddItemInstance(UHInventoryItemInstance* ItemI
 				FHInventoryEntry NewInventoryEntry = FHInventoryEntry(ItemInstance, Point, false, StacksToCreate);
 				InventoryList.AddEntry(NewInventoryEntry);
 
-				UHGridItem* NewItem = NewObject<UHGridItem>();
+				UHGridEntry* NewItem = NewObject<UHGridEntry>();
 				NewItem->LoadEntryData(NewInventoryEntry);
 
 				LocalGridArray->AddItemToGrid(NewItem);
 
 				RemainingStacks -= StacksToCreate;
 			}
-			return true;
 		}
-		else
+		else //If we can't find another best point return remaining entries
 		{
-			break;
+			return RemainingStacks;
 		}
 	}
-
-	
-	
+	return 0;
 }
 

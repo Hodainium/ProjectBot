@@ -6,14 +6,11 @@
 #include "Components/ActorComponent.h"
 #include "Net/Serialization/FastArraySerializer.h"
 #include "NativeGameplayTags.h"
-#include "HereWeGo/Inventory/Components/HGridInventoryComponent.h"
-#include "HereWeGo/Inventory/Grid/HInventoryGrid.h"
 #include "HInventoryComponent.generated.h"
-
 
 class UHGridArray;
 class UHGridInventoryComponent;
-class UHGridItem;
+class UHGridEntry;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;
@@ -41,28 +38,6 @@ struct FHInventoryChangeMessage
 	int32 Delta = 0;
 };
 
-//USTRUCT(BlueprintType)
-//struct FHInventorySize
-//{
-//	GENERATED_BODY()
-//
-//	FHInventorySize()
-//	{
-//		SizeX = MAX_uint8;
-//		SizeY = MAX_uint8;
-//	}
-//
-//	UPROPERTY(BlueprintReadOnly)
-//	uint8 SizeX;
-//
-//	UPROPERTY(BlueprintReadOnly)
-//	uint8 SizeY;
-//
-//	bool IsValid()
-//	{
-//		return !(SizeX == MAX_uint8 || SizeY == MAX_uint8);
-//	}
-//};
 
 USTRUCT(BlueprintType)
 struct FHInventoryPoint
@@ -94,7 +69,7 @@ struct FHInventoryPoint
 		return !Equals(Other);
 	}
 
-	bool Equals (const FHInventoryPoint& Other) const
+	bool Equals(const FHInventoryPoint& Other) const
 	{
 		return (X == Other.X && Y == Other.Y);
 	}
@@ -102,7 +77,7 @@ struct FHInventoryPoint
 public:
 	FString ToString() const
 	{
-		return TEXT("({X},{Y})", X, Y);
+		return FString::Printf(TEXT("({%u},{%u})"), X, Y);
 	}
 
 	bool IsValid() const
@@ -130,17 +105,7 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 	{
 	}
 
-	FHInventoryEntry(UHGridItem* Item)
-	{
-		if(Item)
-		{
-			Instance = Item->Instance;
-			TopLeftTilePoint = Item->TopLeftTilePoint;
-			IsRotated = Item->IsRotated;
-			StackCount = Item->StackCount;
-		}
-		
-	}
+	FHInventoryEntry(UHGridEntry* Item);
 
 	FString GetDebugString() const;
 
@@ -148,7 +113,7 @@ private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
 	friend UHGridInventoryComponent;
-	friend UHGridItem;
+	friend UHGridEntry;
 	friend UHGridArray;
 	friend UHGridInventoryComponent;
 
@@ -274,7 +239,4 @@ public:
 private:
 	UPROPERTY(Replicated)
 	FHInventoryList InventoryList;
-
-	UPROPERTY()
-	TArray<TObjectPtr<UHInventoryItemInstance>> InventoryGrid;
 };

@@ -7,27 +7,27 @@
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
 
-UHGridItem::UHGridItem()
+UHGridEntry::UHGridEntry()
 {
 }
 
-UHGridItem::UHGridItem(UHInventoryItemInstance* InInstance)
+UHGridEntry::UHGridEntry(UHInventoryItemInstance* InInstance)
 {
 	Instance = InInstance;
 }
 
-FHInventoryPoint UHGridItem::GetCurrentDimensions() const
+FHInventoryPoint UHGridEntry::GetCurrentDimensions() const
 {
 	FHInventoryPoint UnrotatedItemDimensions = Instance->GetItemDimensions();
 	return (IsRotated ? FHInventoryPoint(UnrotatedItemDimensions.Y, UnrotatedItemDimensions.X) : UnrotatedItemDimensions);
 }
 
-void UHGridItem::SetReplicatedID(int32 RepID)
+void UHGridEntry::SetReplicatedID(int32 RepID)
 {
 	LinkedRepID = RepID;
 }
 
-void UHGridItem::LoadEntryData(const FHInventoryEntry& Entry)
+void UHGridEntry::LoadEntryData(const FHInventoryEntry& Entry)
 {
 	Instance = Entry.Instance;
 
@@ -35,12 +35,12 @@ void UHGridItem::LoadEntryData(const FHInventoryEntry& Entry)
 
 	IsRotated = Entry.IsRotated;
 
-	int32 StackCount = Entry.StackCount;
+	StackCount = Entry.StackCount;
 
-	int32 LinkedRepID = Entry.ReplicationID;
+	LinkedRepID = Entry.ReplicationID;
 }
 
-void UHGridItem::UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionChanged)
+void UHGridEntry::UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionChanged)
 {
 	bOutPositionChanged = false;
 	if (Entry.IsRotated != IsRotated || Entry.TopLeftTilePoint != TopLeftTilePoint)
@@ -51,11 +51,11 @@ void UHGridItem::UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionCha
 	Instance = Entry.Instance;
 	TopLeftTilePoint = Entry.TopLeftTilePoint;
 	IsRotated = Entry.IsRotated;
-	int32 StackCount = Entry.StackCount;
-	int32 LinkedRepID = Entry.ReplicationID;
+	StackCount = Entry.StackCount;
+	LinkedRepID = Entry.ReplicationID;
 }
 
-void UHGridItem::InitializeData(UHInventoryItemInstance* ItemInstance, FHInventoryPoint Point, bool bIsRotated,
+void UHGridEntry::InitializeData(UHInventoryItemInstance* ItemInstance, FHInventoryPoint Point, bool bIsRotated,
 	int32 InStackCount)
 {
 	Instance = ItemInstance;
@@ -64,7 +64,7 @@ void UHGridItem::InitializeData(UHInventoryItemInstance* ItemInstance, FHInvento
 	StackCount = InStackCount;
 }
 
-int32 UHGridItem::GetMaxStackCount()
+int32 UHGridEntry::GetMaxStackCount()
 {
 	if(Instance)
 	{
@@ -74,12 +74,12 @@ int32 UHGridItem::GetMaxStackCount()
 	return INDEX_NONE;
 }
 
-bool UHGridItem::GetCanItemBeStacked()
+bool UHGridEntry::GetCanItemBeStacked()
 {
 	return Instance->GetCanBeStacked();
 }
 
-bool UHGridItem::CanStackWith(UHGridItem* OtherEntry)
+bool UHGridEntry::CanStackWith(UHGridEntry* OtherEntry)
 {
 	if(OtherEntry->Instance && Instance->IsItemStackCompatible(OtherEntry->Instance))
 	{
@@ -88,7 +88,7 @@ bool UHGridItem::CanStackWith(UHGridItem* OtherEntry)
 	return false;
 }
 
-bool UHGridItem::CanStackWith(UHInventoryItemInstance* ItemInstance)
+bool UHGridEntry::CanStackWith(UHInventoryItemInstance* ItemInstance)
 {
 	if (ItemInstance && Instance->IsItemStackCompatible(ItemInstance))
 	{
@@ -97,21 +97,7 @@ bool UHGridItem::CanStackWith(UHInventoryItemInstance* ItemInstance)
 	return false;
 }
 
-//Attempts to add to stack if instance matches.
-//Returns amount added
-//Returns 0 if error
-int32 UHGridItem::TryToAddInstanceStack(UHInventoryItemInstance* IncomingInstance, int32 StackCountToAdd)
-{
-	if(CanStackWith(IncomingInstance))
-	{
-		int32 StacksAdded = AddStackCountSafe(StackCountToAdd);
-		return StacksAdded;
-	}
-
-	return 0;
-}
-
-bool UHGridArray::RemoveItemFromGrid(UHGridItem* EntryToRemove)
+bool UHGridArray::RemoveItemFromGrid(UHGridEntry* EntryToRemove)
 {
 	bIsDirty = true;
 	TArray<int32> ItemIndicesToRemove;
@@ -120,7 +106,7 @@ bool UHGridArray::RemoveItemFromGrid(UHGridItem* EntryToRemove)
 	{
 		for (int32 Index : ItemIndicesToRemove)
 		{
-			UHGridItem* OccupyingEntry = GetItemAtIndex(Index);
+			UHGridEntry* OccupyingEntry = GetItemAtIndex(Index);
 			if (OccupyingEntry == nullptr || OccupyingEntry == EntryToRemove)
 			{
 				SetItemAtIndex(Index, nullptr);
@@ -137,7 +123,7 @@ bool UHGridArray::RemoveItemFromGrid(UHGridItem* EntryToRemove)
 	return false;
 }
 
-bool UHGridArray::AddItemToGrid(UHGridItem* EntryToAdd) //todo not done
+bool UHGridArray::AddItemToGrid(UHGridEntry* EntryToAdd) //todo not done
 {
 	TArray<int32> ItemIndicesToAdd;
 
@@ -145,7 +131,7 @@ bool UHGridArray::AddItemToGrid(UHGridItem* EntryToAdd) //todo not done
 	{
 		for (int32 Index : ItemIndicesToAdd)
 		{
-			UHGridItem* ObjectAtIndex = GetItemAtIndex(Index);
+			UHGridEntry* ObjectAtIndex = GetItemAtIndex(Index);
 
 			if (ObjectAtIndex != nullptr && ObjectAtIndex != EntryToAdd)
 			{
@@ -164,14 +150,14 @@ bool UHGridArray::AddItemToGrid(UHGridItem* EntryToAdd) //todo not done
 
 bool UHGridArray::GetEntrySlotPointFromID(int32 ItemID, FHInventoryPoint& OutPoint)
 {
-	FHInventoryEntry Entry;
+	/*FHInventoryEntry Entry;
 
 	if (FindStructEntryByID(ItemID, Entry))
 	{
 		OutPoint = Entry.TopLeftTilePoint;
 
 		return true;
-	}
+	}*/
 
 	return false;
 }
@@ -184,12 +170,12 @@ bool UHGridArray::GetEntrySlotPointFromID(int32 ItemID, FHInventoryPoint& OutPoi
 
 void UHGridArray::UpdatePendingEntryPositionsGrid()
 {
-	for (UHGridItem* Entry : LocalPendingItemsToMove)
+	for (UHGridEntry* Entry : LocalPendingItemsToMove)
 	{
 		RemoveItemFromGrid(Entry);
 	}
 
-	for (UHGridItem* Entry : LocalPendingItemsToMove)
+	for (UHGridEntry* Entry : LocalPendingItemsToMove)
 	{
 		AddItemToGrid(Entry);
 	}
@@ -211,7 +197,7 @@ void UHGridArray::HandlePreRemove(FHInventoryEntry& Entry)
 {
 	bIsDirty = true;
 
-	UHGridItem* EntryToRemove = nullptr;
+	UHGridEntry* EntryToRemove = nullptr;
 
 	EntryToRemove = FindEntryInGridByIDSmart(Entry.ReplicationID);
 
@@ -229,7 +215,7 @@ void UHGridArray::HandlePostAdd(FHInventoryEntry& EntryToAdd)
 {
 	bIsDirty = true;
 
-	UHGridItem* NewLocalEntry = NewObject<UHGridItem>();
+	UHGridEntry* NewLocalEntry = NewObject<UHGridEntry>();
 	NewLocalEntry->LoadEntryData(EntryToAdd);
 	LocalPendingItemsToMove.AddUnique(NewLocalEntry);
 }
@@ -238,7 +224,7 @@ void UHGridArray::HandlePostChange(FHInventoryEntry& Entry)
 {
 	bIsDirty = true;
 
-	UHGridItem* EntryToUpdate = nullptr;
+	UHGridEntry* EntryToUpdate = nullptr;
 
 	EntryToUpdate = FindEntryInGridByIDSmart(Entry.ReplicationID);
 
@@ -292,7 +278,7 @@ bool UHGridArray::IsPointInBoundsAndValid(const FHInventoryPoint& InPoint) const
 	return ((InPoint.X < InventorySize.X) && (InPoint.Y < InventorySize.Y));
 }
 
-bool UHGridArray::IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHGridItem* GridEntry) const
+bool UHGridArray::IsItemInBoundsAtPoint(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry) const
 {
 	if (GridEntry && IsPointInBoundsAndValid(InPoint))
 	{
@@ -310,18 +296,33 @@ bool UHGridArray::IsFreeRoomAvailableAtPointWithSize(const FHInventoryPoint& InP
 	{
 		if(IsPointInBoundsAndValid(InPoint + InSize)) //Check that largest point is in bounds
 		{
-			GetCurrentItemIndicesAtPoint()
+			int32 InitialIndex = InventoryPointToIndex(InPoint);
+			for (int i = 0; i < InSize.X; i++)
+			{
+				for (int j = 0; j < InSize.Y; j++)
+				{
+					int32 CurrentIndex = InitialIndex + i + j * InventorySize.X;
+
+					if(GetItemAtIndex(CurrentIndex))
+					{
+						UE_LOGFMT(LogHGame, Warning, "Free Room is not available at point with size");
+						return false;
+					}
+				}
+			}
+
+			return true;
 		}
 	}
 
 	return false;
 }
 
-bool UHGridArray::IsFreeRoomAvailableAtPointForEntry(const FHInventoryPoint& InPoint, UHGridItem* GridEntry) const
+bool UHGridArray::IsFreeRoomAvailableAtPointForEntry(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry) const
 {
 	if (GridEntry && IsPointInBoundsAndValid(InPoint))
 	{
-		TArray<UHGridItem*> BlockingItems;
+		TArray<UHGridEntry*> BlockingItems;
 
 		if (GetAllBlockingItemsAtPoint(InPoint, GridEntry, BlockingItems))
 		{
@@ -346,7 +347,7 @@ bool UHGridArray::FindNextSlotPointForInstance(UHInventoryItemInstance* Incoming
 
 	for (int i = 0; i < GridArray.Num(); i++)
 	{
-		UHGridItem* OccupyingEntry = GetItemAtIndex(i);
+		UHGridEntry* OccupyingEntry = GetItemAtIndex(i);
 
 		if (OccupyingEntry)
 		{
@@ -370,7 +371,7 @@ bool UHGridArray::FindNextSlotPointForInstance(UHInventoryItemInstance* Incoming
 	return false;
 }
 
-bool UHGridArray::FindNextBestSlotPoint(UHGridItem* Entry, FHInventoryPoint& OutPoint) const
+bool UHGridArray::FindNextBestSlotPoint(UHGridEntry* Entry, FHInventoryPoint& OutPoint) const
 {
 	if(!Entry)
 	{
@@ -381,7 +382,7 @@ bool UHGridArray::FindNextBestSlotPoint(UHGridItem* Entry, FHInventoryPoint& Out
 
 	for (int i = 0; i < GridArray.Num(); i++)
 	{
-		UHGridItem* OccupyingEntry = GetItemAtIndex(i);
+		UHGridEntry* OccupyingEntry = GetItemAtIndex(i);
 
 		if (OccupyingEntry)
 		{
@@ -405,22 +406,24 @@ bool UHGridArray::FindNextBestSlotPoint(UHGridItem* Entry, FHInventoryPoint& Out
 	return false;
 }
 
-UHGridItem* UHGridArray::AddItemInstanceToGridAtPoint(const FHInventoryPoint& InPoint,
+UHGridEntry* UHGridArray::AddItemInstanceToGridAtPoint(const FHInventoryPoint& InPoint,
 	UHInventoryItemInstance* ItemInstance, int32 StackCount)
 {
 	if(IsFreeRoomAvailableAtPointWithSize(InPoint, ItemInstance->GetItemDimensions()))
 	{
-		UHGridItem* NewItem = NewObject<UHGridItem>();
+		UHGridEntry* NewItem = NewObject<UHGridEntry>();
 		NewItem->InitializeData(ItemInstance, InPoint, false, StackCount);
 		if(AddItemToGrid(NewItem))
 		{
-			
+			return NewItem;
 		}
 	}
+
+	return nullptr;
 }
 
-bool UHGridArray::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHGridItem* GridEntry,
-                                             TArray<UHGridItem*>& OutBlockingItems) const
+bool UHGridArray::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UHGridEntry* GridEntry,
+                                             TArray<UHGridEntry*>& OutBlockingItems) const
 {
 	OutBlockingItems.Reset();
 
@@ -431,7 +434,7 @@ bool UHGridArray::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UH
 
 		for (int32 Index : ItemIndices)
 		{
-			UHGridItem* Entry = GetItemAtIndex(Index);
+			UHGridEntry* Entry = GetItemAtIndex(Index);
 
 			if (Entry && Entry != GridEntry)
 			{
@@ -445,7 +448,7 @@ bool UHGridArray::GetAllBlockingItemsAtPoint(const FHInventoryPoint& InPoint, UH
 	return false;
 }
 
-bool UHGridArray::GetCurrentInventoryPoints(const UHGridItem* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
+bool UHGridArray::GetCurrentInventoryPoints(const UHGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
 {
 	if (GridEntry && IsPointInBoundsAndValid(GridEntry->TopLeftTilePoint))
 	{
@@ -455,7 +458,7 @@ bool UHGridArray::GetCurrentInventoryPoints(const UHGridItem* GridEntry, TArray<
 }
 
 bool UHGridArray::GetCurrentInventoryPointsAtPoint(const FHInventoryPoint& InPoint,
-	const UHGridItem* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
+	const UHGridEntry* GridEntry, TArray<FHInventoryPoint>& OutPoints) const
 {
 	OutPoints.Reset();
 
@@ -481,7 +484,7 @@ bool UHGridArray::GetCurrentInventoryPointsAtPoint(const FHInventoryPoint& InPoi
 	return false;
 }
 
-bool UHGridArray::GetCurrentItemIndices(const UHGridItem* GridEntry, TArray<int32>& OutIndices) const
+bool UHGridArray::GetCurrentItemIndices(const UHGridEntry* GridEntry, TArray<int32>& OutIndices) const
 {
 
 	if (GridEntry && IsPointInBoundsAndValid(GridEntry->TopLeftTilePoint))
@@ -491,7 +494,7 @@ bool UHGridArray::GetCurrentItemIndices(const UHGridItem* GridEntry, TArray<int3
 	return false;
 }
 
-bool UHGridArray::GetCurrentItemIndicesAtPoint(const FHInventoryPoint& InPoint, const UHGridItem* GridEntry, TArray<int32>& OutIndices) const
+bool UHGridArray::GetCurrentItemIndicesAtPoint(const FHInventoryPoint& InPoint, const UHGridEntry* GridEntry, TArray<int32>& OutIndices) const
 {
 	OutIndices.Reset();  // Clear the output array
 
@@ -541,26 +544,25 @@ bool UHGridArray::GetIndicesForSizeAtPoint(const FHInventoryPoint& InPoint, cons
 	return false;
 }
 
-bool UHGridArray::RefreshLocalEntry(UHGridItem* LocalEntry, bool& bOutPositionChanged)
+bool UHGridArray::RefreshLocalEntry(UHGridEntry* LocalEntry, bool& bOutPositionChanged)
 {
-	FHInventoryEntry StructEntry = FHInventoryEntry();
+	/*FHInventoryEntry StructEntry = FHInventoryEntry();
 
 	if (FindStructEntryByID(LocalEntry->LinkedRepID, StructEntry))
 	{
 		LocalEntry->UpdateData(StructEntry, bOutPositionChanged);
 		return true;
-	}
+	}*/
+	UE_LOGFMT(LogHGame, Error, "refresh lcoal entry is not implemented returnign false;");
 
 	return false;
 }
 
-UHGridItem* UHGridArray::FindEntryInGridByIDSmart(const int32 ItemID)
+UHGridEntry* UHGridArray::FindEntryInGridByIDSmart(const int32 ItemID)
 {
-	const FHInventoryPoint InventorySize = GetInventorySize();
-
 	for (int i = 0; i < GridArray.Num();)
 	{
-		UHGridItem* Entry = GetItemAtIndex(i);
+		UHGridEntry* Entry = GetItemAtIndex(i);
 
 		if (Entry)
 		{
@@ -582,23 +584,7 @@ UHGridItem* UHGridArray::FindEntryInGridByIDSmart(const int32 ItemID)
 	return nullptr;
 }
 
-bool UHGridArray::FindStructEntryByID(int32 ItemID, FHInventoryEntry& OutEntry)
-{
-	for (const FHInventoryEntry& Entry : MasterList)
-	{
-		if (Entry.ReplicationID == ItemID)
-		{
-			OutEntry = Entry;
-			return true;
-		}
-	}
-
-	UE_LOGFMT(LogHGame, Error, "Could not find struct entry by ID, {id} in InventoryList", ItemID);
-
-	return false;
-}
-
-UHGridItem* UHGridArray::GetItemAtPoint(const FHInventoryPoint& InPoint)
+UHGridEntry* UHGridArray::GetItemAtPoint(const FHInventoryPoint& InPoint)
 {
 	if (IsPointInBoundsAndValid(InPoint))
 	{
@@ -608,7 +594,7 @@ UHGridItem* UHGridArray::GetItemAtPoint(const FHInventoryPoint& InPoint)
 	return nullptr;
 }
 
-UHGridItem* UHGridArray::GetItemAtIndex(int32 Index) const
+UHGridEntry* UHGridArray::GetItemAtIndex(int32 Index) const
 {
 	if (Index >= 0 && Index < GridArray.Num())
 	{
@@ -618,7 +604,7 @@ UHGridItem* UHGridArray::GetItemAtIndex(int32 Index) const
 	return nullptr;
 }
 
-bool UHGridArray::SetItemAtIndex(int32 Index, UHGridItem* Entry)
+bool UHGridArray::SetItemAtIndex(int32 Index, UHGridEntry* Entry)
 {
 	if (Index >= 0 && Index < GridArray.Num())
 	{
@@ -629,4 +615,35 @@ bool UHGridArray::SetItemAtIndex(int32 Index, UHGridItem* Entry)
 	return false;
 }
 
+bool UHGridArray::CanEntriesStack(UHGridEntry* BaseEntry, UHGridEntry* StackingEntry)
+{
+	return false;
+}
 
+int32 UHGridArray::TryToAddInstanceStackToEntry(UHGridEntry* EntryToAddTo, UHInventoryItemInstance* IncomingInstance, int32 StackCountToAdd)
+{
+	if (EntryToAddTo->CanStackWith(IncomingInstance))
+	{
+		int32 StacksAdded = EntryToAddTo->AddStackCountSafe(StackCountToAdd);
+		return StacksAdded;
+	}
+
+	return 0;
+}
+
+int32 UHGridArray::TryToStackEntries(UHGridEntry* EntryToAddTo, UHGridEntry* RequestingEntry)
+{
+	if(!EntryToAddTo || !RequestingEntry)
+	{
+		return 0;
+	}
+
+	if (EntryToAddTo->CanStackWith(RequestingEntry))
+	{
+		int32 StacksAdded = EntryToAddTo->AddStackCountSafe(RequestingEntry->StackCount);
+		RequestingEntry->DecrementStackCount(StacksAdded);
+		return StacksAdded;
+	}
+
+	return 0;
+}

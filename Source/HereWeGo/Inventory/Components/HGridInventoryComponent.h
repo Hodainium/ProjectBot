@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "HInventoryComponent.h"
 #include "Components/ActorComponent.h"
+#include "HereWeGo/Inventory/Grid/HInventoryGrid.h"
 #include "HGridInventoryComponent.generated.h"
 
 class UHGridArray;
@@ -20,22 +21,20 @@ public:
 	// Sets default values for this component's properties
 	UHGridInventoryComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
+	/*UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool CanAddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
-	bool CanStackItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
+	bool CanStackItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);*/
 
 	UFUNCTION(BlueprintCallable)
-	void HandleMoveRequest();
+	bool CanStackEntries(UHGridEntry* BaseItem, UHGridEntry* RequestingItem);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
-	UHInventoryItemInstance* AddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
+	UFUNCTION(BlueprintCallable)
+	int32 StackEntries(UHGridEntry* BaseItem, UHGridEntry* RequestingItem);
 
-	//~UObject interface
-	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-	virtual void ReadyForReplication() override;
-	//~End of UObject interface
+	UFUNCTION(BlueprintCallable)
+	bool GetAllBlockingEntriesAtPointForEntry(FHInventoryPoint Point, UHGridEntry* RequestingEntry, TArray<UHGridEntry*> OutBlockingEntries);
 
 protected:
 	// Called when the game starts
@@ -60,11 +59,12 @@ private:
 	UFUNCTION()
 	void OnRep_InventorySize();
 
+	//Returns number of remaining items that were not added
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
 	bool TryAddItemDefinition(UHItemDefinition* ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Inventory)
-	bool TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount = 1);
+	int32 TryAddItemInstance(UHInventoryItemInstance* ItemInstance, int32 StackCount = 1);
 
 private:
 
@@ -77,7 +77,7 @@ private:
 	//Because we are working with fastarray we need to handle the order that the onrep functions are called.
 	//We cache PendingItemsToMove in the postadd and postchange functions and finally add them in the last called function postRep
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<UHGridItem>> LocalPendingItemsToMove;
+	TArray<TObjectPtr<UHGridEntry>> LocalPendingItemsToMove;
 
 	//This will be overlaid on top of a constructed grid. The plan is to send these to server, server responds with same key and confirms it or not.
 	//May return a correction rather than just outright denying. So user will be able to predict in case server sends an item in the occupying slot.
