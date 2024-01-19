@@ -8,9 +8,9 @@
 #include "NativeGameplayTags.h"
 #include "HInventoryComponent.generated.h"
 
-class UHGridArray;
-class UHGridInventoryComponent;
-class UHGridEntry;
+//class UHGridArray;
+//class UHGridInventoryComponent;
+//class UHGridEntry;
 class UHItemDefinition;
 class UHInventoryComponent;
 struct FHInventoryList;
@@ -105,19 +105,19 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 	{
 	}
 
-	FHInventoryEntry(UHGridEntry* Item);
+	//FHInventoryEntry(UHGridEntry* Item);
 
 	FString GetDebugString() const;
 
 private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
-	friend UHGridInventoryComponent;
+	/*friend UHGridInventoryComponent;
 	friend UHGridEntry;
 	friend UHGridArray;
-	friend UHGridInventoryComponent;
+	friend UHGridInventoryComponent;*/
 
-private:
+public:
 	UPROPERTY()
 	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
 
@@ -177,7 +177,7 @@ public:
 
 private:
 	friend UHInventoryComponent;
-	friend UHGridInventoryComponent;
+	//friend UHGridInventoryComponent;
 
 	void BroadcastChangeMessage(FHInventoryEntry& Entry, int32 OldCount, int32 NewCount);
 
