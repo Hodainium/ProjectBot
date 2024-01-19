@@ -5,6 +5,7 @@
 #include "AbilitySystemGlobals.h"
 #include "HItemDefinition.h"
 #include "HLogChannels.h"
+#include "HGameData.h"
 #include "Misc/ScopedSlowTask.h"
 
 const FPrimaryAssetType	UHAssetManager::UndefinedItemType = TEXT("UNDEFINED_Type");

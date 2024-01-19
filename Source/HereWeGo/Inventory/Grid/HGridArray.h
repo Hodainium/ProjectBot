@@ -17,6 +17,17 @@ class HEREWEGO_API UHGridArray : public UObject
 	GENERATED_BODY()
 
 public:
+	//Removes specified item from grid using the entry's set dimensions and point
+	//Skips indices that return a different item.
+	//Returns false if item has invalid location, returns true otherwise
+	bool RemoveItemFromGrid(UHGridEntry* EntryToRemove);
+
+	//Adds specified item to grid using the entry's set dimensions and point
+	//Skips indices that return a different item.
+	//Returns false if item has invalid location, returns true otherwise
+	bool AddItemToGrid(UHGridEntry* EntryToAdd);
+
+public:
 	UFUNCTION()
 	bool CanEntriesStack(UHGridEntry* BaseEntry, UHGridEntry* StackingEntry);
 
@@ -154,16 +165,6 @@ private:
 
 	UFUNCTION()
 	void UpdatePendingEntryPositionsGrid();
-
-	//Removes specified item from grid using the entry's set dimensions and point
-	//Skips indices that return a different item.
-	//Returns false if item has invalid location, returns true otherwise
-	bool RemoveItemFromGrid(UHGridEntry* EntryToRemove);
-
-	//Adds specified item to grid using the entry's set dimensions and point
-	//Skips indices that return a different item.
-	//Returns false if item has invalid location, returns true otherwise
-	bool AddItemToGrid(UHGridEntry* EntryToAdd);
 
 	//////////////////////////////////////////////////////////////
 	///
