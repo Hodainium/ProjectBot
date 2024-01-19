@@ -43,7 +43,7 @@ public:
 	void DecrementStackCount(int32 CountToRemove);
 
 	//Getters and setters/////////////////////////
-	int32 GetReplicatedID() const;
+	int32 GetLinkedID() const;
 	void SetReplicatedID(int32 RepID);
 
 	int32 GetStackCount();
@@ -53,11 +53,16 @@ public:
 
 	FHInventoryPoint GetCurrentDimensions() const;
 
+	void SetTopLeftTilePoint(FHInventoryPoint InPoint);
+	FHInventoryPoint GetTopLeftTilePoint() const;
+
 	bool GetCanItemBeStacked();
+
+	UHInventoryItemInstance* GetItemInstance() const;
 
 private:
 	UPROPERTY()
-	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
+	TObjectPtr<UHInventoryItemInstance> ItemInstance = nullptr;
 
 	UPROPERTY()
 	FHInventoryPoint TopLeftTilePoint;

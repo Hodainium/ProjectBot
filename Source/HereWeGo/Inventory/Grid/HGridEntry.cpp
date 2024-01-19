@@ -11,7 +11,7 @@ UHGridEntry::UHGridEntry()
 
 void UHGridEntry::LoadEntryData(const FHInventoryEntry& Entry)
 {
-	Instance = Entry.Instance;
+	ItemInstance = Entry.Instance;
 
 	TopLeftTilePoint = Entry.TopLeftTilePoint;
 
@@ -30,17 +30,17 @@ void UHGridEntry::UpdateData(const FHInventoryEntry& Entry, bool& bOutPositionCh
 		bOutPositionChanged = true;
 	}
 
-	Instance = Entry.Instance;
+	ItemInstance = Entry.Instance;
 	TopLeftTilePoint = Entry.TopLeftTilePoint;
 	IsRotated = Entry.IsRotated;
 	StackCount = Entry.StackCount;
 	LinkedRepID = Entry.ReplicationID;
 }
 
-void UHGridEntry::InitializeData(UHInventoryItemInstance* ItemInstance, FHInventoryPoint Point, bool bIsRotated,
+void UHGridEntry::InitializeData(UHInventoryItemInstance* InItemInstance, FHInventoryPoint Point, bool bIsRotated,
 	int32 InStackCount)
 {
-	Instance = ItemInstance;
+	ItemInstance = InItemInstance;
 	TopLeftTilePoint = Point;
 	IsRotated = bIsRotated;
 	StackCount = InStackCount;
@@ -48,16 +48,16 @@ void UHGridEntry::InitializeData(UHInventoryItemInstance* ItemInstance, FHInvent
 
 bool UHGridEntry::CanStackWith(UHGridEntry* OtherEntry)
 {
-	if (OtherEntry->Instance && Instance->IsItemStackCompatible(OtherEntry->Instance))
+	if (OtherEntry->ItemInstance && ItemInstance->IsItemStackCompatible(OtherEntry->ItemInstance))
 	{
 		return true;
 	}
 	return false;
 }
 
-bool UHGridEntry::CanStackWith(UHInventoryItemInstance* ItemInstance)
+bool UHGridEntry::CanStackWith(UHInventoryItemInstance* InItemInstance)
 {
-	if (ItemInstance && Instance->IsItemStackCompatible(ItemInstance))
+	if (ItemInstance && ItemInstance->IsItemStackCompatible(InItemInstance))
 	{
 		return true;
 	}
@@ -97,7 +97,7 @@ void UHGridEntry::DecrementStackCount(int32 CountToRemove)
 	SetStackCount(NewCount);
 }
 
-int32 UHGridEntry::GetReplicatedID() const
+int32 UHGridEntry::GetLinkedID() const
 {
 	return LinkedRepID;
 }
@@ -122,9 +122,9 @@ void UHGridEntry::SetStackCount(int32 NewCount)
 
 int32 UHGridEntry::GetMaxStackCount()
 {
-	if (Instance)
+	if (ItemInstance)
 	{
-		return Instance->GetMaxStack();
+		return ItemInstance->GetMaxStack();
 	}
 
 	return INDEX_NONE;
@@ -132,11 +132,26 @@ int32 UHGridEntry::GetMaxStackCount()
 
 FHInventoryPoint UHGridEntry::GetCurrentDimensions() const
 {
-	FHInventoryPoint UnrotatedItemDimensions = Instance->GetItemDimensions();
+	FHInventoryPoint UnrotatedItemDimensions = ItemInstance->GetItemDimensions();
 	return (IsRotated ? FHInventoryPoint(UnrotatedItemDimensions.Y, UnrotatedItemDimensions.X) : UnrotatedItemDimensions);
+}
+
+void UHGridEntry::SetTopLeftTilePoint(FHInventoryPoint InPoint)
+{
+	TopLeftTilePoint = InPoint;
+}
+
+FHInventoryPoint UHGridEntry::GetTopLeftTilePoint() const
+{
+	return TopLeftTilePoint;
 }
 
 bool UHGridEntry::GetCanItemBeStacked()
 {
-	return Instance->GetCanBeStacked();
+	return ItemInstance->GetCanBeStacked();
+}
+
+UHInventoryItemInstance* UHGridEntry::GetItemInstance() const
+{
+	return ItemInstance;
 }
