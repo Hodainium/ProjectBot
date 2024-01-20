@@ -7,7 +7,7 @@
 class UHInventoryItemInstance;
 
 USTRUCT(BlueprintType)
-struct FHSlotsStruct
+struct FHSlotsContainer
 {
 	GENERATED_BODY()
 

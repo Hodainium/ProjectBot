@@ -32,7 +32,7 @@ void UHItemSlotComponent::CycleActiveSlotForward(EHSlotType SlotType)
 	TArray<UHInventoryItemInstance*> SlotArray;  
 	int32 ActiveSlotIndex = INDEX_NONE;
 
-	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType, ActiveSlotIndex);
+	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType);
 
 	if(!HasAllRequiredVars)
 	{
@@ -63,7 +63,7 @@ void UHItemSlotComponent::CycleActiveSlotBackward(EHSlotType SlotType)
 	TArray<UHInventoryItemInstance*> SlotArray;
 	int32 ActiveSlotIndex = INDEX_NONE;
 
-	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType, ActiveSlotIndex);
+	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType);
 
 	if (!HasAllRequiredVars)
 	{
@@ -95,7 +95,7 @@ void UHItemSlotComponent::SetActiveSlotIndex_Implementation(EHSlotType SlotType,
 	SlotArray
 	int32 ActiveSlotIndex = INDEX_NONE;
 
-	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType, ActiveSlotIndex);
+	bool HasAllRequiredVars = GetSlotArrayForEnum(SlotType, SlotArray) && GetActiveSlotIndexForEnum(SlotType);
 
 	if (!HasAllRequiredVars)
 	{
@@ -290,142 +290,260 @@ bool UHItemSlotComponent::GetSlotArrayForEnum(EHSlotType SlotType, TArray<UHInve
 
 	switch (SlotType)
 	{
-		case EHSlotType::Weapon_L:
-		{
-			OutSlotArray = Slots_Weapon_L;
-			break;
-		}
-		case EHSlotType::Weapon_R:
-		{
-			OutSlotArray = Slots_Weapon_R;
-			break;
-		}
-		case EHSlotType::Armor_Head:
-		{
-			OutSlotArray = Slots_Armor_Head;
-			break;
-		}
-		case EHSlotType::Armor_Chest:
-		{
-			OutSlotArray = Slots_Armor_Chest;
-			break;
-		}
-		case EHSlotType::Armor_ArmL:
-		{
-			OutSlotArray = Slots_Armor_ArmL;
-			break;
-		}
-		case EHSlotType::Armor_ArmR:
-		{
-			OutSlotArray = Slots_Armor_ArmR;
-			break;
-		}
-		case EHSlotType::Armor_LegL:
-		{
-			OutSlotArray = Slots_Armor_LegL;
-			break;
-		}
-		case EHSlotType::Armor_LegR:
-		{
-			OutSlotArray = Slots_Armor_LegR;
-			break;
-		}
-		case EHSlotType::Armor_Core:
-		{
-			OutSlotArray = Slots_Armor_Core;
-			break;
-		}
-		default:
-		{
-			return false;
-		}
+	case EHSlotType::Weapon_L:
+	{
+		OutSlotArray = Slots_Weapon_L;
+		break;
 	}
-
+	case EHSlotType::Weapon_R:
+	{
+		OutSlotArray = Slots_Weapon_R;
+		break;
+	}
+	case EHSlotType::Armor_Head:
+	{
+		OutSlotArray = Slots_Armor_Head;
+		break;
+	}
+	case EHSlotType::Armor_Chest:
+	{
+		OutSlotArray = Slots_Armor_Chest;
+		break;
+	}
+	case EHSlotType::Armor_ArmL:
+	{
+		OutSlotArray = Slots_Armor_ArmL;
+		break;
+	}
+	case EHSlotType::Armor_ArmR:
+	{
+		OutSlotArray = Slots_Armor_ArmR;
+		break;
+	}
+	case EHSlotType::Armor_LegL:
+	{
+		OutSlotArray = Slots_Armor_LegL;
+		break;
+	}
+	case EHSlotType::Armor_LegR:
+	{
+		OutSlotArray = Slots_Armor_LegR;
+		break;
+	}
+	case EHSlotType::Armor_Core:
+	{
+		OutSlotArray = Slots_Armor_Core;
+		break;
+	}
+	default:
+	{
+		return false;
+	}
+	}
 	return true;
 }
 
-bool UHItemSlotComponent::GetNumSlotsForEnum(EHSlotType SlotType, int32& OutNumSlots)
+TArray<UHInventoryItemInstance*>& UHItemSlotComponent::GetSlotArrayRefForEnum(EHSlotType SlotType) const
 {
-	OutNumSlots = INDEX_NONE;
+	TArray<UHInventoryItemInstance*> Empty;
+	return Empty;
+}
 
+int32 UHItemSlotComponent::GetNumSlotsForEnum(EHSlotType SlotType)
+{
 	switch (SlotType)
 	{
 		case EHSlotType::Weapon_L:
 		{
-			OutNumSlots = NumSlots_Weapon_L;
-			break;
+			return NumSlots_Weapon_L;
 		}
 		case EHSlotType::Weapon_R:
 		{
-			OutNumSlots = NumSlots_Weapon_R;
-			break;
+			return NumSlots_Weapon_R;
 		}
 		case EHSlotType::Armor_Head:
 		{
-			OutNumSlots = NumSlots_Armor_Head;
-			break;
+			return NumSlots_Armor_Head;
 		}
 		case EHSlotType::Armor_Chest:
 		{
-			OutNumSlots = NumSlots_Armor_Chest;
-			break;
+			return NumSlots_Armor_Chest;
 		}
 		case EHSlotType::Armor_ArmL:
 		{
-			OutNumSlots = NumSlots_Armor_ArmL;
-			break;
+			return NumSlots_Armor_ArmL;
 		}
 		case EHSlotType::Armor_ArmR:
 		{
-			OutNumSlots = NumSlots_Armor_ArmR;
-			break;
+			return NumSlots_Armor_ArmR;
 		}
 		case EHSlotType::Armor_LegL:
 		{
-			OutNumSlots = NumSlots_Armor_LegL;
-			break;
+			return NumSlots_Armor_LegL;
 		}
 		case EHSlotType::Armor_LegR:
 		{
-			OutNumSlots = NumSlots_Armor_LegR;
-			break;
+			return NumSlots_Armor_LegR;
 		}
 		case EHSlotType::Armor_Core:
 		{
-			OutNumSlots = NumSlots_Armor_Core;
-			break;
+			return NumSlots_Armor_Core;
 		}
 		default:
 		{
-			return false;
+			return INDEX_NONE;
 		}
 	}
-
-	return true;
 }
 
-bool UHItemSlotComponent::GetActiveSlotIndexForEnum(EHSlotType SlotType, int32& OutActiveSlotIndex) const
+void UHItemSlotComponent::SetNumSlotsForEnum(EHSlotType SlotType, int32 NewNumSlots)
 {
-	OutActiveSlotIndex = INDEX_NONE;
+	switch (SlotType)
+	{
+	case EHSlotType::Weapon_L:
+	{
+		NumSlots_Weapon_L = NewNumSlots;
+	}
+	case EHSlotType::Weapon_R:
+	{
+		NumSlots_Weapon_R = NewNumSlots;
+	}
+	case EHSlotType::Armor_Head:
+	{
+		NumSlots_Armor_Head = NewNumSlots;
+	}
+	case EHSlotType::Armor_Chest:
+	{
+		NumSlots_Armor_Chest = NewNumSlots;
+	}
+	case EHSlotType::Armor_ArmL:
+	{
+		NumSlots_Armor_ArmL = NewNumSlots;
+	}
+	case EHSlotType::Armor_ArmR:
+	{
+		NumSlots_Armor_ArmR = NewNumSlots;
+	}
+	case EHSlotType::Armor_LegL:
+	{
+		NumSlots_Armor_LegL = NewNumSlots;
+	}
+	case EHSlotType::Armor_LegR:
+	{
+		NumSlots_Armor_LegR = NewNumSlots;
+	}
+	case EHSlotType::Armor_Core:
+	{
+		NumSlots_Armor_Core = NewNumSlots;
+	}
+	default:
+	{
+		return;
+	}
+	}
+}
 
+int32 UHItemSlotComponent::GetActiveSlotIndexForEnum(EHSlotType SlotType) const
+{
 	switch (SlotType)
 	{
 		case EHSlotType::Weapon_L:
 		{
-			OutActiveSlotIndex = ActiveSlotIndex_Weapon_L;
-			break;
+			return ActiveSlotIndex_Weapon_L;
 		}
 		case EHSlotType::Weapon_R:
 		{
-			OutActiveSlotIndex = ActiveSlotIndex_Weapon_R;
-			break;
+			return ActiveSlotIndex_Weapon_R;
+		}
+		case EHSlotType::Armor_Head:
+		{
+			return ActiveSlotIndex_Armor_Head;
+		}
+		case EHSlotType::Armor_Chest:
+		{
+			return ActiveSlotIndex_Armor_Chest;
+		}
+		case EHSlotType::Armor_ArmL:
+		{
+			return ActiveSlotIndex_Armor_ArmL;
+		}
+		case EHSlotType::Armor_ArmR:
+		{
+			return ActiveSlotIndex_Armor_ArmR;
+		}
+		case EHSlotType::Armor_LegL:
+		{
+			return ActiveSlotIndex_Armor_LegL;
+		}
+		case EHSlotType::Armor_LegR:
+		{
+			return ActiveSlotIndex_Armor_LegR;
+		}
+		case EHSlotType::Armor_Core:
+		{
+			return ActiveSlotIndex_Armor_Core;
 		}
 		default:
 		{
-			return false;
+			return INDEX_NONE;
 		}
 	}
+}
 
+bool UHItemSlotComponent::SetActiveSlotIndexForEnum(EHSlotType SlotType, int32 NewActiveSlotIndex)
+{
+	switch (SlotType)
+	{
+	case EHSlotType::Weapon_L:
+	{
+		ActiveSlotIndex_Weapon_L = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Weapon_R:
+	{
+		ActiveSlotIndex_Weapon_R = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_Head:
+	{
+		ActiveSlotIndex_Armor_Head = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_Chest:
+	{
+		ActiveSlotIndex_Armor_Chest = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_ArmL:
+	{
+		ActiveSlotIndex_Armor_ArmL = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_ArmR:
+	{
+		ActiveSlotIndex_Armor_ArmR = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_LegL:
+	{
+		ActiveSlotIndex_Armor_LegL = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_LegR:
+	{
+		ActiveSlotIndex_Armor_LegR = NewActiveSlotIndex;
+		break;
+	}
+	case EHSlotType::Armor_Core:
+	{
+		ActiveSlotIndex_Armor_Core = NewActiveSlotIndex;
+		break;
+	}
+	default:
+	{
+		return false;
+	}
+	}
 	return true;
 }
 
@@ -557,6 +675,41 @@ bool UHItemSlotComponent::Trigger_OnRep_ActiveSlotIndex_ForEnum(EHSlotType SlotT
 		case EHSlotType::Weapon_R:
 		{
 			OnRep_ActiveSlotIndex_Weapon_R();
+			break;
+		}
+		case EHSlotType::Armor_Head:
+		{
+			OnRep_ActiveSlotIndex_Armor_Head();
+			break;
+		}
+		case EHSlotType::Armor_Chest:
+		{
+			OnRep_ActiveSlotIndex_Armor_Chest();
+			break;
+		}
+		case EHSlotType::Armor_ArmL:
+		{
+			OnRep_ActiveSlotIndex_Armor_ArmL();
+			break;
+		}
+		case EHSlotType::Armor_ArmR:
+		{
+			OnRep_ActiveSlotIndex_Armor_ArmR();
+			break;
+		}
+		case EHSlotType::Armor_LegL:
+		{
+			OnRep_ActiveSlotIndex_Armor_LegL();
+			break;
+		}
+		case EHSlotType::Armor_LegR:
+		{
+			OnRep_ActiveSlotIndex_Armor_LegR();
+			break;
+		}
+		case EHSlotType::Armor_Core:
+		{
+			OnRep_ActiveSlotIndex_Armor_Core();
 			break;
 		}
 		default:

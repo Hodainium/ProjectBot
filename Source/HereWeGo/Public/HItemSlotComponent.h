@@ -56,7 +56,7 @@ public:
 	int32 GetActiveSlotIndex(EHSlotType SlotType) const
 	{
 		int32 ActiveSlotIndex;
-		GetActiveSlotIndexForEnum(SlotType, ActiveSlotIndex);
+		GetActiveSlotIndexForEnum(SlotType);
 		return ActiveSlotIndex;
 	}
 
@@ -146,6 +146,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_Head();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Head)
+	int32 ActiveSlotIndex_Armor_Head = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_Head();
 	
 	//Armor Chest/////////////////////////////////////////////////////
 
@@ -161,6 +167,12 @@ protected:
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_Chest();
 
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Chest)
+	int32 ActiveSlotIndex_Armor_Chest = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_Chest();
+
 	//Armor Arm Left/////////////////////////////////////////////////////
 
 	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_ArmL)
@@ -174,6 +186,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_ArmL();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_ArmL)
+	int32 ActiveSlotIndex_Armor_ArmL = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_ArmL();
 
 	//Armor Arm Right/////////////////////////////////////////////////////
 
@@ -189,6 +207,12 @@ protected:
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_ArmR();
 
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_ArmR)
+	int32 ActiveSlotIndex_Armor_ArmR = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_ArmR();
+
 	//Armor Leg Left/////////////////////////////////////////////////////
 
 	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_LegL)
@@ -202,6 +226,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_LegL();
+
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_LegL)
+	int32 ActiveSlotIndex_Armor_LegL = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_LegL();
 
 	//Armor Leg Right/////////////////////////////////////////////////////
 
@@ -217,6 +247,12 @@ protected:
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_LegR();
 
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_LegR)
+	int32 ActiveSlotIndex_Armor_LegR = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_LegR();
+
 	//Armor Core/////////////////////////////////////////////////////
 
 	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_Core)
@@ -231,16 +267,31 @@ protected:
 	UFUNCTION()
 	void OnRep_NumSlots_Armor_Core();
 
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Core)
+	int32 ActiveSlotIndex_Armor_Core = -1;
+
+	UFUNCTION()
+	void OnRep_ActiveSlotIndex_Armor_Core();
+
 	//End/////////////////////////////////////////////////////
 
 	UFUNCTION()
 	bool GetSlotArrayForEnum(EHSlotType SlotType, TArray<UHInventoryItemInstance*>& OutSlotArray) const;
 
 	UFUNCTION()
-	bool GetNumSlotsForEnum(EHSlotType SlotType, int32& OutNumSlots);
+	TArray<UHInventoryItemInstance*>& GetSlotArrayRefForEnum(EHSlotType SlotType) const;
 
 	UFUNCTION()
-	bool GetActiveSlotIndexForEnum(EHSlotType SlotType, int32& OutActiveSlotIndex) const;
+	int32 GetNumSlotsForEnum(EHSlotType SlotType);
+
+	UFUNCTION()
+	void SetNumSlotsForEnum(EHSlotType SlotType, int32 NewNumSlots);
+
+	UFUNCTION()
+	int32 GetActiveSlotIndexForEnum(EHSlotType SlotType) const;
+
+	UFUNCTION()
+	bool SetActiveSlotIndexForEnum(EHSlotType SlotType, int32 NewActiveSlotIndex);
 
 	UFUNCTION()
 	bool Trigger_OnRep_Slots_ForEnum(EHSlotType SlotType);
