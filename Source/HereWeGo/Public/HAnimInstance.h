@@ -26,7 +26,7 @@ public:
 protected:
 
 #if WITH_EDITOR
-	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif
 
 	virtual void NativeInitializeAnimation() override;

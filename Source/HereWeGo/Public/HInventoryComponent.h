@@ -101,7 +101,7 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 	}
 
 	FHInventoryEntry(UHInventoryItemInstance* InInstance, FHInventoryPoint InPoint, bool bIsRotated, int32 InStackCount) : Instance(InInstance),
-		TopLeftTilePoint(InPoint), IsRotated(bIsRotated), StackCount(InStackCount)
+		StackCount(InStackCount)
 	{
 	}
 
@@ -122,10 +122,7 @@ public:
 	TObjectPtr<UHInventoryItemInstance> Instance = nullptr;
 
 	UPROPERTY()
-	FHInventoryPoint TopLeftTilePoint;
-
-	UPROPERTY()
-	bool IsRotated = false;
+	uint8 Index;
 
 	UPROPERTY()
 	int32 StackCount = 0;

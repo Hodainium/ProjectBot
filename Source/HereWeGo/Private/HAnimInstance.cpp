@@ -26,7 +26,7 @@ void UHAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* ASC)
 }
 
 #if WITH_EDITOR
-EDataValidationResult UHAnimInstance::IsDataValid(FDataValidationContext& Context)
+EDataValidationResult UHAnimInstance::IsDataValid(FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
 
