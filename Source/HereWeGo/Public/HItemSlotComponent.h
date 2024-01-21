@@ -4,29 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "HereWeGo/Inventory/InventoryStructs.h"
 #include "HItemSlotComponent.generated.h"
 
 
+struct FHInventoryEntry;
 class UHEquipmentComponent;
 class UHEquipmentInstance;
 class UHInventoryItemInstance;
 
 UENUM(BlueprintType)
-enum class EHSlotType : uint8
+enum class EHWeaponSlotType : uint8
 {
 	Weapon_L,
-	Weapon_R,
-	Armor_Head,
-	Armor_Chest,
-	Armor_ArmL,
-	Armor_ArmR,
-	Armor_LegL,
-	Armor_LegR,
-	Armor_Core
+	Weapon_R
 };
+ENUM_RANGE_BY_FIRST_AND_LAST(EHWeaponSlotType, EHWeaponSlotType::Weapon_L, EHWeaponSlotType::Weapon_R);
 
 //The item slot component is in charge of equipping items
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class HEREWEGO_API UHItemSlotComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -35,62 +31,57 @@ public:
 	UHItemSlotComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
-	void CycleActiveSlotForward(EHSlotType SlotType);
+	void CycleActiveSlotForward(EHWeaponSlotType SlotType);
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
-	void CycleActiveSlotBackward(EHSlotType SlotType);
+	void CycleActiveSlotBackward(EHWeaponSlotType SlotType);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Slots")
-	void SetActiveSlotIndex(EHSlotType SlotType, int32 NewIndex);
+	void SetActiveSlotIndexForEnum(EHWeaponSlotType SlotType, int32 NewIndex);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	TArray<UHInventoryItemInstance*> GetSlots(EHSlotType SlotType) const
+	TArray<UHInventoryItemInstance*> GetSlotsForEnum(EHWeaponSlotType SlotType) const
 	{
-		TArray<UHInventoryItemInstance*> OutArray;
-		GetSlotArrayForEnum(SlotType, OutArray);
-
-		return OutArray;
+		return GetSlotArrayForItemSlotEnum_NonMutable(SlotType);
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	int32 GetActiveSlotIndex(EHSlotType SlotType) const
+	int32 GetActiveSlotIndexForEnum(EHWeaponSlotType SlotType) const
 	{
-		int32 ActiveSlotIndex;
-		GetActiveSlotIndexForEnum(SlotType);
-		return ActiveSlotIndex;
+		return GetActiveSlotIndexForItemSlotEnum_NonMutable(SlotType);
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	UHInventoryItemInstance* GetActiveSlotItem() const;
+	UHInventoryItemInstance* GetActiveSlotItem(EHWeaponSlotType SlotType) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	int32 GetNextFreeItemSlot() const;
+	int32 GetNextFreeItemSlot(EHWeaponSlotType SlotType) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	void AddItemToSlot(int32 SlotIndex, UHInventoryItemInstance* Item);
+	void AddItemToSlot(EHWeaponSlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	UHInventoryItemInstance* RemoveItemFromSlot(int32 SlotIndex);
+	UHInventoryItemInstance* RemoveItemFromSlot(EHWeaponSlotType SlotType, int32 SlotIndex);
 
 	virtual void BeginPlay() override;
+	void HandleResizeSlotArrayForEnum(EHWeaponSlotType SlotType);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	void UnequipItemInSlot(EHSlotType SlotType);
-	void EquipItemInSlot(EHSlotType SlotType);
+
+	void UnequipItemInSlot(EHWeaponSlotType SlotType);
+	void EquipItemInSlot(EHWeaponSlotType SlotType);
 
 	UHEquipmentComponent* FindEquipmentComponent() const;
 
+	void BroadcastSlotsChanged(EHWeaponSlotType SlotType);
+
+	void BroadcastNumSlotsChanged(EHWeaponSlotType SlotType);
+
+	void BroadcastActiveSlotIndexChanged(EHWeaponSlotType SlotType) const;
+
 protected:
-	UPROPERTY()
-	int32 NumWeaponSlots_L = 2;
-
-	UPROPERTY()
-	int32 NumWeaponSlots_R = 2;
-
-	UPROPERTY()
-	int32 NumArmorSlots = 1;
 
 	//Weapon L/////////////////////////////////////////////////////
 
@@ -112,7 +103,10 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveSlotIndex_Weapon_L();
 
-	
+	UPROPERTY()
+	TObjectPtr<UHEquipmentInstance> EquippedItem_Weapon_L;
+
+
 	//Weapon R/////////////////////////////////////////////////////
 
 	UPROPERTY(ReplicatedUsing = OnRep_Slots_Weapon_R)
@@ -132,195 +126,70 @@ protected:
 
 	UFUNCTION()
 	void OnRep_ActiveSlotIndex_Weapon_R();
-	
-	//Armor Head/////////////////////////////////////////////////////
 
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_Head)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_Head;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_Head();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_Head)
-	int32 NumSlots_Armor_Head = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_Head();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Head)
-	int32 ActiveSlotIndex_Armor_Head = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_Head();
-	
-	//Armor Chest/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_Chest)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_Chest;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_Chest();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_Chest)
-	int32 NumSlots_Armor_Chest = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_Chest();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Chest)
-	int32 ActiveSlotIndex_Armor_Chest = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_Chest();
-
-	//Armor Arm Left/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_ArmL)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_ArmL;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_ArmL();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_ArmL)
-	int32 NumSlots_Armor_ArmL = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_ArmL();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_ArmL)
-	int32 ActiveSlotIndex_Armor_ArmL = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_ArmL();
-
-	//Armor Arm Right/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_ArmR)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_ArmR;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_ArmR();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_ArmR)
-	int32 NumSlots_Armor_ArmR = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_ArmR();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_ArmR)
-	int32 ActiveSlotIndex_Armor_ArmR = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_ArmR();
-
-	//Armor Leg Left/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_LegL)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_LegL;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_LegL();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_LegL)
-	int32 NumSlots_Armor_LegL = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_LegL();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_LegL)
-	int32 ActiveSlotIndex_Armor_LegL = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_LegL();
-
-	//Armor Leg Right/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_LegR)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_LegR;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_LegR();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_LegR)
-	int32 NumSlots_Armor_LegR = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_LegR();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_LegR)
-	int32 ActiveSlotIndex_Armor_LegR = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_LegR();
-
-	//Armor Core/////////////////////////////////////////////////////
-
-	UPROPERTY(ReplicatedUsing = OnRep_Slots_Armor_Core)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots_Armor_Core;
-
-	UFUNCTION()
-	void OnRep_Slots_Armor_Core();
-
-	UPROPERTY(ReplicatedUsing = OnRep_NumSlots_Armor_Core)
-	int32 NumSlots_Armor_Core = 1;
-
-	UFUNCTION()
-	void OnRep_NumSlots_Armor_Core();
-
-	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Armor_Core)
-	int32 ActiveSlotIndex_Armor_Core = -1;
-
-	UFUNCTION()
-	void OnRep_ActiveSlotIndex_Armor_Core();
+	UPROPERTY()
+	TObjectPtr<UHEquipmentInstance> EquippedItem_Weapon_R;
 
 	//End/////////////////////////////////////////////////////
 
-	UFUNCTION()
-	bool GetSlotArrayForEnum(EHSlotType SlotType, TArray<UHInventoryItemInstance*>& OutSlotArray) const;
-
-	UFUNCTION()
-	TArray<UHInventoryItemInstance*>& GetSlotArrayRefForEnum(EHSlotType SlotType) const;
-
-	UFUNCTION()
-	int32 GetNumSlotsForEnum(EHSlotType SlotType);
-
-	UFUNCTION()
-	void SetNumSlotsForEnum(EHSlotType SlotType, int32 NewNumSlots);
-
-	UFUNCTION()
-	int32 GetActiveSlotIndexForEnum(EHSlotType SlotType) const;
-
-	UFUNCTION()
-	bool SetActiveSlotIndexForEnum(EHSlotType SlotType, int32 NewActiveSlotIndex);
-
-	UFUNCTION()
-	bool Trigger_OnRep_Slots_ForEnum(EHSlotType SlotType);
-
-	UFUNCTION()
-	bool Trigger_OnRep_NumSlots_ForEnum(EHSlotType SlotType);
-
-	UFUNCTION()
-	bool Trigger_OnRep_ActiveSlotIndex_ForEnum(EHSlotType SlotType);
-	
+	//TArray<TArray<TObjectPtr<UHInventoryItemInstance>>&> Slots_EnumMap;
+	/*TArray<int32&> NumSlots_EnumMap;
+	TArray<int32&> ActiveSlotIndex_EnumMap;
+	TArray<TObjectPtr<UHEquipmentInstance>> EquippedItem_EnumMap;*/
 
 	UPROPERTY()
-	TObjectPtr<UHEquipmentInstance> EquippedItem;
+	TArray<FHSlotDataMap> SlotsDataMap;
+
+	//UFUNCTION()
+	TArray<UHInventoryItemInstance*> GetSlotArrayForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
+
+	//UFUNCTION()
+	const TArray<UHInventoryItemInstance*> GetSlotArrayForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
+
+	//UFUNCTION()
+	int32 GetNumSlotsForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
+
+	//UFUNCTION()
+	int32 GetNumSlotsForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
+
+	//UFUNCTION()
+	int32 GetActiveSlotIndexForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
+
+	//UFUNCTION()
+	int32 GetActiveSlotIndexForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
+
+	//UFUNCTION()
+	UHEquipmentInstance* GetEquippedItem(EHWeaponSlotType SlotType);
+
+
+
+	//UFUNCTION()
+	bool Trigger_OnRep_Slots_ForEnum(EHWeaponSlotType SlotType);
+
+	//UFUNCTION()
+	bool Trigger_OnRep_NumSlots_ForEnum(EHWeaponSlotType SlotType);
+
+	//UFUNCTION()
+	bool Trigger_OnRep_ActiveSlotIndex_ForEnum(EHWeaponSlotType SlotType);
 };
 
 USTRUCT(BlueprintType)
-struct FHQuickBarSlotsChangedMessage
+struct FHItemSlotsChangedMessage
 {
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	EHWeaponSlotType SlotType;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TArray<TObjectPtr<UHInventoryItemInstance>> Slots;
 };
 
 USTRUCT(BlueprintType)
-struct FHQuickBarActiveIndexChangedMessage
+struct FHItemSlotsActiveIndexChangedMessage
 {
 	GENERATED_BODY()
 
@@ -328,5 +197,23 @@ struct FHQuickBarActiveIndexChangedMessage
 	TObjectPtr<AActor> Owner = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	EHWeaponSlotType SlotType;
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	int32 ActiveIndex = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FHItemSlotsNumSlotsChangedMessage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	TObjectPtr<AActor> Owner = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	EHWeaponSlotType SlotType;
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	int32 NumSlots = 0;
 };

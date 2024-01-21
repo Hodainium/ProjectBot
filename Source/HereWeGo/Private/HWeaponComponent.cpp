@@ -66,11 +66,11 @@ void UHWeaponComponent::HandleOnMeleeHitEvent(AActor* HitActor, UPrimitiveCompon
 	}
 	//Do more here?
 
-	if (AActor* HitActor = HitResult.GetActor())
+	if (AActor* HitActorLocal = HitResult.GetActor()) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HitActor named: %s"), *HitActor->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("HitActor named: %s"), *HitActorLocal->GetName());
 
-		AHCharacterBase* CharBase = Cast<AHCharacterBase>(HitActor);
+		AHCharacterBase* CharBase = Cast<AHCharacterBase>(HitActorLocal);
 
 		if (CharBase)
 		{

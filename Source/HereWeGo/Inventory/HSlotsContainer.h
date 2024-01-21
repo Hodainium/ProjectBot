@@ -6,17 +6,17 @@
 
 class UHInventoryItemInstance;
 
-USTRUCT(BlueprintType)
-struct FHSlotsContainer
-{
-	GENERATED_BODY()
-
-	UPROPERTY(Category = Slots)
-	TArray<TObjectPtr<UHInventoryItemInstance>> Slots;
-
-	UPROPERTY(Category = Slots)
-	int32 NumSlots;
-
-	UPROPERTY(Category = Slots)
-	int32 ActiveSlotIndex;
-};
+//USTRUCT(BlueprintType)
+//struct FHSlotsContainer
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY(Category = Slots)
+//	TArray<TObjectPtr<UHInventoryItemInstance>> Slots;
+//
+//	UPROPERTY(Category = Slots)
+//	int32 NumSlots;
+//
+//	UPROPERTY(Category = Slots)
+//	int32 ActiveSlotIndex;
+//};
