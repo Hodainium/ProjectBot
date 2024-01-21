@@ -30,8 +30,12 @@ UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitial
 
 void UHItemSlotComponent::CycleActiveSlotForward(EHWeaponSlotType SlotType)
 {
-	const TArray<UHInventoryItemInstance*>& SlotArrayRef = GetSlotArrayForItemSlotEnum_NonMutable(SlotType);
-	const int32 ActiveSlotIndexRef = GetActiveSlotIndexForItemSlotEnum_NonMutable(SlotType);
+	if(!SlotsDataMap.IsValidEnum(SlotType))
+	{
+		return;
+	}
+	const TArray<UHInventoryItemInstance*>& SlotArrayRef = SlotsDataMap.GetSlotsArray_Mutable(SlotType);
+	const int32 ActiveSlotIndexRef = SlotsDataMap.GetActiveSlotIndex_NonMutable(SlotType);
 
 	if (SlotArrayRef.Num() < 2)
 	{
@@ -53,8 +57,12 @@ void UHItemSlotComponent::CycleActiveSlotForward(EHWeaponSlotType SlotType)
 
 void UHItemSlotComponent::CycleActiveSlotBackward(EHWeaponSlotType SlotType)
 {
-	const TArray<UHInventoryItemInstance*>& SlotArrayRef = GetSlotArrayForItemSlotEnum_NonMutable(SlotType);
-	const int32 ActiveSlotIndexRef = GetActiveSlotIndexForItemSlotEnum_NonMutable(SlotType);
+	if (!SlotsDataMap.IsValidEnum(SlotType))
+	{
+		return;
+	}
+	const TArray<UHInventoryItemInstance*>& SlotArrayRef = SlotsDataMap.GetSlotsArray_NonMutable(SlotType);
+	const int32 ActiveSlotIndexRef = SlotsDataMap.GetActiveSlotIndex_NonMutable(SlotType);
 
 	if (SlotArrayRef.Num() < 2)
 	{
@@ -76,8 +84,8 @@ void UHItemSlotComponent::CycleActiveSlotBackward(EHWeaponSlotType SlotType)
 
 void UHItemSlotComponent::SetActiveSlotIndexForEnum_Implementation(EHWeaponSlotType SlotType, int32 NewIndex)
 {
-	const TArray<UHInventoryItemInstance*>& SlotArrayRef = GetSlotArrayForItemSlotEnum_NonMutable(SlotType);
-	int32 ActiveSlotIndexRef = GetActiveSlotIndexForItemSlotEnum_Mutable(SlotType);
+	const TArray<UHInventoryItemInstance*>& SlotArrayRef = SlotsDataMap.GetSlotsArray_NonMutable(SlotType);
+	int32& ActiveSlotIndexRef = SlotsDataMap.GetActiveSlotIndex_NonMutable(SlotType);
 
 	if (SlotArrayRef.IsValidIndex(NewIndex) && (ActiveSlotIndexRef != NewIndex))
 	{
@@ -167,11 +175,11 @@ void UHItemSlotComponent::BeginPlay()
 		{
 		case EHWeaponSlotType::Weapon_L:
 			{
-				SlotsDataMap.Add(FHSlotDataMap(&Slots_Weapon_L, &NumSlots_Weapon_L, &ActiveSlotIndex_Weapon_L, &EquippedItem_Weapon_L));
+				SlotsDataMap.AddEntry(FHSlotDataEntry(&Slots_Weapon_L, &NumSlots_Weapon_L, &ActiveSlotIndex_Weapon_L, &EquippedItem_Weapon_L));
 			}
 		case EHWeaponSlotType::Weapon_R:
 			{
-				SlotsDataMap.Add(FHSlotDataMap(&Slots_Weapon_R, &NumSlots_Weapon_R, &ActiveSlotIndex_Weapon_R, &EquippedItem_Weapon_R));
+				SlotsDataMap.AddEntry(FHSlotDataEntry(&Slots_Weapon_R, &NumSlots_Weapon_R, &ActiveSlotIndex_Weapon_R, &EquippedItem_Weapon_R));
 			}
 			default:
 			{
@@ -318,6 +326,11 @@ void UHItemSlotComponent::BroadcastActiveSlotIndexChanged(EHWeaponSlotType SlotT
 	MessageSystem.BroadcastMessage(TAG_ItemSlots_Message_NumSlotsChanged, Message);
 }
 
+int32 UHItemSlotComponent::EnumToIndex(EHWeaponSlotType Enum)
+{
+	return static_cast<int32>(Enum);
+}
+
 void UHItemSlotComponent::OnRep_Slots_Weapon_L()
 {
 	BroadcastSlotsChanged(EHWeaponSlotType::Weapon_L);
@@ -348,120 +361,42 @@ void UHItemSlotComponent::OnRep_ActiveSlotIndex_Weapon_R()
 	BroadcastActiveSlotIndexChanged(EHWeaponSlotType::Weapon_R);
 }
 
-TArray<UHInventoryItemInstance*> UHItemSlotComponent::GetSlotArrayForItemSlotEnum_Mutable(EHWeaponSlotType SlotType)
+void UHItemSlotComponent::OnRep_SlotStruct_Weapon_L(FHInventorySlotStruct& PreviousValue)
 {
-	switch (SlotType)
+	if (SlotStruct_Weapon_L.SlotsArray != PreviousValue.SlotsArray)
 	{
-	case EHWeaponSlotType::Weapon_L:
-	{
-		return Slots_Weapon_L;
+		BroadcastSlotsChanged(EHWeaponSlotType::Weapon_L);
 	}
-	case EHWeaponSlotType::Weapon_R:
+
+	if (SlotStruct_Weapon_L.NumSlots != PreviousValue.NumSlots)
 	{
-		return Slots_Weapon_R;
+		BroadcastNumSlotsChanged(EHWeaponSlotType::Weapon_L);
 	}
-	default:
+
+	if (SlotStruct_Weapon_L.ActiveSlotIndex != PreviousValue.ActiveSlotIndex)
 	{
-		UE_LOGFMT(LogHGame, Error, "Could not access SlotsArray for enum in itemslotComp this is super bad");
-		TArray<UHInventoryItemInstance*> DefaultReturn;
-		return DefaultReturn;
-	}
+		BroadcastActiveSlotIndexChanged(EHWeaponSlotType::Weapon_L);
 	}
 }
 
-const TArray<UHInventoryItemInstance*> UHItemSlotComponent::GetSlotArrayForItemSlotEnum_NonMutable(
-	EHWeaponSlotType SlotType) const
+void UHItemSlotComponent::OnRep_SlotStruct_Weapon_R(FHInventorySlotStruct& PreviousValue)
 {
-	switch (SlotType)
+	if (SlotStruct_Weapon_R.SlotsArray != PreviousValue.SlotsArray)
 	{
-	case EHWeaponSlotType::Weapon_L:
-	{
-		return Slots_Weapon_L;
+		BroadcastSlotsChanged(EHWeaponSlotType::Weapon_R);
 	}
-	case EHWeaponSlotType::Weapon_R:
+
+	if (SlotStruct_Weapon_R.NumSlots != PreviousValue.NumSlots)
 	{
-		return Slots_Weapon_R;
+		BroadcastNumSlotsChanged(EHWeaponSlotType::Weapon_R);
 	}
-	default:
+
+	if (SlotStruct_Weapon_R.ActiveSlotIndex != PreviousValue.ActiveSlotIndex)
 	{
-		UE_LOGFMT(LogHGame, Error, "Could not access SlotsArray for enum in itemslotComp this is super bad");
-		TArray<UHInventoryItemInstance*> DefaultReturn;
-		return DefaultReturn;
-	}
+		BroadcastActiveSlotIndexChanged(EHWeaponSlotType::Weapon_R);
 	}
 }
 
-int32 UHItemSlotComponent::GetNumSlotsForItemSlotEnum_Mutable(EHWeaponSlotType SlotType)
-{
-	switch (SlotType)
-	{
-	case EHWeaponSlotType::Weapon_L:
-		return NumSlots_Weapon_L;
-	case EHWeaponSlotType::Weapon_R:
-		return NumSlots_Weapon_R;
-	default:
-		return NumSlots_Weapon_L;
-	}
-}
-
-int32 UHItemSlotComponent::GetNumSlotsForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const
-{
-	switch (SlotType)
-	{
-	case EHWeaponSlotType::Weapon_L:
-		return NumSlots_Weapon_L;
-	case EHWeaponSlotType::Weapon_R:
-		return NumSlots_Weapon_R;
-	default:
-		return NumSlots_Weapon_L;
-	}
-}
-
-int32 UHItemSlotComponent::GetActiveSlotIndexForItemSlotEnum_Mutable(EHWeaponSlotType SlotType)
-{
-	switch (SlotType)
-	{
-	case EHWeaponSlotType::Weapon_L:
-		return ActiveSlotIndex_Weapon_L;
-	case EHWeaponSlotType::Weapon_R:
-		return ActiveSlotIndex_Weapon_R;
-	default:
-		return ActiveSlotIndex_Weapon_L;
-	}
-}
-
-int32 UHItemSlotComponent::GetActiveSlotIndexForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const
-{
-	switch (SlotType)
-	{
-	case EHWeaponSlotType::Weapon_L:
-		return ActiveSlotIndex_Weapon_L;
-	case EHWeaponSlotType::Weapon_R:
-		return ActiveSlotIndex_Weapon_R;
-	default:
-		return ActiveSlotIndex_Weapon_L;
-	}
-}
-
-UHEquipmentInstance* UHItemSlotComponent::GetEquippedItem(EHWeaponSlotType SlotType)
-{
-	switch (SlotType)
-	{
-	case EHWeaponSlotType::Weapon_L:
-	{
-		return EquippedItem_Weapon_L;
-	}
-	case EHWeaponSlotType::Weapon_R:
-	{
-		return EquippedItem_Weapon_R;
-	}
-	default:
-	{
-		UE_LOGFMT(LogHGame, Error, "Could not access EquippedItem for enum in itemslotComp this is super bad");
-		return nullptr;
-	}
-	}
-}
 
 bool UHItemSlotComponent::Trigger_OnRep_Slots_ForEnum(EHWeaponSlotType SlotType)
 {

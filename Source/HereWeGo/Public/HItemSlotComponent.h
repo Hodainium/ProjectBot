@@ -81,6 +81,8 @@ private:
 
 	void BroadcastActiveSlotIndexChanged(EHWeaponSlotType SlotType) const;
 
+	int32 EnumToIndex(EHWeaponSlotType Enum);
+
 protected:
 
 	//Weapon L/////////////////////////////////////////////////////
@@ -132,36 +134,15 @@ protected:
 
 	//End/////////////////////////////////////////////////////
 
-	//TArray<TArray<TObjectPtr<UHInventoryItemInstance>>&> Slots_EnumMap;
-	/*TArray<int32&> NumSlots_EnumMap;
-	TArray<int32&> ActiveSlotIndex_EnumMap;
-	TArray<TObjectPtr<UHEquipmentInstance>> EquippedItem_EnumMap;*/
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Weapon_L)
+	FHInventorySlotStruct SlotStruct_Weapon_L;
 
-	UPROPERTY()
-	TArray<FHSlotDataMap> SlotsDataMap;
+	void OnRep_SlotStruct_Weapon_L(FHInventorySlotStruct& PreviousValue);
 
-	//UFUNCTION()
-	TArray<UHInventoryItemInstance*> GetSlotArrayForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveSlotIndex_Weapon_R)
+	FHInventorySlotStruct SlotStruct_Weapon_R;
 
-	//UFUNCTION()
-	const TArray<UHInventoryItemInstance*> GetSlotArrayForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
-
-	//UFUNCTION()
-	int32 GetNumSlotsForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
-
-	//UFUNCTION()
-	int32 GetNumSlotsForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
-
-	//UFUNCTION()
-	int32 GetActiveSlotIndexForItemSlotEnum_Mutable(EHWeaponSlotType SlotType);
-
-	//UFUNCTION()
-	int32 GetActiveSlotIndexForItemSlotEnum_NonMutable(EHWeaponSlotType SlotType) const;
-
-	//UFUNCTION()
-	UHEquipmentInstance* GetEquippedItem(EHWeaponSlotType SlotType);
-
-
+	void OnRep_SlotStruct_Weapon_R(FHInventorySlotStruct& PreviousValue);
 
 	//UFUNCTION()
 	bool Trigger_OnRep_Slots_ForEnum(EHWeaponSlotType SlotType);
