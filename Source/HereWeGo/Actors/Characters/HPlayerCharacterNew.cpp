@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Actors/Characters/HPlayerCharacterNew.h"
+#include "HPlayerCharacterNew.h"
 
 // Sets default values
 AHPlayerCharacterNew::AHPlayerCharacterNew()
