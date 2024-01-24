@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "HCharacterBaseOld.h"
+#include "HereWeGo/Actors/Characters/HCharacterBase.h"
 #include "HMinionCharacter.generated.h"
 
 class UHEquipmentComponent;
@@ -15,10 +16,11 @@ class UHInventoryComponent;
 
 
 /**
- * 
+ * Only difference for right now is that we turn off camera collision and set replicated mode to minimal for asc
+ * ALSO is lacking some components that a playable char would have like a camera
  */
 UCLASS()
-class HEREWEGO_API AHMinionCharacter : public AHCharacterBaseOld
+class HEREWEGO_API AHMinionCharacter : public AHCharacterBase
 {
 	GENERATED_BODY()
 
@@ -26,26 +28,4 @@ public:
 	AHMinionCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
-
-	UPROPERTY()
-	TObjectPtr<UHAbilitySystemComponent> AbilitySystemComponentHardRef;
-
-	UPROPERTY()
-	TObjectPtr<UHAttributeSetBase> AttributeSetBaseHardRef;
-
-	UPROPERTY()
-	TObjectPtr<UHWeaponComponent> WeaponComponentHardRef;
-
-	UPROPERTY()
-	TObjectPtr<UHInventoryComponent> InventoryComponentHardRef;
-
-	UPROPERTY()
-	TObjectPtr<UHEquipmentComponent> EquipmentComponentHardRef;
-
-	UPROPERTY()
-	TObjectPtr<UHItemSlotComponent> ItemSlotComponentHardRef;
-
-	virtual void BeginPlay() override;
-
-	
 };

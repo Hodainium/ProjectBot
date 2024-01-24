@@ -21,62 +21,16 @@ struct FGameplayEffectSpec;
  * 
  */
 UCLASS()
-class HEREWEGO_API AHPlayerState : public AModularPlayerState, public IAbilitySystemInterface, public IHInventoryInterface, public IHWeaponInterface
+class HEREWEGO_API AHPlayerState : public AModularPlayerState
 {
 	GENERATED_BODY()
 
 public:
 	AHPlayerState();
-
-	UFUNCTION(BlueprintCallable, Category = "HGAS|PlayerState")
-	UHAbilitySystemComponent* GetHAbilitySystemComp() const;
-
-	UFUNCTION(BlueprintCallable, Category = "PlayerState")
-	virtual UHWeaponComponent* GetWeaponComponent() const override;
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-	virtual UHAttributeSetBase* GetAttributeSetBase() const;
-
-	virtual UHInventoryComponent* GetInventoryComponent() const override;
-
-	virtual UHEquipmentComponent* GetEquipmentComponent() const override;
-
-	virtual UHItemSlotComponent* GetItemSlotComponent() const override;
-	
-
-	UFUNCTION(BlueprintCallable, Category = "HGAS|PlayerState")
-	bool IsAlive() const;
-
 	
 
 protected:
-	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHWeaponComponent> WeaponComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHAttributeSetBase> AttributeSetBase;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHInventoryComponent> InventoryComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHEquipmentComponent> EquipmentComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHItemSlotComponent> ItemSlotComponent;
 
 protected:
-	
-	FDelegateHandle OnOutOfHealthDelegateHandle;
-
-	FGameplayTag DeathTag;
-
-	virtual void HandleOutOfHealth(AActor* InstigatorActor, AActor* CauserActor, const FGameplayEffectSpec& EffectSpec, float EffectMagnitude);
 
 };

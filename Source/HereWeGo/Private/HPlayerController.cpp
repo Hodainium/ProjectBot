@@ -5,8 +5,10 @@
 
 #include "HAbilitySystemComponent.h"
 #include "HPlayerCameraManager.h"
+#include "HPlayerCharacter.h"
 #include "HPlayerState.h"
 #include "Blueprint/UserWidget.h"
+#include "HereWeGo/Actors/Characters/HCharacterBase.h"
 
 AHPlayerController::AHPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,10 +21,16 @@ AHPlayerState* AHPlayerController::GetHPlayerState() const
 	return CastChecked<AHPlayerState>(PlayerState, ECastCheckedType::NullAllowed);
 }
 
+AHCharacterBase* AHPlayerController::GetHCharacterBase() const
+{
+	return CastChecked<AHCharacterBase>(GetPawn(), ECastCheckedType::NullAllowed);
+}
+
+
 UHAbilitySystemComponent* AHPlayerController::GetHAbilitySystemComponent() const
 {
-	const AHPlayerState* PS = GetHPlayerState();
-	return (PS ? PS->GetHAbilitySystemComp() : nullptr);
+	const AHCharacterBase* CharBase = GetHCharacterBase();
+	return (CharBase ? CharBase->GetHAbilitySystemComp() : nullptr);
 }
 
 void AHPlayerController::CreateHUD()
@@ -63,22 +71,12 @@ void AHPlayerController::OnCameraPenetratingTarget()
 
 void AHPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	/*if (UHAbilitySystemComponent* ASC = GetHAbilitySystemComponent())
+	if (UHAbilitySystemComponent* ASC = GetHAbilitySystemComponent())
 	{
 		ASC->ProcessAbilityInput(DeltaTime, bGamePaused);
-	}*/
-
-	if (AbilitySystemComponentRef.IsValid())
-	{
-		AbilitySystemComponentRef->ProcessAbilityInput(DeltaTime, bGamePaused);
 	}
 
 	Super::PostProcessInput(DeltaTime, bGamePaused);
-}
-
-void AHPlayerController::RegisterASCRef(UHAbilitySystemComponent* Ref)
-{
-	AbilitySystemComponentRef = Ref;
 }
 
 void AHPlayerController::InitPlayerState()
@@ -161,6 +159,19 @@ void AHPlayerController::OnRep_PlayerState()
 	//In case Playerstate is repped before possession
 	//CreateHUD();
 
+}
+
+void AHPlayerController::AcknowledgePossession(APawn* P)
+{
+	Super::AcknowledgePossession(P);
+
+	AHCharacterBase* CharacterBase = Cast<AHCharacterBase>(P);
+	if (CharacterBase)
+	{
+		CharacterBase->GetAbilitySystemComponent()->InitAbilityActorInfo(CharacterBase, CharacterBase);
+	}
+
+	//...
 }
 
 

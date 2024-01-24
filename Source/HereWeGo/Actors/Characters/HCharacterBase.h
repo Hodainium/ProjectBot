@@ -9,8 +9,10 @@
 #include "HWeaponInterface.h"
 #include "ModularCharacter.h"
 #include "GameFramework/Character.h"
+#include "HereWeGo/HereWeGo.h"
 #include "HCharacterBase.generated.h"
 
+struct FGameplayEffectSpec;
 struct FOnAttributeChangeData;
 class UHAbilitySet;
 class UHAbilityTagRelationshipMapping;
@@ -22,6 +24,7 @@ class UHAttributeSetBase;
 class UGameplayEffect;
 class UHAbilitySystemComponent;
 
+//Basis for which all characters inherit from. Even if nonplayable. Actors like barrels should be seperate class
 UCLASS()
 class HEREWEGO_API AHCharacterBase : public AModularCharacter, public IAbilitySystemInterface, public IHInventoryInterface, public IHWeaponInterface
 {
@@ -99,6 +102,8 @@ public:
 
 	virtual void RemoveCharacterAbilities();
 
+	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+
 	UFUNCTION()
 	virtual void DeathStarted();
 
@@ -117,8 +122,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HGAS|Abilities")
 	TObjectPtr<UHAbilityTagRelationshipMapping> TagRelationshipMapping;
 
+	
+
+	virtual void PossessedBy(AController* NewController) override;
+
 protected:
-	virtual void InitializeASC();
+
+	/** Should be called by the owning pawn to Set up sets I guess? */
+	virtual void InitializeAbilitySystem();
+
+	/** Should be called by the owning pawn to remove itself as the avatar of the ability system. */
+	void UninitializeAbilitySystem();
 
 	virtual void InitializeAttributes();
 
@@ -134,16 +148,16 @@ protected:
 
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
-	TWeakObjectPtr<UHAbilitySystemComponent> AbilitySystemComponentRef;
-	TWeakObjectPtr<UHAttributeSetBase> AttributeSetBaseRef;
+	TObjectPtr<UHAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UHAttributeSetBase> AttributeSetBase;
 
-	TWeakObjectPtr<UHWeaponComponent> WeaponComponentRef;
+	TObjectPtr<UHWeaponComponent> WeaponComponent;
 
-	TWeakObjectPtr<UHInventoryComponent> InventoryComponentRef;
+	TObjectPtr<UHInventoryComponent> InventoryComponent;
 
-	TWeakObjectPtr<UHEquipmentComponent> EquipmentComponentRef;
+	TObjectPtr<UHEquipmentComponent> EquipmentComponent;
 
-	TWeakObjectPtr<UHItemSlotComponent> ItemSlotComponentRef;
+	TObjectPtr<UHItemSlotComponent> ItemSlotComponent;
 
 	FDelegateHandle OnHealthChangedDelegate;
 
@@ -168,7 +182,21 @@ protected:
 
 	void DisableMovementAndCapsuleCollision();
 
-	void UninitializeAbilitySystem();
+	// Begins the death sequence for the character (disables collision, disables movement, etc...)
+	UFUNCTION()
+	virtual void OnDeathStarted(AActor* OwningActor);
+
+	// Ends the death sequence for the character (detaches controller, destroys pawn, etc...)
+	UFUNCTION()
+	virtual void OnDeathFinished(AActor* OwningActor);
+
+	void DisableMovementAndCollision();
+	void DestroyDueToDeath();
+	void UninitAndDestroy();
+
+	// Called when the death sequence for the character has completed
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "OnDeathFinished"))
+	void K2_OnDeathFinished();
 
 	FGameplayTag DeathTag;
 	FGameplayTag RemoveEffectOnDeathTag;
@@ -177,5 +205,17 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HGAS|Animation")
 	UAnimMontage* DeathMontage;
+
+	//TODO Need to implement
+
+	///** Delegate fired when our pawn becomes the ability system's avatar actor */
+	//FSimpleMulticastDelegate OnAbilitySystemInitialized;
+
+	///** Delegate fired when our pawn is removed as the ability system's avatar actor */
+	//FSimpleMulticastDelegate OnAbilitySystemUninitialized;
+
+	virtual void OnAbilitySystemInitialized();
+
+	virtual void OnAbilitySystemUninitialized();
 
 };

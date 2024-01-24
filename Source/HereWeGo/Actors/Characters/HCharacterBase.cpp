@@ -8,18 +8,39 @@
 #include "HAbilitySystemComponent.h"
 #include "HAttributeSetBase.h"
 #include "HCharacterMovementComponent.h"
+#include "HEquipmentComponent.h"
 #include "HGameplayAbility.h"
 #include "HInventoryComponent.h"
+#include "HItemSlotComponent.h"
+#include "HVerbMessage.h"
 #include "Blueprint/UserWidget.h"
 #include "HWorldUserWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "HWeaponComponent.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "GameFramework/PlayerState.h"
+#include "HereWeGo/Tags/H_Tags.h"
 #include "Kismet/GameplayStatics.h"
 
 AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UHCharacterMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
+	AbilitySystemComponent = CreateDefaultSubobject<UHAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	AttributeSetBase = CreateDefaultSubobject<UHAttributeSetBase>(TEXT("AttributeSetBase"));
+
+	WeaponComponent = CreateDefaultSubobject<UHWeaponComponent>(TEXT("WeaponComponent"));
+	WeaponComponent->RegisterWithAbilitySystem(AbilitySystemComponent);
+
+	InventoryComponent = CreateDefaultSubobject<UHInventoryComponent>(TEXT("InventoryComponent"));
+
+	EquipmentComponent = CreateDefaultSubobject<UHEquipmentComponent>(TEXT("EquipmentComponent"));
+
+	ItemSlotComponent = CreateDefaultSubobject<UHItemSlotComponent>(TEXT("ItemSlotComponent"));
+
 	DeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.State.Death"));
 	RemoveEffectOnDeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.Effect.RemoveOnDeath"));
 	AbilityPersistsDeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.Ability.PersistDeath"));
@@ -35,9 +56,14 @@ void AHCharacterBase::BeginPlay()
 
 	//todo register stun tag event
 
-	OnHealthChangedDelegate = AbilitySystemComponentRef->GetGameplayAttributeValueChangeDelegate(AttributeSetBaseRef->GetHealthAttribute()).AddUObject(this, &AHCharacterBase::HealthChanged);
+	if (AbilitySystemComponent)
+	{
+		InitializeAbilitySystem();
+	}
 
-	AbilitySystemComponentRef->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBase::StunTagChanged);
+	OnHealthChangedDelegate = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &AHCharacterBase::HealthChanged);
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBase::StunTagChanged);
 }
 
 // Called every frame
@@ -54,18 +80,20 @@ void AHCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
-void AHCharacterBase::InitializeASC()
+void AHCharacterBase::InitializeAbilitySystem()
 {
 	InitializeAttributes();
 	//AddStartupEffects();
 	//AddCharacterAbilities();
 	AddStartupAbilitySets();
 	SetTagRelationShipMapping();
+
+	OnAbilitySystemInitialized();
 }
 
 void AHCharacterBase::InitializeAttributes()
 {
-	if (!AbilitySystemComponentRef.IsValid())
+	if (!AbilitySystemComponent)
 	{
 		return;
 	}
@@ -75,44 +103,44 @@ void AHCharacterBase::InitializeAttributes()
 		UE_LOG(LogTemp, Error, TEXT("Actor: %s does not have default attributes set! :("), *this->GetActorNameOrLabel());
 	}
 
-	FGameplayEffectContextHandle EffectContext = AbilitySystemComponentRef->MakeEffectContext();
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponentRef->MakeOutgoingSpec(DefaultAttributes, AttributeSetBaseRef->GetLevel(), EffectContext);
+	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, AttributeSetBase->GetLevel(), EffectContext);
 
 	if (NewHandle.IsValid())
 	{
-		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponentRef->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponentRef.Get());
-		AbilitySystemComponentRef->bAttributesInitialized = true;
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+		AbilitySystemComponent->bAttributesInitialized = true;
 	}
 }
 
 void AHCharacterBase::AddStartupEffects()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || AbilitySystemComponentRef->bStartUpEffectsApplied)
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || AbilitySystemComponent->bStartUpEffectsApplied)
 	{
 		return;
 	}
 
-	FGameplayEffectContextHandle EffectContext = AbilitySystemComponentRef->MakeEffectContext();
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
 	for (TSubclassOf<UGameplayEffect> GameplayEffect : StartupEffects)
 	{
-		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponentRef->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext);
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext);
 		if (NewHandle.IsValid())
 		{
-			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponentRef->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponentRef.Get());
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
 		}
 	}
 
-	AbilitySystemComponentRef->bStartUpEffectsApplied = true;
+	AbilitySystemComponent->bStartUpEffectsApplied = true;
 }
 
 void AHCharacterBase::AddCharacterAbilities()
 {
 
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || AbilitySystemComponentRef->bCharacterAbilitiesGranted)
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || AbilitySystemComponent->bCharacterAbilitiesGranted)
 	{
 		return;
 	}
@@ -121,17 +149,17 @@ void AHCharacterBase::AddCharacterAbilities()
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(StartupAbility);
 		AbilitySpec.SourceObject = this;
-		AbilitySystemComponentRef->GiveAbility(AbilitySpec);
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
 
 		////StartupAbility, GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityID), static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID
 	}
 
-	AbilitySystemComponentRef->bCharacterAbilitiesGranted = true;
+	AbilitySystemComponent->bCharacterAbilitiesGranted = true;
 }
 
 void AHCharacterBase::AddStartupAbilitySets()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid()) // || AbilitySystemComponentRef->bStartUpEffectsApplied
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent) // || AbilitySystemComponent->bStartUpEffectsApplied
 	{
 		return;
 	}
@@ -140,19 +168,19 @@ void AHCharacterBase::AddStartupAbilitySets()
 	{
 		if (AbilitySet)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponentRef.Get(), nullptr);
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent.Get(), nullptr);
 		}
 	}
 }
 
 void AHCharacterBase::SetTagRelationShipMapping()
 {
-	if (!AbilitySystemComponentRef.IsValid())
+	if (!AbilitySystemComponent)
 	{
 		return;
 	}
 
-	AbilitySystemComponentRef->SetTagRelationshipMapping(TagRelationshipMapping);
+	AbilitySystemComponent->SetTagRelationshipMapping(TagRelationshipMapping);
 }
 
 void AHCharacterBase::HealthChanged(const FOnAttributeChangeData& Data)
@@ -195,38 +223,38 @@ void AHCharacterBase::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCo
 		FGameplayTagContainer AbilityTagsToIgnore;
 		AbilityTagsToCancel.AddTag(FGameplayTag::RequestGameplayTag(FName("GAS.Ability.NotCancelledByStun")));
 
-		AbilitySystemComponentRef->CancelAbilities(&AbilityTagsToCancel, &AbilityTagsToIgnore);
+		AbilitySystemComponent->CancelAbilities(&AbilityTagsToCancel, &AbilityTagsToIgnore);
 	}
 }
 
 UAbilitySystemComponent* AHCharacterBase::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponentRef.Get();
+	return AbilitySystemComponent.Get();
 }
 
 UHAbilitySystemComponent* AHCharacterBase::GetHAbilitySystemComp() const
 {
-	return AbilitySystemComponentRef.Get();
+	return AbilitySystemComponent.Get();
 }
 
 UHWeaponComponent* AHCharacterBase::GetWeaponComponent() const
 {
-	return WeaponComponentRef.Get();
+	return WeaponComponent.Get();
 }
 
 UHInventoryComponent* AHCharacterBase::GetInventoryComponent() const
 {
-	return InventoryComponentRef.Get();
+	return InventoryComponent.Get();
 }
 
 UHEquipmentComponent* AHCharacterBase::GetEquipmentComponent() const
 {
-	return EquipmentComponentRef.Get();
+	return EquipmentComponent.Get();
 }
 
 UHItemSlotComponent* AHCharacterBase::GetItemSlotComponent() const
 {
-	return ItemSlotComponentRef.Get();
+	return ItemSlotComponent.Get();
 }
 
 int32 AHCharacterBase::GetAbilityLevel(EHAbilityInputID AbilityID) const
@@ -236,104 +264,104 @@ int32 AHCharacterBase::GetAbilityLevel(EHAbilityInputID AbilityID) const
 
 int32 AHCharacterBase::GetCharacterLevel() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return static_cast<int32>(AttributeSetBaseRef->GetLevel());
+	return static_cast<int32>(AttributeSetBase->GetLevel());
 }
 
 float AHCharacterBase::GetMoveSpeed() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMoveSpeed();
+	return AttributeSetBase->GetMoveSpeed();
 }
 
 float AHCharacterBase::GetBaseMoveSpeed() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMoveSpeedAttribute().GetGameplayAttributeData(AttributeSetBaseRef.Get())->GetBaseValue();
+	return AttributeSetBase->GetMoveSpeedAttribute().GetGameplayAttributeData(AttributeSetBase.Get())->GetBaseValue();
 }
 
 float AHCharacterBase::GetHealth() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetHealth();
+	return AttributeSetBase->GetHealth();
 }
 
 float AHCharacterBase::GetMaxHealth() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMaxHealth();
+	return AttributeSetBase->GetMaxHealth();
 }
 
 float AHCharacterBase::GetStamina() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetStamina();
+	return AttributeSetBase->GetStamina();
 }
 
 float AHCharacterBase::GetMaxStamina() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMaxStamina();
+	return AttributeSetBase->GetMaxStamina();
 }
 
 float AHCharacterBase::GetMana() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMana();
+	return AttributeSetBase->GetMana();
 }
 
 float AHCharacterBase::GetMaxMana() const
 {
-	if (!AttributeSetBaseRef.IsValid())
+	if (!AttributeSetBase)
 	{
 		return 0.f;
 	}
 
-	return AttributeSetBaseRef->GetMaxMana();
+	return AttributeSetBase->GetMaxMana();
 }
 
 void AHCharacterBase::RemoveCharacterAbilities()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || !AbilitySystemComponentRef->bCharacterAbilitiesGranted)
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || !AbilitySystemComponent->bCharacterAbilitiesGranted)
 	{
 		return;
 	}
 
 	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
 
-	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponentRef->GetActivatableAbilities())
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
 		if ((Spec.SourceObject == this) && CharacterAbilities.Contains(Spec.Ability->GetClass()))
 		{
@@ -343,10 +371,53 @@ void AHCharacterBase::RemoveCharacterAbilities()
 
 	for (int32 i = 0; i < AbilitiesToRemove.Num(); i++)
 	{
-		AbilitySystemComponentRef->ClearAbility(AbilitiesToRemove[i]);
+		AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
 	}
 
-	AbilitySystemComponentRef->bCharacterAbilitiesGranted = false;
+	AbilitySystemComponent->bCharacterAbilitiesGranted = false;
+}
+
+void AHCharacterBase::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+#if WITH_SERVER_CODE
+	if (AbilitySystemComponent && DamageEffectSpec)
+	{
+		// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = H_GameplayEvent_Tags::TAG_GAMEPLAYEVENT_DEATH;
+			Payload.Instigator = DamageInstigator;
+			Payload.Target = AbilitySystemComponent->GetAvatarActor();
+			Payload.OptionalObject = DamageEffectSpec->Def;
+			Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+			Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			Payload.EventMagnitude = DamageMagnitude;
+
+			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+		}
+
+		// Send a standardized verb message that other systems can observe
+		{
+			FHVerbMessage Message;
+			Message.Verb = H_GameplayEvent_Tags::TAG_ELIMINATION_MESSAGE;
+			Message.Instigator = DamageInstigator;
+			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Message.Target = UHVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());
+			Message.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
+			//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
+
+			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSystem.BroadcastMessage(Message.Verb, Message);
+		}
+
+		//@TODO: assist messages (could compute from damage dealt elsewhere)?
+	}
+
+#endif // #if WITH_SERVER_CODE
 }
 
 void AHCharacterBase::DeathStarted()
@@ -355,15 +426,15 @@ void AHCharacterBase::DeathStarted()
 
 	DisableMovementAndCapsuleCollision();
 
-	if (AbilitySystemComponentRef.IsValid())
+	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponentRef->CancelAllAbilities();
+		AbilitySystemComponent->CancelAllAbilities();
 
 		FGameplayTagContainer EffectTagsToRemove;
 		EffectTagsToRemove.AddTag(RemoveEffectOnDeathTag);
-		AbilitySystemComponentRef->RemoveActiveEffectsWithTags(EffectTagsToRemove);
+		AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectTagsToRemove);
 
-		AbilitySystemComponentRef->AddLooseGameplayTag(DeathTag);
+		AbilitySystemComponent->AddLooseGameplayTag(DeathTag);
 	}
 
 	//OnCharacterDeath.Broadcast(this);
@@ -376,37 +447,6 @@ void AHCharacterBase::DeathStarted()
 	{
 		DeathFinished();
 	}
-
-	//// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
-	//{
-	//	FGameplayEventData Payload;
-	//	Payload.EventTag = FLyraGameplayTags::Get().GameplayEvent_Death;
-	//	Payload.Instigator = DamageInstigator;
-	//	Payload.Target = AbilitySystemComponent->GetAvatarActor();
-	//	Payload.OptionalObject = DamageEffectSpec.Def;
-	//	Payload.ContextHandle = DamageEffectSpec.GetEffectContext();
-	//	Payload.InstigatorTags = *DamageEffectSpec.CapturedSourceTags.GetAggregatedTags();
-	//	Payload.TargetTags = *DamageEffectSpec.CapturedTargetTags.GetAggregatedTags();
-	//	Payload.EventMagnitude = DamageMagnitude;
-
-	//	FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
-	//	AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-	//}
-
-	//// Send a standardized verb message that other systems can observe
-	//{
-	//	FLyraVerbMessage Message;
-	//	Message.Verb = TAG_Lyra_Elimination_Message;
-	//	Message.Instigator = DamageInstigator;
-	//	Message.InstigatorTags = *DamageEffectSpec.CapturedSourceTags.GetAggregatedTags();
-	//	Message.Target = ULyraVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());
-	//	Message.TargetTags = *DamageEffectSpec.CapturedTargetTags.GetAggregatedTags();
-	//	//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
-	//	//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
-
-	//	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	//	MessageSystem.BroadcastMessage(Message.Verb, Message);
-	//}
 }
 
 //We should call this when deathanim is finished and we want to ragdoll. Should be called inside animnotify for now.
@@ -424,36 +464,117 @@ void AHCharacterBase::DeathFinished()
 
 bool AHCharacterBase::IsAlive() const
 {
-	return AttributeSetBaseRef->GetHealth() > 0.f;
+	return AttributeSetBase->GetHealth() > 0.f;
 }
 
 void AHCharacterBase::UninitializeAbilitySystem()
 {
-	if (!AbilitySystemComponentRef.IsValid())
+	if (!AbilitySystemComponent)
 	{
 		return;
 	}
 
-	if (AbilitySystemComponentRef->GetAvatarActor() == GetOwner())
+	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
+	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
 	{
-		/*FGameplayTagContainer AbilityTypesToIgnore;
-		AbilityTypesToIgnore.AddTag(AbilityPersistsDeathTag);*/
-		//AbilitySystemComponentRef->CancelAbilities(nullptr, &AbilityTypesToIgnore);
+		FGameplayTagContainer AbilityTypesToIgnore;
+		AbilityTypesToIgnore.AddTag(H_GameplayEvent_Tags::TAG_ABILITY_BEHAVIOR_SURVIVESDEATH); 
 
-		AbilitySystemComponentRef->CancelAbilities();
-		AbilitySystemComponentRef->RemoveAllGameplayCues();
+		AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
+		AbilitySystemComponent->ClearAbilityInput();
+		AbilitySystemComponent->RemoveAllGameplayCues();
 
-		if (AbilitySystemComponentRef->GetOwnerActor() != nullptr)
+		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
 		{
-			AbilitySystemComponentRef->SetAvatarActor(nullptr);
+			AbilitySystemComponent->SetAvatarActor(nullptr);
 		}
 		else
 		{
-			AbilitySystemComponentRef->ClearActorInfo();
+			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
+			AbilitySystemComponent->ClearActorInfo();
 		}
+
+		OnAbilitySystemUninitialized();
 	}
 
-	AbilitySystemComponentRef = nullptr;
+	AbilitySystemComponent = nullptr;
+}
+
+void AHCharacterBase::OnDeathStarted(AActor* OwningActor)
+{
+	DisableMovementAndCollision();
+}
+
+void AHCharacterBase::OnDeathFinished(AActor* OwningActor)
+{
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::DestroyDueToDeath);
+}
+
+void AHCharacterBase::DisableMovementAndCollision()
+{
+	if (Controller)
+	{
+		Controller->SetIgnoreMoveInput(true);
+	}
+
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	check(CapsuleComp);
+	CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore); 
+
+	UHCharacterMovementComponent* HMoveComp = CastChecked<UHCharacterMovementComponent>(GetCharacterMovement());
+	HMoveComp->StopMovementImmediately();
+	HMoveComp->DisableMovement();
+}
+
+void AHCharacterBase::DestroyDueToDeath()
+{
+	K2_OnDeathFinished();
+
+	UninitAndDestroy();
+}
+
+void AHCharacterBase::UninitAndDestroy()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(0.1f);
+	}
+
+	UninitializeAbilitySystem();
+
+	SetActorHiddenInGame(true);
+}
+
+void AHCharacterBase::OnAbilitySystemInitialized()
+{
+	//TODO healthcomp
+	/*ULyraAbilitySystemComponent* LyraASC = GetLyraAbilitySystemComponent();
+	check(LyraASC);
+
+	HealthComponent->InitializeWithAbilitySystem(LyraASC);
+
+	InitializeGameplayTags();*/
+}
+
+void AHCharacterBase::OnAbilitySystemUninitialized()
+{
+	//Todo healthcomp
+	//HealthComponent->UninitializeFromAbilitySystem();
+}
+
+void AHCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+
+	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
+	SetOwner(NewController);
 }
 
 void AHCharacterBase::DisableMovementAndCapsuleCollision()
@@ -473,3 +594,5 @@ void AHCharacterBase::DisableMovementAndCapsuleCollision()
 	MoveComp->StopMovementImmediately();
 	MoveComp->DisableMovement();
 }
+
+

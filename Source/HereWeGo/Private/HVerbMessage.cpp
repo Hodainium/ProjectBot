@@ -2,8 +2,10 @@
 
 
 #include "HVerbMessage.h"
-
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+
 
 
 FString FHVerbMessage::ToString() const

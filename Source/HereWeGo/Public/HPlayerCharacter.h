@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "InputMappingContext.h"
 #include "HereWeGo/HereWeGo.h"
+#include "HereWeGo/Actors/Characters/HCharacterBase.h"
 #include "Input/HInputMappingContextAndPriority.h"
 #include "HPlayerCharacter.generated.h"
 
@@ -32,7 +33,7 @@ class UGameplayEffect;
 class UGameplayAbility;
 
 UCLASS()
-class HEREWEGO_API AHPlayerCharacter : public AHCharacterBaseOld
+class HEREWEGO_API AHPlayerCharacter : public AHCharacterBase
 {
 	GENERATED_BODY()
 

@@ -45,6 +45,10 @@
 // Sets default values
 AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+
+	//Change the replication mode for playable characters
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -57,6 +61,7 @@ AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	CameraComp->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 	//CameraComp->SetupAttachment(SpringArmComp);
 
+	//TODO Remove this interactionComp
 	InteractionComp = CreateDefaultSubobject<UHInteractionComponent>("InteractionComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -82,11 +87,13 @@ AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	TimerDelegate_OnFireRateCooldown.BindUFunction(this, "OnShootCooldownReached");
 }
 
+////This is in Lyra character will add after getting things working. Also need to add health comp somewhere
 //void AHPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 //{
 //	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 //
-//	DOREPLIFETIME(AHPlayerCharacter, PawnData);
+//	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+//	DOREPLIFETIME(ThisClass, MyTeamID)
 //}
 
 // Called when the game starts or when spawned
@@ -165,22 +172,9 @@ void AHPlayerCharacter::HandleControllerChanged()
 
 	if (PS) //This is if a playerstate is added or replicated
 	{
-		AbilitySystemComponentRef = Cast<UHAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		//todo bind to input ??? Maybe i do idr
 
-		AttributeSetBaseRef = PS->GetAttributeSetBase();
-
-		WeaponComponentRef = PS->GetWeaponComponent();
-
-		EquipmentComponentRef = PS->GetEquipmentComponent();
-		InventoryComponentRef = PS->GetInventoryComponent();
-		ItemSlotComponentRef = PS->GetItemSlotComponent();
-
-
-		//todo bind to input
-
-		AbilitySystemComponentRef->InitAbilityActorInfo(PS, this);
-
-		InitializeASC();
+		InitializeAbilitySystem();
 
 		AHPlayerController* PC = Cast<AHPlayerController>(GetController());
 
@@ -194,8 +188,6 @@ void AHPlayerCharacter::HandleControllerChanged()
 				UE_LOG(LogTemp, Warning, TEXT("Pushing Game HUD [%s] to UI"), *GetNameSafe(HUDLayoutClass));
 				HUDLayoutWidget = UCommonUIExtensions::PushContentToLayer_ForPlayer(PC->GetLocalPlayer(), H_CommonUI_Tags::TAG_UI_LAYER_GAME, HUDLayoutClass);
 			}
-
-			PC->RegisterASCRef(AbilitySystemComponentRef.Get());
 
 			SetupPlayerInputComponent(PC->InputComponent);
 		}
@@ -403,15 +395,15 @@ bool AHPlayerCharacter::AttemptToShoot()
 				{
 					ensure(DamageGameplayEffect);
 
-					FGameplayEffectContextHandle DamageContextHandle = AbilitySystemComponentRef->MakeEffectContext();
+					FGameplayEffectContextHandle DamageContextHandle = AbilitySystemComponent->MakeEffectContext();
 					DamageContextHandle.AddHitResult(HitResult);
 
-					FGameplayEffectSpecHandle DamageHandle = AbilitySystemComponentRef->MakeOutgoingSpec(DamageGameplayEffect, AttributeSetBaseRef->GetLevel(), DamageContextHandle);
+					FGameplayEffectSpecHandle DamageHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageGameplayEffect, AttributeSetBase->GetLevel(), DamageContextHandle);
 					DamageHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage")), GunDamage);
 
 					if(DamageHandle.IsValid())
 					{
-						FActiveGameplayEffectHandle AppliedEffect = AbilitySystemComponentRef->ApplyGameplayEffectSpecToTarget(*DamageHandle.Data.Get(), TargetASC);
+						FActiveGameplayEffectHandle AppliedEffect = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageHandle.Data.Get(), TargetASC);
 					}
 				}
 			}
@@ -501,26 +493,26 @@ void AHPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		}
 	}
 
-	//todo implement this somewhere. Input confirm SHOULD BE DONE
-	AbilitySystemComponentRef->GenericConfirmInputID = static_cast<int32>(EHAbilityInputID::Attack1);
-	AbilitySystemComponentRef->GenericCancelInputID = static_cast<int32>(EHAbilityInputID::Attack2);
+	//todo NEED TO FIX FOR NEW TAG INPUT SYSTEM
+	AbilitySystemComponent->GenericConfirmInputID = static_cast<int32>(EHAbilityInputID::Attack1);
+	AbilitySystemComponent->GenericCancelInputID = static_cast<int32>(EHAbilityInputID::Attack2);
 	//AbilitySystemComponentRef->LocalInputConfirm();
 }
 
 void AHPlayerCharacter::SendLocalInputToASC(const EHAbilityInputID AbilityInputID, bool bIsPressed)
 {
-	if (!AbilitySystemComponentRef.IsValid())
+	if (!AbilitySystemComponent)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No valid ASC found in hplayer::sendlocalinput"))
 	}
 
 	if(bIsPressed)
 	{
-		AbilitySystemComponentRef->AbilityLocalInputPressed(static_cast<int32>(AbilityInputID));
+		AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(AbilityInputID));
 	}
 	else
 	{
-		AbilitySystemComponentRef->AbilityLocalInputReleased(static_cast<int32>(AbilityInputID));
+		AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(AbilityInputID));
 	}
 	
 }

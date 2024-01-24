@@ -6,6 +6,7 @@
 #include "HCameraAssistInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "CommonPlayerController.h"
+#include "HPlayerCharacter.h"
 #include "HPlayerController.generated.h"
 
 class UHIndicatorManagerComponent;
@@ -27,7 +28,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "H|PlayerController")
 	AHPlayerState* GetHPlayerState() const;
 
-	UFUNCTION(BlueprintCallable, Category = "H|PlayerController")
+	UFUNCTION(BlueprintCallable, Category = "H|PlayerCharacter")
+	AHCharacterBase* GetHCharacterBase() const;
+
+	UFUNCTION(BlueprintCallable, Category = "H|Player")
 	UHAbilitySystemComponent* GetHAbilitySystemComponent() const;
 
 	void CreateHUD();
@@ -40,11 +44,11 @@ public:
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface
 
-	void RegisterASCRef(UHAbilitySystemComponent* Ref);
-
 	virtual void InitPlayerState() override;
 	virtual void CleanupPlayerState() override;
 	virtual void OnRep_PlayerState() override;
+
+	virtual void AcknowledgePossession(APawn* P) override;
 
 protected:
 	//~APlayerController interface
@@ -59,9 +63,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UHIndicatorManagerComponent> IndicatorComponent;
-
-	UPROPERTY()
-	TWeakObjectPtr<UHAbilitySystemComponent> AbilitySystemComponentRef;
 
 	UPROPERTY(BlueprintAssignable)
 	FHOnPlayerStateChanged OnPlayerStateChangedDelegate;
