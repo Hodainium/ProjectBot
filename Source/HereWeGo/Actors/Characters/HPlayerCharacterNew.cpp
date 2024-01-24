@@ -1,0 +1,34 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Actors/Characters/HPlayerCharacterNew.h"
+
+// Sets default values
+AHPlayerCharacterNew::AHPlayerCharacterNew()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AHPlayerCharacterNew::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+// Called every frame
+void AHPlayerCharacterNew::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Called to bind functionality to input
+void AHPlayerCharacterNew::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
