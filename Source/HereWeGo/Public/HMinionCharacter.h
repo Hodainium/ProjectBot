@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HCharacterBase.h"
+#include "HCharacterBaseOld.h"
 #include "HMinionCharacter.generated.h"
 
 class UHEquipmentComponent;
@@ -18,7 +18,7 @@ class UHInventoryComponent;
  * 
  */
 UCLASS()
-class HEREWEGO_API AHMinionCharacter : public AHCharacterBase
+class HEREWEGO_API AHMinionCharacter : public AHCharacterBaseOld
 {
 	GENERATED_BODY()
 

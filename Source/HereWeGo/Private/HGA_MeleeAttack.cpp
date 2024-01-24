@@ -5,7 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "HAT_PlayMontageAndWaitForEvent.h"
-#include "HCharacterBase.h"
+#include "HCharacterBaseOld.h"
 #include "HWeaponComponent.h"
 
 UHGA_MeleeAttack::UHGA_MeleeAttack()
@@ -48,7 +48,7 @@ void UHGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UHGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	const AHCharacterBase* CharBase = Cast<AHCharacterBase>(GetAvatarActorFromActorInfo());
+	const AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(GetAvatarActorFromActorInfo());
 
 	if (CharBase && CharBase->IsLocallyControlled())
 	{
@@ -75,7 +75,7 @@ void UHGA_MeleeAttack::EventReceived(FGameplayTag EventTag, FGameplayEventData E
 {
 	if(EventTag == FGameplayTag::RequestGameplayTag(FName("Event.Montage.Melee.StartCollision")))
 	{
-		const AHCharacterBase* CharBase = Cast<AHCharacterBase>(GetAvatarActorFromActorInfo());
+		const AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(GetAvatarActorFromActorInfo());
 
 		if (CharBase && CharBase->IsLocallyControlled())
 		{
@@ -87,7 +87,7 @@ void UHGA_MeleeAttack::EventReceived(FGameplayTag EventTag, FGameplayEventData E
 	}
 	else if(EventTag == FGameplayTag::RequestGameplayTag(FName("Event.Montage.Melee.EndCollision")))
 	{
-		const AHCharacterBase* CharBase = Cast<AHCharacterBase>(GetAvatarActorFromActorInfo());
+		const AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(GetAvatarActorFromActorInfo());
 
 		if (CharBase && CharBase->IsLocallyControlled())
 		{

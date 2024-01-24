@@ -11,7 +11,7 @@
 #include "HAbilitySourceInterface.h"
 #include "HAbilitySystemComponent.h"
 #include "HCameraMode.h"
-#include "HCharacterBase.h"
+#include "HCharacterBaseOld.h"
 #include "HGameplayEffectContext.h"
 #include "HLogChannels.h"
 #include "HPhysicalMaterialWithTags.h"
@@ -94,9 +94,9 @@
 //	return nullptr;
 //}
 //
-//AHCharacterBase* UHBaseGameplayAbility::GetHCharacterBaseFromActorInfo() const
+//AHCharacterBaseOld* UHBaseGameplayAbility::GetHCharacterBaseFromActorInfo() const
 //{
-//	return (CurrentActorInfo ? Cast<AHCharacterBase>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+//	return (CurrentActorInfo ? Cast<AHCharacterBaseOld>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 //}
 //
 //AHPlayerCharacter* UHBaseGameplayAbility::GetHPlayerCharacterFromActorInfo() const

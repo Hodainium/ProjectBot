@@ -11,7 +11,7 @@ class UHAbilityCost;
 class IHAbilitySourceInterface;
 class UHCameraMode;
 class AHPlayerController;
-class AHCharacterBase;
+class AHCharacterBaseOld;
 class UHAbilitySystemComponent;
 
 //UENUM(BlueprintType)
@@ -66,7 +66,7 @@ class UHAbilitySystemComponent;
 //	AController* GetControllerFromActorInfo() const;
 //
 //	UFUNCTION(BlueprintCallable, Category = "H|Ability")
-//	AHCharacterBase* GetHCharacterBaseFromActorInfo() const;
+//	AHCharacterBaseOld* GetHCharacterBaseFromActorInfo() const;
 //
 //	UFUNCTION(BlueprintCallable, Category = "H|Ability")
 //	AHPlayerCharacter* GetHPlayerCharacterFromActorInfo() const;

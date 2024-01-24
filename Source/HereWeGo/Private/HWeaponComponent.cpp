@@ -8,7 +8,7 @@
 #include "HInventoryItemInstance.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include <HCharacterBase.h>
+#include <HCharacterBaseOld.h>
 
 // Sets default values for this component's properties
 UHWeaponComponent::UHWeaponComponent()
@@ -70,7 +70,7 @@ void UHWeaponComponent::HandleOnMeleeHitEvent(AActor* HitActor, UPrimitiveCompon
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HitActor named: %s"), *HitActorLocal->GetName());
 
-		AHCharacterBase* CharBase = Cast<AHCharacterBase>(HitActorLocal);
+		AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(HitActorLocal);
 
 		if (CharBase)
 		{

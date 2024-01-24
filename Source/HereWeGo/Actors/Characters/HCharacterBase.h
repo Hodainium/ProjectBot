@@ -5,14 +5,13 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
-#include "GameFramework/Character.h"
-#include "HereWeGo/HereWeGo.h"
-#include "GameplayEffectTypes.h"
 #include "HInventoryInterface.h"
 #include "HWeaponInterface.h"
 #include "ModularCharacter.h"
+#include "GameFramework/Character.h"
 #include "HCharacterBase.generated.h"
 
+struct FOnAttributeChangeData;
 class UHAbilitySet;
 class UHAbilityTagRelationshipMapping;
 class UHInventoryComponent;
@@ -22,10 +21,6 @@ class UHGameplayAbility;
 class UHAttributeSetBase;
 class UGameplayEffect;
 class UHAbilitySystemComponent;
-
-//DECLARE_DELEGATE_OneParam(FOnASCReady, UAbilitySystemComponent*);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterBaseHitReactDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterDeathDelegate, AHCharacterBase*, Character);
 
 UCLASS()
 class HEREWEGO_API AHCharacterBase : public AModularCharacter, public IAbilitySystemInterface, public IHInventoryInterface, public IHWeaponInterface
@@ -40,7 +35,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -112,11 +107,11 @@ public:
 
 	virtual bool IsAlive() const;
 
-	UPROPERTY(BlueprintAssignable, Category = "HGAS|Character")
+	/*UPROPERTY(BlueprintAssignable, Category = "HGAS|Character")
 	FOnCharacterDeathDelegate OnCharacterDeath;
 
 	UPROPERTY(BlueprintAssignable, Category = "HGAS|Character")
-	FOnCharacterBaseHitReactDelegate OnCharacterBaseHit;
+	FOnCharacterBaseHitReactDelegate OnCharacterBaseHit;*/
 
 	// What mapping of ability tags to use for actions taking by this pawn
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HGAS|Abilities")

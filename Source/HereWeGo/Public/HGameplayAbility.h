@@ -13,7 +13,7 @@ class UHAbilityCost;
 class IHAbilitySourceInterface;
 class UHCameraMode;
 class AHPlayerController;
-class AHCharacterBase;
+class AHCharacterBaseOld;
 class UHAbilitySystemComponent;
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE);
@@ -82,7 +82,7 @@ public:
 	AHPlayerController* GetHPlayerControllerFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "H|Ability")
-	AHCharacterBase* GetHCharacterBaseFromActorInfo() const;
+	AHCharacterBaseOld* GetHCharacterBaseFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "H|Ability")
 	AHPlayerCharacter* GetHPlayerCharacterFromActorInfo() const;

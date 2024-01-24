@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "HCharacterBase.h"
+#include "HCharacterBaseOld.h"
 
 #include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
@@ -17,7 +17,7 @@
 #include "HWeaponComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
+AHCharacterBaseOld::AHCharacterBaseOld(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UHCharacterMovementComponent>(
 		ACharacter::CharacterMovementComponentName))
 {
@@ -30,32 +30,32 @@ AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 }
 
 // Called when the game starts or when spawned
-void AHCharacterBase::BeginPlay()
+void AHCharacterBaseOld::BeginPlay()
 {
 	Super::BeginPlay();
 
 	//todo register stun tag event
 
-	OnHealthChangedDelegate = AbilitySystemComponentRef->GetGameplayAttributeValueChangeDelegate(AttributeSetBaseRef->GetHealthAttribute()).AddUObject(this, &AHCharacterBase::HealthChanged);
+	OnHealthChangedDelegate = AbilitySystemComponentRef->GetGameplayAttributeValueChangeDelegate(AttributeSetBaseRef->GetHealthAttribute()).AddUObject(this, &AHCharacterBaseOld::HealthChanged);
 
-	AbilitySystemComponentRef->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBase::StunTagChanged);
+	AbilitySystemComponentRef->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBaseOld::StunTagChanged);
 }
 
 // Called every frame
-void AHCharacterBase::Tick(float DeltaTime)
+void AHCharacterBaseOld::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
 // Called to bind functionality to input
-void AHCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AHCharacterBaseOld::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
 
-void AHCharacterBase::InitializeASC()
+void AHCharacterBaseOld::InitializeASC()
 {
 	InitializeAttributes();
 	//AddStartupEffects();
@@ -64,7 +64,7 @@ void AHCharacterBase::InitializeASC()
 	SetTagRelationShipMapping();
 }
 
-void AHCharacterBase::InitializeAttributes()
+void AHCharacterBaseOld::InitializeAttributes()
 {
 	if (!AbilitySystemComponentRef.IsValid())
 	{
@@ -88,7 +88,7 @@ void AHCharacterBase::InitializeAttributes()
 	}
 }
 
-void AHCharacterBase::AddStartupEffects()
+void AHCharacterBaseOld::AddStartupEffects()
 {
 	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || AbilitySystemComponentRef->bStartUpEffectsApplied)
 	{
@@ -110,7 +110,7 @@ void AHCharacterBase::AddStartupEffects()
 	AbilitySystemComponentRef->bStartUpEffectsApplied = true;
 }
 
-void AHCharacterBase::AddCharacterAbilities()
+void AHCharacterBaseOld::AddCharacterAbilities()
 {
 
 	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || AbilitySystemComponentRef->bCharacterAbilitiesGranted)
@@ -130,7 +130,7 @@ void AHCharacterBase::AddCharacterAbilities()
 	AbilitySystemComponentRef->bCharacterAbilitiesGranted = true;
 }
 
-void AHCharacterBase::AddStartupAbilitySets()
+void AHCharacterBaseOld::AddStartupAbilitySets()
 {
 	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid()) // || AbilitySystemComponentRef->bStartUpEffectsApplied
 	{
@@ -146,7 +146,7 @@ void AHCharacterBase::AddStartupAbilitySets()
 	}
 }
 
-void AHCharacterBase::SetTagRelationShipMapping()
+void AHCharacterBaseOld::SetTagRelationShipMapping()
 {
 	if (!AbilitySystemComponentRef.IsValid())
 	{
@@ -156,7 +156,7 @@ void AHCharacterBase::SetTagRelationShipMapping()
 	AbilitySystemComponentRef->SetTagRelationshipMapping(TagRelationshipMapping);
 }
 
-void AHCharacterBase::HealthChanged(const FOnAttributeChangeData& Data)
+void AHCharacterBaseOld::HealthChanged(const FOnAttributeChangeData& Data)
 {
 	float Health = Data.NewValue;
 
@@ -186,7 +186,7 @@ void AHCharacterBase::HealthChanged(const FOnAttributeChangeData& Data)
 	}
 }
 
-void AHCharacterBase::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+void AHCharacterBaseOld::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	if (NewCount > 0)
 	{
@@ -200,42 +200,42 @@ void AHCharacterBase::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCo
 	}
 }
 
-UAbilitySystemComponent* AHCharacterBase::GetAbilitySystemComponent() const
+UAbilitySystemComponent* AHCharacterBaseOld::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponentRef.Get();
 }
 
-UHAbilitySystemComponent* AHCharacterBase::GetHAbilitySystemComp() const
+UHAbilitySystemComponent* AHCharacterBaseOld::GetHAbilitySystemComp() const
 {
 	return AbilitySystemComponentRef.Get();
 }
 
-UHWeaponComponent* AHCharacterBase::GetWeaponComponent() const
+UHWeaponComponent* AHCharacterBaseOld::GetWeaponComponent() const
 {
 	return WeaponComponentRef.Get();
 }
 
-UHInventoryComponent* AHCharacterBase::GetInventoryComponent() const
+UHInventoryComponent* AHCharacterBaseOld::GetInventoryComponent() const
 {
 	return InventoryComponentRef.Get();
 }
 
-UHEquipmentComponent* AHCharacterBase::GetEquipmentComponent() const
+UHEquipmentComponent* AHCharacterBaseOld::GetEquipmentComponent() const
 {
 	return EquipmentComponentRef.Get();
 }
 
-UHItemSlotComponent* AHCharacterBase::GetItemSlotComponent() const
+UHItemSlotComponent* AHCharacterBaseOld::GetItemSlotComponent() const
 {
 	return ItemSlotComponentRef.Get();
 }
 
-int32 AHCharacterBase::GetAbilityLevel(EHAbilityInputID AbilityID) const
+int32 AHCharacterBaseOld::GetAbilityLevel(EHAbilityInputID AbilityID) const
 {
 	return 1;
 }
 
-int32 AHCharacterBase::GetCharacterLevel() const
+int32 AHCharacterBaseOld::GetCharacterLevel() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -245,7 +245,7 @@ int32 AHCharacterBase::GetCharacterLevel() const
 	return static_cast<int32>(AttributeSetBaseRef->GetLevel());
 }
 
-float AHCharacterBase::GetMoveSpeed() const
+float AHCharacterBaseOld::GetMoveSpeed() const
 {
 	if(!AttributeSetBaseRef.IsValid())
 	{
@@ -255,7 +255,7 @@ float AHCharacterBase::GetMoveSpeed() const
 	return AttributeSetBaseRef->GetMoveSpeed();
 }
 
-float AHCharacterBase::GetBaseMoveSpeed() const
+float AHCharacterBaseOld::GetBaseMoveSpeed() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -265,7 +265,7 @@ float AHCharacterBase::GetBaseMoveSpeed() const
 	return AttributeSetBaseRef->GetMoveSpeedAttribute().GetGameplayAttributeData(AttributeSetBaseRef.Get())->GetBaseValue();
 }
 
-float AHCharacterBase::GetHealth() const
+float AHCharacterBaseOld::GetHealth() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -275,7 +275,7 @@ float AHCharacterBase::GetHealth() const
 	return AttributeSetBaseRef->GetHealth();
 }
 
-float AHCharacterBase::GetMaxHealth() const
+float AHCharacterBaseOld::GetMaxHealth() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -285,7 +285,7 @@ float AHCharacterBase::GetMaxHealth() const
 	return AttributeSetBaseRef->GetMaxHealth();
 }
 
-float AHCharacterBase::GetStamina() const
+float AHCharacterBaseOld::GetStamina() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -295,7 +295,7 @@ float AHCharacterBase::GetStamina() const
 	return AttributeSetBaseRef->GetStamina();
 }
 
-float AHCharacterBase::GetMaxStamina() const
+float AHCharacterBaseOld::GetMaxStamina() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -305,7 +305,7 @@ float AHCharacterBase::GetMaxStamina() const
 	return AttributeSetBaseRef->GetMaxStamina();
 }
 
-float AHCharacterBase::GetMana() const
+float AHCharacterBaseOld::GetMana() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -315,7 +315,7 @@ float AHCharacterBase::GetMana() const
 	return AttributeSetBaseRef->GetMana();
 }
 
-float AHCharacterBase::GetMaxMana() const
+float AHCharacterBaseOld::GetMaxMana() const
 {
 	if (!AttributeSetBaseRef.IsValid())
 	{
@@ -325,7 +325,7 @@ float AHCharacterBase::GetMaxMana() const
 	return AttributeSetBaseRef->GetMaxMana();
 }
 
-void AHCharacterBase::RemoveCharacterAbilities()
+void AHCharacterBaseOld::RemoveCharacterAbilities()
 {
 	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponentRef.IsValid() || !AbilitySystemComponentRef->bCharacterAbilitiesGranted)
 	{
@@ -350,7 +350,7 @@ void AHCharacterBase::RemoveCharacterAbilities()
 	AbilitySystemComponentRef->bCharacterAbilitiesGranted = false;
 }
 
-void AHCharacterBase::DeathStarted()
+void AHCharacterBaseOld::DeathStarted()
 {
 	OnCharacterDeath.Broadcast(this);
 
@@ -411,7 +411,7 @@ void AHCharacterBase::DeathStarted()
 }
 
 //We should call this when deathanim is finished and we want to ragdoll. Should be called inside animnotify for now.
-void AHCharacterBase::DeathFinished()
+void AHCharacterBaseOld::DeathFinished()
 {
 	//ragdoll
 	USkeletalMeshComponent* SkeleMesh = GetMesh();
@@ -423,12 +423,12 @@ void AHCharacterBase::DeathFinished()
 	SetLifeSpan(10.f);
 }
 
-bool AHCharacterBase::IsAlive() const
+bool AHCharacterBaseOld::IsAlive() const
 {
 	return AttributeSetBaseRef->GetHealth() > 0.f;
 }
 
-void AHCharacterBase::UninitializeAbilitySystem()
+void AHCharacterBaseOld::UninitializeAbilitySystem()
 {
 	if (!AbilitySystemComponentRef.IsValid())
 	{
@@ -457,7 +457,7 @@ void AHCharacterBase::UninitializeAbilitySystem()
 	AbilitySystemComponentRef = nullptr;
 }
 
-void AHCharacterBase::DisableMovementAndCapsuleCollision()
+void AHCharacterBaseOld::DisableMovementAndCapsuleCollision()
 {
 	if (Controller)
 	{

@@ -393,7 +393,7 @@ bool AHPlayerCharacter::AttemptToShoot()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("HitActor named: %s"), *HitActor->GetName());
 
-			AHCharacterBase* CharBase = Cast<AHCharacterBase>(HitActor);
+			AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(HitActor);
 
 			if(CharBase)
 			{
