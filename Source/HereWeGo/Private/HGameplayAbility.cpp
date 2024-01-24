@@ -105,9 +105,9 @@ AHPlayerController* UHGameplayAbility::GetHPlayerControllerFromActorInfo() const
 	return (CurrentActorInfo ? Cast<AHPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
 }
 
-AHCharacterBaseOld* UHGameplayAbility::GetHCharacterBaseFromActorInfo() const
+AHCharacterBase* UHGameplayAbility::GetHCharacterBaseFromActorInfo() const
 {
-	return (CurrentActorInfo ? Cast<AHCharacterBaseOld>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+	return (CurrentActorInfo ? Cast<AHCharacterBase>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 AHPlayerCharacter* UHGameplayAbility::GetHPlayerCharacterFromActorInfo() const

@@ -6,6 +6,7 @@
 #include "NativeGameplayTags.h"
 #include "Abilities/GameplayAbility.h"
 #include "HereWeGo/HereWeGo.h"
+#include "HereWeGo/Actors/Characters/HCharacterBase.h"
 #include "HGameplayAbility.generated.h"
 
 class AHPlayerCharacter;
@@ -13,7 +14,7 @@ class UHAbilityCost;
 class IHAbilitySourceInterface;
 class UHCameraMode;
 class AHPlayerController;
-class AHCharacterBaseOld;
+class AHCharacterBase;
 class UHAbilitySystemComponent;
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE);
@@ -82,7 +83,7 @@ public:
 	AHPlayerController* GetHPlayerControllerFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "H|Ability")
-	AHCharacterBaseOld* GetHCharacterBaseFromActorInfo() const;
+	AHCharacterBase* GetHCharacterBaseFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "H|Ability")
 	AHPlayerCharacter* GetHPlayerCharacterFromActorInfo() const;

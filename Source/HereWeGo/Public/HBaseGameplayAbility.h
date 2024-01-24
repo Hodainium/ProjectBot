@@ -11,7 +11,7 @@ class UHAbilityCost;
 class IHAbilitySourceInterface;
 class UHCameraMode;
 class AHPlayerController;
-class AHCharacterBaseOld;
+class AHCharacterBase;
 class UHAbilitySystemComponent;
 
 //UENUM(BlueprintType)

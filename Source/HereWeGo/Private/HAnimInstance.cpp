@@ -49,12 +49,12 @@ void UHAnimInstance::NativeInitializeAnimation()
 			//UE_LOG(LogTemp, Warning, TEXT("Found asc!"));
 			InitializeWithAbilitySystem(ASC);
 		}
-		else if(AHCharacterBaseOld* HChar = Cast<AHCharacterBaseOld>(OwningActor)) 
-		{
-			//If we couldnt find asc the normal way see if animinstance is attached to player if so bind to event for when playerstate is created
-			//HChar->OnAscReady.BindUObject(this, &UHAnimInstance::InitializeWithAbilitySystem);
-			//UE_LOG(LogTemp, Warning, TEXT("Trying to subscribe!"));
-		}
+		//else if(AHCharacterBase* HChar = Cast<AHCharacterBase>(OwningActor))
+		//{
+		//	//If we couldnt find asc the normal way see if animinstance is attached to player if so bind to event for when playerstate is created
+		//	//HChar->OnAscReady.BindUObject(this, &UHAnimInstance::InitializeWithAbilitySystem);
+		//	//UE_LOG(LogTemp, Warning, TEXT("Trying to subscribe!"));
+		//}
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Says we're done!"));
@@ -64,7 +64,7 @@ void UHAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	const AHCharacterBaseOld* Character = Cast<AHCharacterBaseOld>(GetOwningActor());
+	const AHCharacterBase* Character = Cast<AHCharacterBase>(GetOwningActor());
 
 	if(!Character)
 	{

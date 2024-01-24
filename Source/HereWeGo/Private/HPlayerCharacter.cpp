@@ -203,24 +203,36 @@ void AHPlayerCharacter::HandleControllerChanged()
 	}
 	else //This is on unpossessed
 	{
-		UE_LOG(LogHGame, Warning, TEXT("This should only occur when unpossessing. Unitting ASC and etc"));
+		UE_LOG(LogHGame, Warning, TEXT("PlayerChar: This should only occur when unpossessing. Clearing hud AND INPUT"));
 
-		UninitializeAbilitySystem();
+
+		//UninitializeAbilitySystem();
 
 		// Remove any HUD we added to the player's UI
 		if (HUDLayoutWidget.IsValid())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Cleaning up HUD Layout Widget"))
+			UE_LOGFMT(LogHGame, Warning, "Cleaning up HUD Layout Widget");
 			UCommonUIExtensions::PopContentFromLayer(HUDLayoutWidget.Get());
 			HUDLayoutWidget.Reset();
 		}
 
-		//// Remove any EnhancedInput IMCs
-		//if (UEnhancedInputLocalPlayerSubsystem* Subsystem = getsubs)
-		//{
-		//	XCGS_LOG(TEXT("Clearing input mappings"));
-		//	Subsystem->ClearAllMappings();
-		//}
+		if (APlayerController* PC = GetController<APlayerController>())
+		{
+			if (const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
+			{
+				if(UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+				{
+					UE_LOGFMT(LogHGame, Warning, "Clearing input mappings");
+					Subsystem->ClearAllMappings();
+				}
+			}
+		}
+
+		//UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent);
+		//EnhancedInput->RemoveActionEventBinding()
+
+		////// Unbind from EnhancedInput
+		////UnbindInputValueActions();
 	}
 }
 
@@ -385,7 +397,7 @@ bool AHPlayerCharacter::AttemptToShoot()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("HitActor named: %s"), *HitActor->GetName());
 
-			AHCharacterBaseOld* CharBase = Cast<AHCharacterBaseOld>(HitActor);
+			AHCharacterBase* CharBase = Cast<AHCharacterBase>(HitActor);
 
 			if(CharBase)
 			{

@@ -171,7 +171,7 @@ float UHCharacterMovementComponent::GetForwardVelocity()
 float UHCharacterMovementComponent::GetMaxSpeed() const //todo change speed to be linked to attribute set base 
 {
 
-	AHCharacterBaseOld* Owner = Cast<AHCharacterBaseOld>(GetOwner());
+	AHCharacterBase* Owner = Cast<AHCharacterBase>(GetOwner());
 	if(!Owner)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s : Could not find owner in HMovecomp:Max Speed!"), *GetOwner()->GetActorNameOrLabel());
