@@ -33,6 +33,12 @@ UHAbilitySystemComponent* AHPlayerController::GetHAbilitySystemComponent() const
 	return (CharBase ? CharBase->GetHAbilitySystemComp() : nullptr);
 }
 
+UAbilitySystemComponent* AHPlayerController::GetAbilitySystemComponent() const
+{
+	const AHCharacterBase* CharBase = GetHCharacterBase();
+	return (CharBase ? CharBase->GetAbilitySystemComponent() : nullptr);
+}
+
 void AHPlayerController::CreateHUD()
 {
 	if(HUDWidgetInstance)

@@ -18,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHOnPlayerStateChanged, APlayerState
  * 
  */
 UCLASS()
-class HEREWEGO_API AHPlayerController : public ACommonPlayerController, public IHCameraAssistInterface
+class HEREWEGO_API AHPlayerController : public ACommonPlayerController, public IHCameraAssistInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -33,6 +33,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "H|Player")
 	UHAbilitySystemComponent* GetHAbilitySystemComponent() const;
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	void CreateHUD();
 
