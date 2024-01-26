@@ -55,7 +55,7 @@ public:
 
 	UHAttributeSet();
 
-	UWorld* GetWorld() const override;
+	virtual UWorld* GetWorld() const override;
 
 	UHAbilitySystemComponent* GetHAbilitySystemComponent() const;
 };
