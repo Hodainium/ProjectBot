@@ -402,7 +402,7 @@ void AHCharacterBase::HandleOutOfHealth(AActor* DamageInstigator, AActor* Damage
 		// Send a standardized verb message that other systems can observe
 		{
 			FHVerbMessage Message;
-			Message.Verb = H_GameplayEvent_Tags::TAG_ELIMINATION_MESSAGE;
+			Message.Verb = H_Message_Tags::TAG_ELIMINATION_MESSAGE;
 			Message.Instigator = DamageInstigator;
 			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
 			Message.Target = UHVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());

@@ -238,10 +238,9 @@ void UHAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallb
 
 			AActor* Instigator = EffectContext.GetInstigator();
 			AActor* Causer = EffectContext.GetEffectCauser();
-			const FGameplayEffectSpec& EffectSpec = Data.EffectSpec;
 			float EffectMagnitude = Data.EvaluatedData.Magnitude;
 
-			OnOutOfHealth.Broadcast(Instigator, Causer, EffectSpec, EffectMagnitude);
+			OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, EffectMagnitude, 0.f, 0.f);
 		}
 	}
 

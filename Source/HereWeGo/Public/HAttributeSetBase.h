@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "HereWeGo/AttributeSets/HAttributeSet.h"
 #include "HAttributeSetBase.generated.h"
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -12,8 +13,6 @@
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
-
-DECLARE_MULTICAST_DELEGATE_FourParams(FHAttributeEvent, AActor* /* Instigator */, AActor* /* Causer */, const FGameplayEffectSpec& /* Spec */, float /* EffectMagnitude */)
 
 /**
  * 
