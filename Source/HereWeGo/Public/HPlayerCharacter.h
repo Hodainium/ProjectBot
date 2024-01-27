@@ -131,7 +131,7 @@ protected:
 
 	virtual void OnRep_Controller() override;
 
-	void HandleControllerChanged();
+	virtual void HandleControllerChanged() override;
 
 	void SendLocalInputToASC(const EHAbilityInputID AbilityInputID, bool bIsPressed);
 

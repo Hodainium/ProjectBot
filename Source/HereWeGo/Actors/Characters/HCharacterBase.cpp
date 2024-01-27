@@ -22,6 +22,7 @@
 #include "HWeaponComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameFramework/PlayerState.h"
+#include "HereWeGo/AttributeSets/HHealthSet.h"
 #include "HereWeGo/Tags/H_Tags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
@@ -126,6 +127,8 @@ AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSetBase = CreateDefaultSubobject<UHAttributeSetBase>(TEXT("AttributeSetBase"));
+
+	HealthSet = CreateDefaultSubobject<UHHealthSet>(TEXT("HealthSet"));
 
 	WeaponComponent = CreateDefaultSubobject<UHWeaponComponent>(TEXT("WeaponComponent"));
 	WeaponComponent->RegisterWithAbilitySystem(AbilitySystemComponent);

@@ -168,6 +168,8 @@ void AHPlayerCharacter::OnRep_Controller()
 
 void AHPlayerCharacter::HandleControllerChanged()
 {
+	Super::HandleControllerChanged();
+
 	AHPlayerState* PS = GetPlayerState<AHPlayerState>();
 
 	if (PS) //This is if a playerstate is added or replicated

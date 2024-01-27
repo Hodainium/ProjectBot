@@ -150,7 +150,7 @@ protected:
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
-	void HandleControllerChanged();
+	virtual void HandleControllerChanged();
 
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
