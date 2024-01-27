@@ -136,6 +136,10 @@ AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 
 	ItemSlotComponent = CreateDefaultSubobject<UHItemSlotComponent>(TEXT("ItemSlotComponent"));
 
+	HealthComponent = CreateDefaultSubobject<UHHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
+	HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
+
 	DeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.State.Death"));
 	RemoveEffectOnDeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.Effect.RemoveOnDeath"));
 	AbilityPersistsDeathTag = FGameplayTag::RequestGameplayTag(FName("GAS.Ability.PersistDeath"));
