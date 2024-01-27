@@ -8,7 +8,7 @@ public class HereWeGo : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "UMG", "Text3D", "GameplayTasks", "GameplayAbilities", "NetCore", "Slate", "SlateCore", "Niagara", "PhysicsCore", "RamaMeleePlugin", "GameplayMessageRuntime", "AsyncMixin" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "UMG", "Text3D", "GameplayTasks", "GameplayAbilities", "NetCore", "Slate", "SlateCore", "Niagara", "PhysicsCore", "RamaMeleePlugin", "GameplayMessageRuntime", "AsyncMixin", "AIModule" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "CommonUI" });
 

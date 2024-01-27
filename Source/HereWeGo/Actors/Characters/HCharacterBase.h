@@ -132,7 +132,7 @@ public:
 	//~IHTeamAgentInterface interface
 	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
-	virtual FOnHTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+	virtual FHOnTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
 	//~End of IHTeamAgentInterface interface
 
 	/** RPCs that is called on frames when default property replication is skipped. This replicates a single movement update to everyone. */
@@ -195,7 +195,7 @@ private:
 	FGenericTeamId MyTeamID;
 
 	UPROPERTY()
-	FOnHTeamIndexChangedDelegate OnTeamChangedDelegate;
+	FHOnTeamIndexChangedDelegate OnTeamChangedDelegate;
 
 protected:
 	// Called to determine what happens to the team ID when possession ends

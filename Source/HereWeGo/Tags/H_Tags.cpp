@@ -94,5 +94,5 @@ namespace H_MovementMode_Tags
 
 namespace H_Movement_Tags
 {
-	UE_DEFINE_GAMEPLAY_TAG(TAG_MOVEMENT_MOVEMENTSTOPPED, "Movement.Modifier.MovementStopped");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_GAMEPLAY_MOVEMENTSTOPPED, "Movement.Modifier.MovementStopped");
 }

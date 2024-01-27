@@ -5,12 +5,7 @@
 
 #include "HLogChannels.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(HTeamAgentInterface)
 
-UHTeamAgentInterface::UHTeamAgentInterface(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
 
 // Add default functionality here for any IHTeamAgentInterface functions that are not pure virtual.
 void IHTeamAgentInterface::ConditionalBroadcastTeamChanged(TScriptInterface<IHTeamAgentInterface> This,

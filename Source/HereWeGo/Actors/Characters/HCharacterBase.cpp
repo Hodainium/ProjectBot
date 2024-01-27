@@ -254,7 +254,7 @@ FGenericTeamId AHCharacterBase::GetGenericTeamId() const
 	return MyTeamID;
 }
 
-FOnHTeamIndexChangedDelegate* AHCharacterBase::GetOnTeamIndexChangedDelegate()
+FHOnTeamIndexChangedDelegate* AHCharacterBase::GetOnTeamIndexChangedDelegate()
 {
 	return &OnTeamChangedDelegate;
 }
@@ -971,6 +971,8 @@ void AHCharacterBase::OnAbilitySystemUninitialized()
 
 void AHCharacterBase::PossessedBy(AController* NewController)
 {
+	const FGenericTeamId OldTeamID = MyTeamID;
+
 	Super::PossessedBy(NewController);
 
 	if (AbilitySystemComponent)

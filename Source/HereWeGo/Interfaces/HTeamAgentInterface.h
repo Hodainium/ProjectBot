@@ -9,7 +9,7 @@
 
 template <typename InterfaceType> class TScriptInterface;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHTeamIndexChangedDelegate, UObject*, ObjectChangingTeam, int32, OldTeamID, int32, NewTeamID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FHOnTeamIndexChangedDelegate, UObject*, ObjectChangingTeam, int32, OldTeamID, int32, NewTeamID);
 
 inline int32 GenericTeamIdToInteger(FGenericTeamId ID)
 {
@@ -35,13 +35,15 @@ class HEREWEGO_API IHTeamAgentInterface : public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
-	virtual FOnHTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() { return nullptr; }
+public:
+
+	virtual FHOnTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() { return nullptr; }
 
 	static void ConditionalBroadcastTeamChanged(TScriptInterface<IHTeamAgentInterface> This, FGenericTeamId OldTeamID, FGenericTeamId NewTeamID);
 
-	FOnHTeamIndexChangedDelegate& GetTeamChangedDelegateChecked()
+	FHOnTeamIndexChangedDelegate& GetTeamChangedDelegateChecked()
 	{
-		FOnHTeamIndexChangedDelegate* Result = GetOnTeamIndexChangedDelegate();
+		FHOnTeamIndexChangedDelegate* Result = GetOnTeamIndexChangedDelegate();
 		check(Result);
 		return *Result;
 	}
