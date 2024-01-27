@@ -22,10 +22,9 @@ namespace H_GameplayEvent_Tags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_GAMEPLAYEVENT_REQUESTRESET, "GameplayEvent.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 }
 
-namespace H_GameplayEvent_Tags
+namespace H_Ability_Tags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_ABILITY_BEHAVIOR_SURVIVESDEATH, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
-
 }
 
 namespace H_Status_Tags
@@ -61,4 +60,39 @@ namespace H_Cheat_Tags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_CHEAT_GODMODE, "Cheat.GodMode", "GodMode cheat is active on the owner.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_CHEAT_UNLIMITEDHEALTH, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
+}
+
+namespace H_MovementMode_Tags
+{
+	// These are mapped to the movement modes inside GetMovementModeTagMap()
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_WALKING, "Movement.Mode.Walking", "Default Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_NAVWALKING, "Movement.Mode.NavWalking", "Default Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_FALLING, "Movement.Mode.Falling", "Default Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_SWIMMING, "Movement.Mode.Swimming", "Default Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_FLYING, "Movement.Mode.Flying", "Default Character movement tag");
+
+	// When extending, you can create your own movement modes but you need to update GetCustomMovementModeTagMap()
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_MOVEMENT_MODE_CUSTOM, "Movement.Mode.Custom", "This is invalid and should be replaced with custom tags.  See HGameplayTags::CustomMovementModeTagMap.");
+
+	// Unreal Movement Modes
+	const TMap<uint8, FGameplayTag> MovementModeTagMap =
+	{
+		{ MOVE_Walking, TAG_MOVEMENT_MODE_WALKING },
+		{ MOVE_NavWalking, TAG_MOVEMENT_MODE_NAVWALKING },
+		{ MOVE_Falling, TAG_MOVEMENT_MODE_FALLING },
+		{ MOVE_Swimming, TAG_MOVEMENT_MODE_SWIMMING },
+		{ MOVE_Flying, TAG_MOVEMENT_MODE_FLYING },
+		{ MOVE_Custom, TAG_MOVEMENT_MODE_CUSTOM }
+	};
+
+	// Custom Movement Modes
+	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
+	{
+		// Fill these in with your custom modes
+	};
+}
+
+namespace H_Movement_Tags
+{
+	UE_DEFINE_GAMEPLAY_TAG(TAG_MOVEMENT_MOVEMENTSTOPPED, "Movement.Modifier.MovementStopped");
 }

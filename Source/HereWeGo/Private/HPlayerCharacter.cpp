@@ -174,7 +174,7 @@ void AHPlayerCharacter::HandleControllerChanged()
 	{
 		//todo bind to input ??? Maybe i do idr
 
-		InitializeAbilitySystem();
+		OnInitializeAbilitySystem();
 
 		AHPlayerController* PC = Cast<AHPlayerController>(GetController());
 
@@ -206,7 +206,7 @@ void AHPlayerCharacter::HandleControllerChanged()
 		UE_LOG(LogHGame, Warning, TEXT("PlayerChar: This should only occur when unpossessing. Clearing hud AND INPUT"));
 
 
-		//UninitializeAbilitySystem();
+		//OnUninitializeAbilitySystem();
 
 		// Remove any HUD we added to the player's UI
 		if (HUDLayoutWidget.IsValid())
@@ -690,7 +690,7 @@ void AHPlayerCharacter::Input_Ability4Released()
 
 void AHPlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComp())
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
 	{
 		HASC->AbilityInputTagPressed(InputTag);
 	}
@@ -698,7 +698,7 @@ void AHPlayerCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AHPlayerCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComp())
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
 	{
 		HASC->AbilityInputTagReleased(InputTag);
 	}

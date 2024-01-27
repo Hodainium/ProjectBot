@@ -10,8 +10,11 @@
 #include "HCharacterMovementComponent.h"
 #include "HEquipmentComponent.h"
 #include "HGameplayAbility.h"
+#include "HHealthComponent.h"
 #include "HInventoryComponent.h"
 #include "HItemSlotComponent.h"
+#include "HPlayerController.h"
+#include "HPlayerState.h"
 #include "HVerbMessage.h"
 #include "Blueprint/UserWidget.h"
 #include "HWorldUserWidget.h"
@@ -21,6 +24,98 @@
 #include "GameFramework/PlayerState.h"
 #include "HereWeGo/Tags/H_Tags.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+
+FSharedRepMovement::FSharedRepMovement()
+{
+	RepMovement.LocationQuantizationLevel = EVectorQuantization::RoundTwoDecimals;
+}
+
+bool FSharedRepMovement::FillForCharacter(ACharacter* Character)
+{
+	if (USceneComponent* PawnRootComponent = Character->GetRootComponent())
+	{
+		UCharacterMovementComponent* CharacterMovement = Character->GetCharacterMovement();
+
+		RepMovement.Location = FRepMovement::RebaseOntoZeroOrigin(PawnRootComponent->GetComponentLocation(), Character);
+		RepMovement.Rotation = PawnRootComponent->GetComponentRotation();
+		RepMovement.LinearVelocity = CharacterMovement->Velocity;
+		RepMovementMode = CharacterMovement->PackNetworkMovementMode();
+		bProxyIsJumpForceApplied = Character->bProxyIsJumpForceApplied || (Character->JumpForceTimeRemaining > 0.0f);
+		bIsCrouched = Character->bIsCrouched;
+
+		// Timestamp is sent as zero if unused
+		if ((CharacterMovement->NetworkSmoothingMode == ENetworkSmoothingMode::Linear) || CharacterMovement->bNetworkAlwaysReplicateTransformUpdateTimestamp)
+		{
+			RepTimeStamp = CharacterMovement->GetServerLastTransformUpdateTimeStamp();
+		}
+		else
+		{
+			RepTimeStamp = 0.f;
+		}
+
+		return true;
+	}
+	return false;
+}
+
+bool FSharedRepMovement::Equals(const FSharedRepMovement& Other, ACharacter* Character) const
+{
+	if (RepMovement.Location != Other.RepMovement.Location)
+	{
+		return false;
+	}
+
+	if (RepMovement.Rotation != Other.RepMovement.Rotation)
+	{
+		return false;
+	}
+
+	if (RepMovement.LinearVelocity != Other.RepMovement.LinearVelocity)
+	{
+		return false;
+	}
+
+	if (RepMovementMode != Other.RepMovementMode)
+	{
+		return false;
+	}
+
+	if (bProxyIsJumpForceApplied != Other.bProxyIsJumpForceApplied)
+	{
+		return false;
+	}
+
+	if (bIsCrouched != Other.bIsCrouched)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool FSharedRepMovement::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	bOutSuccess = true;
+	RepMovement.NetSerialize(Ar, Map, bOutSuccess);
+	Ar << RepMovementMode;
+	Ar << bProxyIsJumpForceApplied;
+	Ar << bIsCrouched;
+
+	// Timestamp, if non-zero.
+	uint8 bHasTimeStamp = (RepTimeStamp != 0.f);
+	Ar.SerializeBits(&bHasTimeStamp, 1);
+	if (bHasTimeStamp)
+	{
+		Ar << RepTimeStamp;
+	}
+	else
+	{
+		RepTimeStamp = 0.f;
+	}
+
+	return true;
+}
 
 AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UHCharacterMovementComponent>(
@@ -49,6 +144,16 @@ AHCharacterBase::AHCharacterBase(const FObjectInitializer& ObjectInitializer) :
 	bReplicateUsingRegisteredSubObjectList = true;
 }
 
+AHPlayerController* AHCharacterBase::GetHPlayerController() const
+{
+	return CastChecked<AHPlayerController>(Controller, ECastCheckedType::NullAllowed);
+}
+
+AHPlayerState* AHCharacterBase::GetHPlayerState() const
+{
+	return CastChecked<AHPlayerState>(GetPlayerState(), ECastCheckedType::NullAllowed);
+}
+
 // Called when the game starts or when spawned
 void AHCharacterBase::BeginPlay()
 {
@@ -58,19 +163,197 @@ void AHCharacterBase::BeginPlay()
 
 	if (AbilitySystemComponent)
 	{
-		InitializeAbilitySystem();
+		OnInitializeAbilitySystem();
 	}
-
-	OnHealthChangedDelegate = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &AHCharacterBase::HealthChanged);
 
 	AbilitySystemComponent->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBase::StunTagChanged);
 }
 
-// Called every frame
-void AHCharacterBase::Tick(float DeltaTime)
+void AHCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::Tick(DeltaTime);
+	Super::EndPlay(EndPlayReason);
+}
 
+void AHCharacterBase::Reset()
+{
+	DisableMovementAndCollision();
+
+	K2_OnReset();
+
+	UninitAndDestroy();
+}
+
+void AHCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+	//DOREPLIFETIME(ThisClass, MyTeamID)
+}
+
+void AHCharacterBase::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
+{
+	Super::PreReplication(ChangedPropertyTracker);
+
+	
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		// Compress Acceleration: XY components as direction + magnitude, Z component as direct value
+		const double MaxAccel = MovementComponent->MaxAcceleration;
+		const FVector CurrentAccel = MovementComponent->GetCurrentAcceleration();
+		double AccelXYRadians, AccelXYMagnitude;
+		FMath::CartesianToPolar(CurrentAccel.X, CurrentAccel.Y, AccelXYMagnitude, AccelXYRadians);
+
+		ReplicatedAcceleration.AccelXYRadians = FMath::FloorToInt((AccelXYRadians / TWO_PI) * 255.0);     // [0, 2PI] -> [0, 255]
+		ReplicatedAcceleration.AccelXYMagnitude = FMath::FloorToInt((AccelXYMagnitude / MaxAccel) * 255.0);	// [0, MaxAccel] -> [0, 255]
+		ReplicatedAcceleration.AccelZ = FMath::FloorToInt((CurrentAccel.Z / MaxAccel) * 127.0);   // [-MaxAccel, MaxAccel] -> [-127, 127]
+	}
+}
+
+void AHCharacterBase::NotifyControllerChanged()
+{
+	const FGenericTeamId OldTeamId = GetGenericTeamId();
+
+	Super::NotifyControllerChanged();
+
+	// Update our team ID based on the controller
+	if (HasAuthority() && (Controller != nullptr))
+	{
+		if (IHTeamAgentInterface* ControllerWithTeam = Cast<IHTeamAgentInterface>(Controller))
+		{
+			MyTeamID = ControllerWithTeam->GetGenericTeamId();
+			ConditionalBroadcastTeamChanged(this, OldTeamId, MyTeamID);
+		}
+	}
+}
+
+void AHCharacterBase::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	if (GetController() == nullptr)
+	{
+		if (HasAuthority())
+		{
+			const FGenericTeamId OldTeamID = MyTeamID;
+			MyTeamID = NewTeamID;
+			ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
+		}
+		else
+		{
+			UE_LOG(LogHTeams, Error, TEXT("You can't set the team ID on a character (%s) except on the authority"), *GetPathNameSafe(this));
+		}
+	}
+	else
+	{
+		UE_LOG(LogHTeams, Error, TEXT("You can't set the team ID on a possessed character (%s); it's driven by the associated controller"), *GetPathNameSafe(this));
+	}
+}
+
+FGenericTeamId AHCharacterBase::GetGenericTeamId() const
+{
+	return MyTeamID;
+}
+
+FOnHTeamIndexChangedDelegate* AHCharacterBase::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
+void AHCharacterBase::FastSharedReplication_Implementation(const FSharedRepMovement& SharedRepMovement)
+{
+	if (GetWorld()->IsPlayingReplay())
+	{
+		return;
+	}
+
+	// Timestamp is checked to reject old moves.
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		// Timestamp
+		ReplicatedServerLastTransformUpdateTimeStamp = SharedRepMovement.RepTimeStamp;
+
+		// Movement mode
+		if (ReplicatedMovementMode != SharedRepMovement.RepMovementMode)
+		{
+			ReplicatedMovementMode = SharedRepMovement.RepMovementMode;
+			GetCharacterMovement()->bNetworkMovementModeChanged = true;
+			GetCharacterMovement()->bNetworkUpdateReceived = true;
+		}
+
+		// Location, Rotation, Velocity, etc.
+		FRepMovement& MutableRepMovement = GetReplicatedMovement_Mutable();
+		MutableRepMovement = SharedRepMovement.RepMovement;
+
+		// This also sets LastRepMovement
+		OnRep_ReplicatedMovement();
+
+		// Jump force
+		bProxyIsJumpForceApplied = SharedRepMovement.bProxyIsJumpForceApplied;
+
+		// Crouch
+		if (bIsCrouched != SharedRepMovement.bIsCrouched)
+		{
+			bIsCrouched = SharedRepMovement.bIsCrouched;
+			OnRep_IsCrouched();
+		}
+	}
+}
+
+void AHCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (const UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		HASC->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+bool AHCharacterBase::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (const UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		return HASC->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
+}
+
+bool AHCharacterBase::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		return HASC->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool AHCharacterBase::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		return HASC->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+void AHCharacterBase::ToggleCrouch()
+{
+	const UHCharacterMovementComponent* HMoveComp = CastChecked<UHCharacterMovementComponent>(GetCharacterMovement());
+
+	if (bIsCrouched || HMoveComp->bWantsToCrouch)
+	{
+		UnCrouch();
+	}
+	else if (HMoveComp->IsMovingOnGround())
+	{
+		Crouch();
+	}
+}
+
+void AHCharacterBase::PreInitializeComponents()
+{
+	Super::PreInitializeComponents();
 }
 
 // Called to bind functionality to input
@@ -80,7 +363,38 @@ void AHCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
-void AHCharacterBase::InitializeAbilitySystem()
+void AHCharacterBase::InitializeGameplayTags()
+{
+	// Clear tags that may be lingering on the ability system from the previous pawn.
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		for (const TPair<uint8, FGameplayTag>& TagMapping : H_MovementMode_Tags::MovementModeTagMap)
+		{
+			if (TagMapping.Value.IsValid())
+			{
+				HASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
+			}
+		}
+
+		for (const TPair<uint8, FGameplayTag>& TagMapping : H_MovementMode_Tags::CustomMovementModeTagMap)
+		{
+			if (TagMapping.Value.IsValid())
+			{
+				HASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
+			}
+		}
+
+		UHCharacterMovementComponent* HMoveComp = CastChecked<UHCharacterMovementComponent>(GetCharacterMovement());
+		SetMovementModeTag(HMoveComp->MovementMode, HMoveComp->CustomMovementMode, true);
+	}
+}
+
+void AHCharacterBase::FellOutOfWorld(const UDamageType& dmgType)
+{
+	HealthComponent->DamageSelfDestruct(/*bFellOutOfWorld=*/ true);
+}
+
+void AHCharacterBase::OnInitializeAbilitySystem()
 {
 	InitializeAttributes();
 	//AddStartupEffects();
@@ -232,9 +546,64 @@ UAbilitySystemComponent* AHCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent.Get();
 }
 
-UHAbilitySystemComponent* AHCharacterBase::GetHAbilitySystemComp() const
+bool AHCharacterBase::UpdateSharedReplication()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FSharedRepMovement SharedMovement;
+		if (SharedMovement.FillForCharacter(this))
+		{
+			// Only call FastSharedReplication if data has changed since the last frame.
+			// Skipping this call will cause replication to reuse the same bunch that we previously
+			// produced, but not send it to clients that already received. (But a new client who has not received
+			// it, will get it this frame)
+			if (!SharedMovement.Equals(LastSharedReplication, this))
+			{
+				LastSharedReplication = SharedMovement;
+				ReplicatedMovementMode = SharedMovement.RepMovementMode;
+
+				FastSharedReplication(SharedMovement);
+			}
+			return true;
+		}
+	}
+
+	// We cannot fastrep right now. Don't send anything.
+	return false;
+}
+
+UHAbilitySystemComponent* AHCharacterBase::GetHAbilitySystemComponent() const
 {
 	return AbilitySystemComponent.Get();
+}
+
+void AHCharacterBase::OnControllerChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
+{
+	const FGenericTeamId MyOldTeamID = MyTeamID;
+	MyTeamID = IntegerToGenericTeamId(NewTeam);
+	ConditionalBroadcastTeamChanged(this, MyOldTeamID, MyTeamID);
+}
+
+void AHCharacterBase::OnRep_ReplicatedAcceleration()
+{
+	if (UHCharacterMovementComponent* HMovementComponent = Cast<UHCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		// Decompress Acceleration
+		const double MaxAccel = HMovementComponent->MaxAcceleration;
+		const double AccelXYMagnitude = double(ReplicatedAcceleration.AccelXYMagnitude) * MaxAccel / 255.0; // [0, 255] -> [0, MaxAccel]
+		const double AccelXYRadians = double(ReplicatedAcceleration.AccelXYRadians) * TWO_PI / 255.0;     // [0, 255] -> [0, 2PI]
+
+		FVector UnpackedAcceleration(FVector::ZeroVector);
+		FMath::PolarToCartesian(AccelXYMagnitude, AccelXYRadians, UnpackedAcceleration.X, UnpackedAcceleration.Y);
+		UnpackedAcceleration.Z = double(ReplicatedAcceleration.AccelZ) * MaxAccel / 127.0; // [-127, 127] -> [-MaxAccel, MaxAccel]
+
+		HMovementComponent->SetReplicatedAcceleration(UnpackedAcceleration);
+	}
+}
+
+void AHCharacterBase::OnRep_MyTeamID(FGenericTeamId OldTeamID)
+{
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 UHWeaponComponent* AHCharacterBase::GetWeaponComponent() const
@@ -467,7 +836,7 @@ bool AHCharacterBase::IsAlive() const
 	return AttributeSetBase->GetHealth() > 0.f;
 }
 
-void AHCharacterBase::UninitializeAbilitySystem()
+void AHCharacterBase::OnUninitializeAbilitySystem()
 {
 	if (!AbilitySystemComponent)
 	{
@@ -478,7 +847,7 @@ void AHCharacterBase::UninitializeAbilitySystem()
 	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
 	{
 		FGameplayTagContainer AbilityTypesToIgnore;
-		AbilityTypesToIgnore.AddTag(H_GameplayEvent_Tags::TAG_ABILITY_BEHAVIOR_SURVIVESDEATH); 
+		AbilityTypesToIgnore.AddTag(H_Ability_Tags::TAG_ABILITY_BEHAVIOR_SURVIVESDEATH); 
 
 		AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
 		AbilitySystemComponent->ClearAbilityInput();
@@ -542,26 +911,62 @@ void AHCharacterBase::UninitAndDestroy()
 		SetLifeSpan(0.1f);
 	}
 
-	UninitializeAbilitySystem();
+	OnUninitializeAbilitySystem();
 
 	SetActorHiddenInGame(true);
+}
+
+void AHCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+}
+
+void AHCharacterBase::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
+{
+}
+
+void AHCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		HASC->SetLooseGameplayTagCount(H_Status_Tags::TAG_STATUS_CROUCHING, 1);
+	}
+
+
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+}
+
+void AHCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		HASC->SetLooseGameplayTagCount(H_Status_Tags::TAG_STATUS_CROUCHING, 0);
+	}
+
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+}
+
+bool AHCharacterBase::CanJumpInternal_Implementation() const
+{
+	// same as ACharacter's implementation but without the crouch check
+	return JumpIsAllowedInternal();
 }
 
 void AHCharacterBase::OnAbilitySystemInitialized()
 {
 	//TODO healthcomp
-	/*ULyraAbilitySystemComponent* LyraASC = GetLyraAbilitySystemComponent();
-	check(LyraASC);
+	UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent();
+	check(HASC);
 
-	HealthComponent->InitializeWithAbilitySystem(LyraASC);
+	HealthComponent->InitializeWithAbilitySystem(HASC);
 
-	InitializeGameplayTags();*/
+	InitializeGameplayTags();
 }
 
 void AHCharacterBase::OnAbilitySystemUninitialized()
 {
 	//Todo healthcomp
-	//HealthComponent->UninitializeFromAbilitySystem();
+	HealthComponent->UninitializeFromAbilitySystem();
 }
 
 void AHCharacterBase::PossessedBy(AController* NewController)
@@ -575,6 +980,69 @@ void AHCharacterBase::PossessedBy(AController* NewController)
 
 	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
 	SetOwner(NewController);
+
+	HandleControllerChanged();
+
+	// Grab the current team ID and listen for future changes
+	if (IHTeamAgentInterface* ControllerAsTeamProvider = Cast<IHTeamAgentInterface>(NewController))
+	{
+		MyTeamID = ControllerAsTeamProvider->GetGenericTeamId();
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnControllerChangedTeam);
+	}
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
+}
+
+void AHCharacterBase::UnPossessed()
+{
+	AController* const OldController = Controller;
+
+	// Stop listening for changes from the old controller
+	const FGenericTeamId OldTeamID = MyTeamID;
+	if (IHTeamAgentInterface* ControllerAsTeamProvider = Cast<IHTeamAgentInterface>(OldController))
+	{
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().RemoveAll(this);
+	}
+
+	Super::UnPossessed();
+
+	HandleControllerChanged();
+
+	// Determine what the new team ID should be afterwards
+	MyTeamID = DetermineNewTeamAfterPossessionEnds(OldTeamID);
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
+}
+
+void AHCharacterBase::HandleControllerChanged()
+{
+	//todo not sure if needed
+	/*if (AbilitySystemComponent && (AbilitySystemComponent->GetAvatarActor() == GetPawnChecked<APawn>()))
+	{
+		ensure(AbilitySystemComponent->AbilityActorInfo->OwnerActor == AbilitySystemComponent->GetOwnerActor());
+		if (AbilitySystemComponent->GetOwnerActor() == nullptr)
+		{
+			UninitializeAbilitySystem();
+		}
+		else
+		{
+			AbilitySystemComponent->RefreshAbilityActorInfo();
+		}
+	}
+
+	CheckDefaultInitialization();*/
+}
+
+void AHCharacterBase::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	HandleControllerChanged();
+}
+
+void AHCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	//Do nothing
 }
 
 void AHCharacterBase::DisableMovementAndCapsuleCollision()

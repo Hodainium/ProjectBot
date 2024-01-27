@@ -30,7 +30,7 @@ AHCharacterBase* AHPlayerController::GetHCharacterBase() const
 UHAbilitySystemComponent* AHPlayerController::GetHAbilitySystemComponent() const
 {
 	const AHCharacterBase* CharBase = GetHCharacterBase();
-	return (CharBase ? CharBase->GetHAbilitySystemComp() : nullptr);
+	return (CharBase ? CharBase->GetHAbilitySystemComponent() : nullptr);
 }
 
 UAbilitySystemComponent* AHPlayerController::GetAbilitySystemComponent() const

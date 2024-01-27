@@ -50,6 +50,15 @@ protected:
 	float GetForwardVelocity();
 
 public:
+	UHCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
+
+	virtual void SimulateMovement(float DeltaTime) override;
+
+	virtual bool CanAttemptJump() const override;
+
+	void SetReplicatedAcceleration(const FVector& InAcceleration);
+
+	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
 
 	virtual float GetMaxSpeed() const override;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
@@ -80,7 +89,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Movement|Sprint")
 	float ADSSpeedMultiplier = 0.9f;
 
+	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().
 	FHCharacterGroundInfo CachedGroundInfo;
+
+	UPROPERTY(Transient)
+	bool bHasReplicatedAcceleration = false;
 
 private:
 	//Custom flags

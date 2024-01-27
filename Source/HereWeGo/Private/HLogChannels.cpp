@@ -5,6 +5,7 @@
 
 DEFINE_LOG_CATEGORY(LogHAbilitySystem);
 DEFINE_LOG_CATEGORY(LogHGame);
+DEFINE_LOG_CATEGORY(LogHTeams);
 
 FString GetClientServerContextString(UObject* ContextObject)
 {

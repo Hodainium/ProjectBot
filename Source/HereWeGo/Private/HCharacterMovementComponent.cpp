@@ -3,12 +3,14 @@
 
 #include "HCharacterMovementComponent.h"
 
+#include "AbilitySystemGlobals.h"
 #include "HAttributeSetBase.h"
 #include "HPlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "GameFramework/PhysicsVolume.h"
+#include "HereWeGo/Tags/H_Tags.h"
 
 
 namespace HCharacter
@@ -168,8 +170,60 @@ float UHCharacterMovementComponent::GetForwardVelocity()
 	return FVector::DotProduct(Velocity, CharacterOwner->GetActorForwardVector());
 }
 
+UHCharacterMovementComponent::UHCharacterMovementComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+}
+
+void UHCharacterMovementComponent::SimulateMovement(float DeltaTime)
+{
+	if (bHasReplicatedAcceleration)
+	{
+		// Preserve our replicated acceleration
+		const FVector OriginalAcceleration = Acceleration;
+		Super::SimulateMovement(DeltaTime);
+		Acceleration = OriginalAcceleration;
+	}
+	else
+	{
+		Super::SimulateMovement(DeltaTime);
+	}
+}
+
+bool UHCharacterMovementComponent::CanAttemptJump() const
+{
+	// Same as UCharacterMovementComponent's implementation but without the crouch check
+	return IsJumpAllowed() &&
+		(IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
+}
+
+void UHCharacterMovementComponent::SetReplicatedAcceleration(const FVector& InAcceleration)
+{
+	bHasReplicatedAcceleration = true;
+	Acceleration = InAcceleration;
+}
+
+FRotator UHCharacterMovementComponent::GetDeltaRotation(float DeltaTime) const
+{
+	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	{
+		if (ASC->HasMatchingGameplayTag(H_Movement_Tags::TAG_GAMEPLAY_MOVEMENTSTOPPED))
+		{
+			return FRotator(0, 0, 0);
+		}
+	}
+
+	return Super::GetDeltaRotation(DeltaTime);
+}
+
 float UHCharacterMovementComponent::GetMaxSpeed() const //todo change speed to be linked to attribute set base 
 {
+	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
+	{
+		if (ASC->HasMatchingGameplayTag(H_Movement_Tags::TAG_GAMEPLAY_MOVEMENTSTOPPED))
+		{
+			return 0;
+		}
+	}
 
 	AHCharacterBase* Owner = Cast<AHCharacterBase>(GetOwner());
 	if(!Owner)
