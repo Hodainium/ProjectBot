@@ -168,9 +168,11 @@ void AHCharacterBase::BeginPlay()
 
 	//todo register stun tag event
 
+	UE_LOGFMT(LogHGame, Warning, "Begin play called onbase on actor {actor} at time {time}", GetName(), GetWorld()->TimeSeconds);
+
 	if (AbilitySystemComponent)
 	{
-		OnInitializeAbilitySystem();
+		InitializeAbilitySystem();
 	}
 
 	AbilitySystemComponent->RegisterGameplayTagEvent(StunTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AHCharacterBase::StunTagChanged);
@@ -401,7 +403,7 @@ void AHCharacterBase::FellOutOfWorld(const UDamageType& dmgType)
 	HealthComponent->DamageSelfDestruct(/*bFellOutOfWorld=*/ true);
 }
 
-void AHCharacterBase::OnInitializeAbilitySystem()
+void AHCharacterBase::InitializeAbilitySystem()
 {
 	InitializeAttributes();
 	//AddStartupEffects();
@@ -409,7 +411,13 @@ void AHCharacterBase::OnInitializeAbilitySystem()
 	AddStartupAbilitySets();
 	SetTagRelationShipMapping();
 
-	OnAbilitySystemInitialized();
+	//TODO healthcomp
+	UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent();
+	check(HASC);
+
+	HealthComponent->InitializeWithAbilitySystem(HASC);
+
+	InitializeGameplayTags();
 }
 
 void AHCharacterBase::InitializeAttributes()
@@ -843,7 +851,7 @@ bool AHCharacterBase::IsAlive() const
 	return AttributeSetBase->GetHealth() > 0.f;
 }
 
-void AHCharacterBase::OnUninitializeAbilitySystem()
+void AHCharacterBase::UninitializeAbilitySystem()
 {
 	if (!AbilitySystemComponent)
 	{
@@ -870,7 +878,7 @@ void AHCharacterBase::OnUninitializeAbilitySystem()
 			AbilitySystemComponent->ClearActorInfo();
 		}
 
-		OnAbilitySystemUninitialized();
+		HealthComponent->UninitializeFromAbilitySystem();
 	}
 
 	AbilitySystemComponent = nullptr;
@@ -918,7 +926,7 @@ void AHCharacterBase::UninitAndDestroy()
 		SetLifeSpan(0.1f);
 	}
 
-	OnUninitializeAbilitySystem();
+	UninitializeAbilitySystem();
 
 	SetActorHiddenInGame(true);
 }
@@ -957,23 +965,6 @@ bool AHCharacterBase::CanJumpInternal_Implementation() const
 {
 	// same as ACharacter's implementation but without the crouch check
 	return JumpIsAllowedInternal();
-}
-
-void AHCharacterBase::OnAbilitySystemInitialized()
-{
-	//TODO healthcomp
-	UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent();
-	check(HASC);
-
-	HealthComponent->InitializeWithAbilitySystem(HASC);
-
-	InitializeGameplayTags();
-}
-
-void AHCharacterBase::OnAbilitySystemUninitialized()
-{
-	//Todo healthcomp
-	HealthComponent->UninitializeFromAbilitySystem();
 }
 
 void AHCharacterBase::PossessedBy(AController* NewController)

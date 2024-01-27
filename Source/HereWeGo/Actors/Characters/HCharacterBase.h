@@ -18,7 +18,7 @@
 class AHPlayerState;
 class AHPlayerController;
 class UHHealthComponent;
-class UHHealthAttributeSet;
+class UHHealthSet;
 struct FGameplayEffectSpec;
 struct FOnAttributeChangeData;
 class UHAbilitySet;
@@ -145,8 +145,8 @@ public:
 	virtual bool UpdateSharedReplication();
 
 protected:
-	virtual void OnAbilitySystemInitialized();
-	virtual void OnAbilitySystemUninitialized();
+	virtual void InitializeAbilitySystem();
+	void UninitializeAbilitySystem();
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
@@ -289,14 +289,6 @@ public:
 
 protected:
 
-	
-
-	/** Should be called by the owning pawn to Set up sets I guess? */
-	virtual void OnInitializeAbilitySystem();
-
-	/** Should be called by the owning pawn to remove itself as the avatar of the ability system. */
-	void OnUninitializeAbilitySystem();
-
 	virtual void InitializeAttributes();
 
 	virtual void AddStartupEffects();
@@ -313,7 +305,7 @@ protected:
 
 	TObjectPtr<UHAbilitySystemComponent> AbilitySystemComponent;
 	TObjectPtr<UHAttributeSetBase> AttributeSetBase;
-	TObjectPtr<UHHealthAttributeSet> HealthSet;
+	TObjectPtr<UHHealthSet> HealthSet;
 
 	TObjectPtr<UHWeaponComponent> WeaponComponent;
 

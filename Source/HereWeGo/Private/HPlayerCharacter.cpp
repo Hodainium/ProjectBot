@@ -172,11 +172,21 @@ void AHPlayerCharacter::HandleControllerChanged()
 
 	AHPlayerState* PS = GetPlayerState<AHPlayerState>();
 
+	UE_LOGFMT(LogHGame, Warning, "HandleControllerChanged called on player on actor {actor} at time {time}", GetName(), GetWorld()->TimeSeconds);
+	if(PS)
+	{
+		UE_LOGFMT(LogHGame, Warning, "HandleControllerChanged: PS is valid");
+	}
+	else
+	{
+		UE_LOGFMT(LogHGame, Warning, "HandleControllerChanged: PS is invalid");
+	}
+
 	if (PS) //This is if a playerstate is added or replicated
 	{
 		//todo bind to input ??? Maybe i do idr
 
-		OnInitializeAbilitySystem();
+		InitializeAbilitySystem();
 
 		AHPlayerController* PC = Cast<AHPlayerController>(GetController());
 
