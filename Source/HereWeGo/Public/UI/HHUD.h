@@ -27,4 +27,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	//~End of AActor interface
 
+	//~AHUD interface
+	virtual void GetDebugActorList(TArray<AActor*>& InOutList) override;
+	//~End of AHUD interface
 };

@@ -157,14 +157,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHInteractionComponent> InteractionComp;
 
-	/** The HUD Layout widget to use (must be derived from HHUD Layout) */
-	UPROPERTY(EditDefaultsOnly, DisplayName = "HUD Layout Class")
-	TSubclassOf<UHHUDLayout> HUDLayoutClass;
-
-	/** Used to keep track of the widget that was created to be our HUD */
-	UPROPERTY(Transient, VisibleInstanceOnly)
-	TWeakObjectPtr<UCommonActivatableWidget> HUDLayoutWidget;
-
 	UPROPERTY(EditAnywhere, Category = "HPlayer|Input")
 	TArray<FHInputMappingContextAndPriority> DefaultInputMappings;
 
@@ -189,13 +181,14 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "H|Pawn")
 	TObjectPtr<const UHPawnData> PawnData;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UHCameraComponent> CameraComp;
+
+	//TODO: Remove asap 1/27/24
 #pragma region Camera
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComp;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UHCameraComponent> CameraComp;
 
 	float SavedCameraTargetArmLength;
 	FVector SavedCameraSocketOffset;

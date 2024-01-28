@@ -3,12 +3,17 @@
 
 #include "HPlayerController.h"
 
+#include "CommonUIExtensions.h"
 #include "HAbilitySystemComponent.h"
+#include "HLogChannels.h"
 #include "HPlayerCameraManager.h"
 #include "HPlayerCharacter.h"
 #include "HPlayerState.h"
 #include "Blueprint/UserWidget.h"
 #include "HereWeGo/Actors/Characters/HCharacterBase.h"
+#include "HereWeGo/Tags/H_Tags.h"
+#include "HereWeGo/UI/HHUDLayout.h"
+#include "Logging/StructuredLog.h"
 
 AHPlayerController::AHPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -41,33 +46,25 @@ UAbilitySystemComponent* AHPlayerController::GetAbilitySystemComponent() const
 
 void AHPlayerController::CreateHUD()
 {
-	if(HUDWidgetInstance)
+	// Add HUD Layout widget to the player's Game UI Layer
+	if (IsLocalPlayerController())
 	{
-		return;
+		UE_LOG(LogHGame, Warning, TEXT("Pushing Game HUD [%s] to UI"), *GetNameSafe(HUDLayoutClass));
+		HUDLayoutWidget = UCommonUIExtensions::PushContentToLayer_ForPlayer(GetLocalPlayer(), H_CommonUI_Tags::TAG_UI_LAYER_GAME, HUDLayoutClass);
 	}
 
-	if(!HUDWidgetClassType)
+	OnPossessedPawnChanged
+}
+
+void AHPlayerController::RemoveHUD()
+{
+	// Remove any HUD we added to the player's UI
+	if (HUDLayoutWidget.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("There is no default hud class type set! Cannot create HUD instance for controller"));
-		return;
+		UE_LOGFMT(LogHGame, Warning, "Cleaning up HUD Layout Widget");
+		UCommonUIExtensions::PopContentFromLayer(HUDLayoutWidget.Get());
+		HUDLayoutWidget.Reset();
 	}
-
-	if(!IsLocalPlayerController())
-	{
-		return;
-	}
-
-	AHPlayerState* HPlayerState = GetPlayerState<AHPlayerState>();
-	if(!HPlayerState)
-	{
-		return;
-	}
-
-	HUDWidgetInstance = CreateWidget<UUserWidget>(this, HUDWidgetClassType);
-	HUDWidgetInstance->AddToViewport();
-
-	//todo initialize hud with attributes here
-
 }
 
 void AHPlayerController::OnCameraPenetratingTarget()
@@ -165,19 +162,6 @@ void AHPlayerController::OnRep_PlayerState()
 	//In case Playerstate is repped before possession
 	//CreateHUD();
 
-}
-
-void AHPlayerController::AcknowledgePossession(APawn* P)
-{
-	Super::AcknowledgePossession(P);
-
-	AHCharacterBase* CharacterBase = Cast<AHCharacterBase>(P);
-	if (CharacterBase)
-	{
-		CharacterBase->GetAbilitySystemComponent()->InitAbilityActorInfo(CharacterBase, CharacterBase);
-	}
-
-	//...
 }
 
 

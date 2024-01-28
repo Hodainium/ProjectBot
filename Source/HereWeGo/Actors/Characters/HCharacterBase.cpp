@@ -220,6 +220,14 @@ void AHCharacterBase::PreReplication(IRepChangedPropertyTracker& ChangedProperty
 	}
 }
 
+void AHCharacterBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	check(AbilitySystemComponent);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+}
+
 void AHCharacterBase::NotifyControllerChanged()
 {
 	const FGenericTeamId OldTeamId = GetGenericTeamId();
@@ -973,14 +981,6 @@ void AHCharacterBase::PossessedBy(AController* NewController)
 
 	Super::PossessedBy(NewController);
 
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	}
-
-	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
-	SetOwner(NewController);
-
 	HandleControllerChanged();
 
 	// Grab the current team ID and listen for future changes
@@ -1012,6 +1012,13 @@ void AHCharacterBase::UnPossessed()
 	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
+void AHCharacterBase::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	HandleControllerChanged();
+}
+
 void AHCharacterBase::HandleControllerChanged()
 {
 	//todo not sure if needed
@@ -1029,14 +1036,14 @@ void AHCharacterBase::HandleControllerChanged()
 	}
 
 	CheckDefaultInitialization();*/
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
 }
 
-void AHCharacterBase::OnRep_Controller()
-{
-	Super::OnRep_Controller();
 
-	HandleControllerChanged();
-}
 
 void AHCharacterBase::OnRep_PlayerState()
 {

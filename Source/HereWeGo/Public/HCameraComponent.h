@@ -13,7 +13,7 @@ class UHCameraMode;
 DECLARE_DELEGATE_RetVal(TSubclassOf<UHCameraMode>, FHCameraModeDelegate);
 
 /**
- * 
+ * The base camera component class used by this project.
  */
 UCLASS()
 class HEREWEGO_API UHCameraComponent : public UCameraComponent

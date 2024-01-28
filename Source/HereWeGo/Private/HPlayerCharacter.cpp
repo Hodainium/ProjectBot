@@ -148,22 +148,24 @@ void AHPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	HandleControllerChanged();
-
+	//Already called in super
+	//HandleControllerChanged();
 }
 
 void AHPlayerCharacter::UnPossessed()
 {
 	Super::UnPossessed();
 
-	HandleControllerChanged();
+	//Already called in super
+	//HandleControllerChanged();
 }
 
 void AHPlayerCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 
-	HandleControllerChanged();
+	//Already called in super
+	//HandleControllerChanged();
 }
 
 void AHPlayerCharacter::HandleControllerChanged()
@@ -192,14 +194,7 @@ void AHPlayerCharacter::HandleControllerChanged()
 
 		if (PC)
 		{
-			//PC->CreateHUD();
-
-			// Add HUD Layout widget to the player's Game UI Layer
-			if (PC->IsLocalPlayerController())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Pushing Game HUD [%s] to UI"), *GetNameSafe(HUDLayoutClass));
-				HUDLayoutWidget = UCommonUIExtensions::PushContentToLayer_ForPlayer(PC->GetLocalPlayer(), H_CommonUI_Tags::TAG_UI_LAYER_GAME, HUDLayoutClass);
-			}
+			PC->CreateHUD();
 
 			SetupPlayerInputComponent(PC->InputComponent);
 		}

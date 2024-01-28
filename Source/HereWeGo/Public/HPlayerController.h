@@ -36,7 +36,13 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void OnPossess(APawn* InPawn) override;
+
+	virtual void OnUnPossess() override;
+
 	void CreateHUD();
+
+	void RemoveHUD();
 
 	//~IHCameraAssistInterface interface
 	virtual void OnCameraPenetratingTarget() override;
@@ -50,18 +56,18 @@ public:
 	virtual void CleanupPlayerState() override;
 	virtual void OnRep_PlayerState() override;
 
-	virtual void AcknowledgePossession(APawn* P) override;
-
 protected:
 	//~APlayerController interface
 	virtual void UpdateHiddenComponents(const FVector& ViewLocation, TSet<FPrimitiveComponentId>& OutHiddenComponents) override;
 	//~End of APlayerController interface
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> HUDWidgetClassType;
+	/** The HUD Layout widget to use (must be derived from HHUD Layout) */
+	UPROPERTY(EditDefaultsOnly, DisplayName = "HUD Layout Class")
+	TSubclassOf<UHHUDLayout> HUDLayoutClass;
 
-	UPROPERTY()
-	TObjectPtr<UUserWidget> HUDWidgetInstance;
+	/** Used to keep track of the widget that was created to be our HUD */
+	UPROPERTY(Transient, VisibleInstanceOnly)
+	TWeakObjectPtr<UCommonActivatableWidget> HUDLayoutWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UHIndicatorManagerComponent> IndicatorComponent;

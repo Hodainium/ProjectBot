@@ -123,6 +123,7 @@ public:
 	virtual void Reset() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
+	virtual void PostInitializeComponents() override;
 	//~End of AActor interface
 
 	//~APawn interface
@@ -338,12 +339,6 @@ protected:
 	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
 
 	void DisableMovementAndCapsuleCollision();
-
-	
-
-	
-
-	
 
 	FGameplayTag DeathTag;
 	FGameplayTag RemoveEffectOnDeathTag;
