@@ -186,9 +186,8 @@ void AHPlayerCharacter::HandleControllerChanged()
 
 	if (PS) //This is if a playerstate is added or replicated
 	{
-		//todo bind to input ??? Maybe i do idr
-
-		InitializeAbilitySystem();
+		//Don't think we have to call here
+		//InitializeAbilitySystem();
 
 		AHPlayerController* PC = Cast<AHPlayerController>(GetController());
 
@@ -214,14 +213,6 @@ void AHPlayerCharacter::HandleControllerChanged()
 
 
 		//OnUninitializeAbilitySystem();
-
-		// Remove any HUD we added to the player's UI
-		if (HUDLayoutWidget.IsValid())
-		{
-			UE_LOGFMT(LogHGame, Warning, "Cleaning up HUD Layout Widget");
-			UCommonUIExtensions::PopContentFromLayer(HUDLayoutWidget.Get());
-			HUDLayoutWidget.Reset();
-		}
 
 		if (APlayerController* PC = GetController<APlayerController>())
 		{

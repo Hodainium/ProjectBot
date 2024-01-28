@@ -942,10 +942,32 @@ void AHCharacterBase::UninitAndDestroy()
 void AHCharacterBase::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
 {
 	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	UHCharacterMovementComponent* HMoveComp = CastChecked<UHCharacterMovementComponent>(GetCharacterMovement());
+
+	SetMovementModeTag(PrevMovementMode, PreviousCustomMode, false);
+	SetMovementModeTag(HMoveComp->MovementMode, HMoveComp->CustomMovementMode, true);
 }
 
 void AHCharacterBase::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
 {
+	if (UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent())
+	{
+		const FGameplayTag* MovementModeTag = nullptr;
+		if (MovementMode == MOVE_Custom)
+		{
+			MovementModeTag = H_MovementMode_Tags::CustomMovementModeTagMap.Find(CustomMovementMode);
+		}
+		else
+		{
+			MovementModeTag = H_MovementMode_Tags::MovementModeTagMap.Find(MovementMode);
+		}
+
+		if (MovementModeTag && MovementModeTag->IsValid())
+		{
+			HASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+		}
+	}
 }
 
 void AHCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)

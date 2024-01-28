@@ -36,6 +36,11 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void HandlePossessedPawnChanged(APawn* OldPawnBroadcasted, APawn* NewPawnBroadcasted);
+
 	void CreateHUD();
 
 	void RemoveHUD();

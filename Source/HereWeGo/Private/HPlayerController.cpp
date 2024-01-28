@@ -44,6 +44,23 @@ UAbilitySystemComponent* AHPlayerController::GetAbilitySystemComponent() const
 	return (CharBase ? CharBase->GetAbilitySystemComponent() : nullptr);
 }
 
+void AHPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OnPossessedPawnChanged.AddUniqueDynamic(this, &ThisClass::HandlePossessedPawnChanged);
+}
+
+void AHPlayerController::HandlePossessedPawnChanged(APawn* OldPawnBroadcasted, APawn* NewPawnBroadcasted)
+{
+	if(!HUDLayoutWidget.IsValid())
+	{
+		CreateHUD();
+	}
+	//Eventually have logic to switch huds based on pawndata
+	//Will require calling removeHUD
+}
+
 void AHPlayerController::CreateHUD()
 {
 	// Add HUD Layout widget to the player's Game UI Layer
@@ -52,8 +69,6 @@ void AHPlayerController::CreateHUD()
 		UE_LOG(LogHGame, Warning, TEXT("Pushing Game HUD [%s] to UI"), *GetNameSafe(HUDLayoutClass));
 		HUDLayoutWidget = UCommonUIExtensions::PushContentToLayer_ForPlayer(GetLocalPlayer(), H_CommonUI_Tags::TAG_UI_LAYER_GAME, HUDLayoutClass);
 	}
-
-	OnPossessedPawnChanged
 }
 
 void AHPlayerController::RemoveHUD()
