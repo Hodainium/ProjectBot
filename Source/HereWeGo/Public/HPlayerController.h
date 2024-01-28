@@ -36,10 +36,6 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void OnPossess(APawn* InPawn) override;
-
-	virtual void OnUnPossess() override;
-
 	void CreateHUD();
 
 	void RemoveHUD();
