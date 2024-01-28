@@ -194,8 +194,6 @@ void AHPlayerCharacter::HandleControllerChanged()
 		if (PC)
 		{
 			PC->CreateHUD();
-
-			SetupPlayerInputComponent(PC->InputComponent);
 		}
 
 		if (IsLocallyControlled())
@@ -207,31 +205,19 @@ void AHPlayerCharacter::HandleControllerChanged()
 		}
 		
 	}
-	else //This is on unpossessed
+
+	//TODO Unbinding?
+	/*if (APlayerController* PC = GetController<APlayerController>())
 	{
-		UE_LOG(LogHGame, Warning, TEXT("PlayerChar: This should only occur when unpossessing. Clearing hud AND INPUT"));
-
-
-		//OnUninitializeAbilitySystem();
-
-		if (APlayerController* PC = GetController<APlayerController>())
+		if (const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
 		{
-			if (const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				if(UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-				{
-					UE_LOGFMT(LogHGame, Warning, "Clearing input mappings");
-					Subsystem->ClearAllMappings();
-				}
+				UE_LOGFMT(LogHGame, Warning, "Clearing input mappings");
+				Subsystem->ClearAllMappings();
 			}
 		}
-
-		//UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent);
-		//EnhancedInput->RemoveActionEventBinding()
-
-		////// Unbind from EnhancedInput
-		////UnbindInputValueActions();
-	}
+	}*/
 }
 
 #pragma endregion
