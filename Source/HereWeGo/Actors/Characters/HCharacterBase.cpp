@@ -977,7 +977,6 @@ void AHCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeig
 		HASC->SetLooseGameplayTagCount(H_Status_Tags::TAG_STATUS_CROUCHING, 1);
 	}
 
-
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 }
 

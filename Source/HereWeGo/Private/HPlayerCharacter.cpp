@@ -583,35 +583,6 @@ void AHPlayerCharacter::Input_JumpReleased()
 	bJumpInputHeldRaw = false;
 }
 
-void AHPlayerCharacter::Input_Attack1Start()
-{
-	WantsToShoot = true;
-	if (CanShoot())
-	{
-		AttemptToShoot();
-	}
-	SendLocalInputToASC(EHAbilityInputID::Attack1, true);
-}
-
-void AHPlayerCharacter::Input_Attack1Released()
-{
-	WantsToShoot = false;
-	SendLocalInputToASC(EHAbilityInputID::Attack1, false);
-}
-
-void AHPlayerCharacter::Input_Attack2Start()
-{
-	WantsToAim = true;
-	SendLocalInputToASC(EHAbilityInputID::Attack2, true);
-}
-
-void AHPlayerCharacter::Input_Attack2Released()
-{
-	WantsToAim = false;
-	//StopAiming();
-	SendLocalInputToASC(EHAbilityInputID::Attack2, false);
-}
-
 void AHPlayerCharacter::Input_InteractTriggered()
 {
 	if (!HasInteracted)

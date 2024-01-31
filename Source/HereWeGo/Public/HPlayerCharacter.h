@@ -75,10 +75,6 @@ class HEREWEGO_API AHPlayerCharacter : public AHCharacterBase
 	void Input_Crouch(const FInputActionValue& InputActionValue);
 	void Input_JumpStart();
 	void Input_JumpReleased();
-	void Input_Attack1Start();
-	void Input_Attack1Released();
-	void Input_Attack2Start();
-	void Input_Attack2Released();
 	void Input_InteractTriggered();
 	void Input_InteractHeld();
 	void Input_InteractReleased();

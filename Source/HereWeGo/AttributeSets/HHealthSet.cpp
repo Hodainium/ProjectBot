@@ -17,6 +17,7 @@ UHHealthSet::UHHealthSet()
 	, MaxHealth(100.0f)
 {
 	bOutOfHealth = false;
+	bOutOfShield = false;
 	MaxHealthBeforeAttributeChange = 0.0f;
 	HealthBeforeAttributeChange = 0.0f;
 }
@@ -27,6 +28,8 @@ void UHHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UHHealthSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UHHealthSet, MaxHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UHHealthSet, Shield, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UHHealthSet, MaxShield, COND_None, REPNOTIFY_Always);
 }
 
 void UHHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
@@ -57,6 +60,36 @@ void UHHealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
 	// Call the change callback, but without an instigator
 	// This could be changed to an explicit RPC in the future
 	OnMaxHealthChanged.Broadcast(nullptr, nullptr, nullptr, GetMaxHealth() - OldValue.GetCurrentValue(), OldValue.GetCurrentValue(), GetMaxHealth());
+}
+
+void UHHealthSet::OnRep_Shield(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UHHealthSet, Shield, OldValue);
+
+	// Call the change callback, but without an instigator
+	// This could be changed to an explicit RPC in the future
+	// These events on the client should not be changing attributes
+
+	const float CurrentShield = GetShield();
+	const float EstimatedMagnitude = CurrentShield - OldValue.GetCurrentValue();
+
+	OnShieldChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurrentShield);
+
+	if (!bOutOfShield && CurrentShield <= 0.0f)
+	{
+		OnOutOfShield.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurrentShield);
+	}
+
+	bOutOfShield = (CurrentShield <= 0.0f);
+}
+
+void UHHealthSet::OnRep_MaxShield(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UHHealthSet, MaxShield, OldValue);
+
+	// Call the change callback, but without an instigator
+	// This could be changed to an explicit RPC in the future
+	OnMaxShieldChanged.Broadcast(nullptr, nullptr, nullptr, GetMaxShield() - OldValue.GetCurrentValue(), OldValue.GetCurrentValue(), GetMaxShield());
 }
 
 bool UHHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
@@ -95,6 +128,8 @@ bool UHHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 	// Save the current health
 	HealthBeforeAttributeChange = GetHealth();
 	MaxHealthBeforeAttributeChange = GetMaxHealth();
+	ShieldBeforeAttributeChange = GetShield();
+	MaxShieldBeforeAttributeChange = GetMaxShield();
 
 	return true;
 }
@@ -138,8 +173,33 @@ void UHHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData
 			MessageSystem.BroadcastMessage(Message.Verb, Message);
 		}
 
-		// Convert into -Health and then clamp
-		SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
+		float CurrentShield = GetShield();
+		float DamageToDo = GetDamage();
+
+		float ShieldDamageRemainder = 0;
+
+		
+
+		if(CurrentShield >= DamageToDo)
+		{
+			// Check if shields are greater than damage, if so, just do damage to shields
+			SetShield(FMath::Clamp(CurrentShield - DamageToDo, 0.f, GetMaxShield()));
+		}
+		else if(CurrentShield <= 0)
+		{
+			// If current shield is already 0 then just do damage to health
+			SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
+		}
+		else
+		{
+			// Otherwise, we find remaining damage after dealing damage to shield
+			// Then remove health according to remaining damage
+			ShieldDamageRemainder = DamageToDo - CurrentShield;
+			SetShield(0.f);
+			SetHealth(FMath::Clamp(GetHealth() - ShieldDamageRemainder, MinimumHealth, GetMaxHealth()));
+		}
+
+		//Set damage back to 0
 		SetDamage(0.0f);
 	}
 	else if (Data.EvaluatedData.Attribute == GetHealingAttribute())
@@ -147,6 +207,18 @@ void UHHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData
 		// Convert into +Health and then clamo
 		SetHealth(FMath::Clamp(GetHealth() + GetHealing(), MinimumHealth, GetMaxHealth()));
 		SetHealing(0.0f);
+	}
+	else if (Data.EvaluatedData.Attribute == GetShieldAttribute())
+	{
+		// Clamp and fall into out of shield handling below
+		SetShield(FMath::Clamp(GetShield(), 0.f, GetMaxShield()));
+	}
+	else if (Data.EvaluatedData.Attribute == GetMaxShieldAttribute())
+	{
+		// TODO clamp current shield?
+
+		// Notify on any requested max shield changes
+		OnMaxShieldChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, MaxShieldBeforeAttributeChange, GetMaxShield());
 	}
 	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
@@ -161,6 +233,17 @@ void UHHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData
 		OnMaxHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, MaxHealthBeforeAttributeChange, GetMaxHealth());
 	}
 
+	// If shield has actually changed activate callbacks
+	if (GetShield() != ShieldBeforeAttributeChange)
+	{
+		OnShieldChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, ShieldBeforeAttributeChange, GetShield());
+	}
+
+	if ((GetShield() <= 0.0f) && !bOutOfShield)
+	{
+		OnOutOfShield.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, ShieldBeforeAttributeChange, GetShield());
+	}
+
 	// If health has actually changed activate callbacks
 	if (GetHealth() != HealthBeforeAttributeChange)
 	{
@@ -171,6 +254,9 @@ void UHHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData
 	{
 		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHealth());
 	}
+
+	// Check shield again in case an event above changed it.
+	bOutOfShield = (GetShield() <= 0.0f);
 
 	// Check health again in case an event above changed it.
 	bOutOfHealth = (GetHealth() <= 0.0f);
@@ -194,6 +280,18 @@ void UHHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
+	if (Attribute == GetMaxShieldAttribute())
+	{
+		// Make sure current health is not greater than the new max health.
+		if (GetShield() > NewValue)
+		{
+			UHAbilitySystemComponent* HASC = GetHAbilitySystemComponent();
+			check(HASC);
+
+			HASC->ApplyModToAttribute(GetShieldAttribute(), EGameplayModOp::Override, NewValue);
+		}
+	}
+
 	if (Attribute == GetMaxHealthAttribute())
 	{
 		// Make sure current health is not greater than the new max health.
@@ -206,6 +304,11 @@ void UHHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float
 		}
 	}
 
+	if (bOutOfShield && (GetShield() > 0.0f))
+	{
+		bOutOfShield = false;
+	}
+
 	if (bOutOfHealth && (GetHealth() > 0.0f))
 	{
 		bOutOfHealth = false;
@@ -214,10 +317,20 @@ void UHHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float
 
 void UHHealthSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {
-	if (Attribute == GetHealthAttribute())
+	if (Attribute == GetShieldAttribute())
+	{
+		// Do not allow shield to go negative or above max shield.
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxShield());
+	}
+	else if (Attribute == GetHealthAttribute())
 	{
 		// Do not allow health to go negative or above max health.
 		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
+	}
+	else if (Attribute == GetMaxShieldAttribute())
+	{
+		// Do not allow max shield to drop below 1.
+		NewValue = FMath::Max(NewValue, 1.0f);
 	}
 	else if (Attribute == GetMaxHealthAttribute())
 	{
