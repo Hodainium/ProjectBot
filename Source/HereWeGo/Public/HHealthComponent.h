@@ -49,6 +49,14 @@ public:
 
 	// Returns the current health value.
 	UFUNCTION(BlueprintCallable, Category = "H|Health")
+	float GetShield() const;
+
+	// Returns the current maximum health value.
+	UFUNCTION(BlueprintCallable, Category = "H|Health")
+	float GetMaxShield() const;
+
+	// Returns the current health value.
+	UFUNCTION(BlueprintCallable, Category = "H|Health")
 	float GetHealth() const;
 
 	// Returns the current maximum health value.
@@ -76,6 +84,14 @@ public:
 
 public:
 
+	// Delegate fired when the Shield value has changed. This is called on the client but the instigator may not be valid
+	UPROPERTY(BlueprintAssignable)
+	FHHealth_AttributeChanged OnShieldChanged;
+
+	// Delegate fired when the max Shield value has changed. This is called on the client but the instigator may not be valid
+	UPROPERTY(BlueprintAssignable)
+	FHHealth_AttributeChanged OnMaxShieldChanged;
+
 	// Delegate fired when the health value has changed. This is called on the client but the instigator may not be valid
 	UPROPERTY(BlueprintAssignable)
 	FHHealth_AttributeChanged OnHealthChanged;
@@ -97,6 +113,10 @@ protected:
 	virtual void OnUnregister() override;
 
 	void ClearGameplayTags();
+
+	virtual void HandleShieldChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	virtual void HandleMaxShieldChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	virtual void HandleOutOfShield(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 
 	virtual void HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 	virtual void HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);

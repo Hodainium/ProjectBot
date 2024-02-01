@@ -17,6 +17,7 @@ namespace H_CommonUI_Tags
 
 namespace H_GameplayEvent_Tags
 {
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_GAMEPLAYEVENT_SHIELDBREAK, "GameplayEvent.ShieldBreak", "Event that fires on shieldbreak. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_GAMEPLAYEVENT_DEATH, "GameplayEvent.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_GAMEPLAYEVENT_RESET, "GameplayEvent.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_GAMEPLAYEVENT_REQUESTRESET, "GameplayEvent.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
@@ -38,8 +39,10 @@ namespace H_Status_Tags
 
 namespace H_Message_Tags
 {
-	UE_DEFINE_GAMEPLAY_TAG(TAG_ELIMINATION_MESSAGE, "ProjectBot.Elimination.Message");
-	UE_DEFINE_GAMEPLAY_TAG(TAG_DAMAGE_MESSAGE, "ProjectBot.Damage.Message");
+
+	UE_DEFINE_GAMEPLAY_TAG(TAG_SHIELDBREAK_MESSAGE, "ProjectBot.Message.Shieldbreak");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_ELIMINATION_MESSAGE, "ProjectBot.Message.Elimination");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_DAMAGE_MESSAGE, "ProjectBot.Message.Damage");
 
 }
 

@@ -3,6 +3,7 @@
 
 #include "HHealthComponent.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "HAbilitySystemComponent.h"
 #include "HGameData.h"
 #include "HLogChannels.h"
@@ -12,6 +13,7 @@
 #include "HereWeGo/HAssetManager.h"
 #include "HereWeGo/AttributeSets/HHealthSet.h"
 #include "HereWeGo/Tags/H_Tags.h"
+#include "Logging/StructuredLog.h"
 #include "Net/UnrealNetwork.h"
 
 UHHealthComponent::UHHealthComponent(const FObjectInitializer& ObjectInitializer)
@@ -67,14 +69,23 @@ void UHHealthComponent::InitializeWithAbilitySystem(UHAbilitySystemComponent* In
 	}
 
 	// Register to listen for attribute changes.
+	HealthSet->OnShieldChanged.AddUObject(this, &ThisClass::HandleShieldChanged);
+	HealthSet->OnMaxShieldChanged.AddUObject(this, &ThisClass::HandleMaxShieldChanged);
+	HealthSet->OnOutOfShield.AddUObject(this, &ThisClass::HandleOutOfShield);
+
 	HealthSet->OnHealthChanged.AddUObject(this, &ThisClass::HandleHealthChanged);
 	HealthSet->OnMaxHealthChanged.AddUObject(this, &ThisClass::HandleMaxHealthChanged);
 	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 
 	// TEMP: Reset attributes to default values.  Eventually this will be driven by a spread sheet.
-	AbilitySystemComponent->SetNumericAttributeBase(UHHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
+	/*AbilitySystemComponent->SetNumericAttributeBase(UHHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
+	AbilitySystemComponent->SetNumericAttributeBase(UHHealthSet::GetShieldAttribute(), HealthSet->GetMaxShield());*/
+	UE_LOGFMT(LogHGame, Warning, "We are SKIPPING settings health attributes to defaults in HealthComp.");
 
 	ClearGameplayTags();
+
+	OnShieldChanged.Broadcast(this, HealthSet->GetShield(), HealthSet->GetShield(), nullptr);
+	OnMaxShieldChanged.Broadcast(this, HealthSet->GetMaxShield(), HealthSet->GetMaxShield(), nullptr);
 
 	OnHealthChanged.Broadcast(this, HealthSet->GetHealth(), HealthSet->GetHealth(), nullptr);
 	OnMaxHealthChanged.Broadcast(this, HealthSet->GetHealth(), HealthSet->GetHealth(), nullptr);
@@ -86,6 +97,10 @@ void UHHealthComponent::UninitializeFromAbilitySystem()
 
 	if (HealthSet)
 	{
+		HealthSet->OnShieldChanged.RemoveAll(this);
+		HealthSet->OnMaxShieldChanged.RemoveAll(this);
+		HealthSet->OnOutOfShield.RemoveAll(this);
+
 		HealthSet->OnHealthChanged.RemoveAll(this);
 		HealthSet->OnMaxHealthChanged.RemoveAll(this);
 		HealthSet->OnOutOfHealth.RemoveAll(this);
@@ -93,6 +108,16 @@ void UHHealthComponent::UninitializeFromAbilitySystem()
 
 	HealthSet = nullptr;
 	AbilitySystemComponent = nullptr;
+}
+
+float UHHealthComponent::GetShield() const
+{
+	return (HealthSet ? HealthSet->GetShield() : 0.0f);
+}
+
+float UHHealthComponent::GetMaxShield() const
+{
+	return (HealthSet ? HealthSet->GetMaxShield() : 0.0f);
 }
 
 void UHHealthComponent::ClearGameplayTags()
@@ -125,6 +150,64 @@ float UHHealthComponent::GetHealthNormalized() const
 	}
 
 	return 0.0f;
+}
+
+void UHHealthComponent::HandleShieldChanged(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+	OnShieldChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
+}
+
+void UHHealthComponent::HandleMaxShieldChanged(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+	OnMaxShieldChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
+}
+
+void UHHealthComponent::HandleOutOfShield(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+#if WITH_SERVER_CODE
+	if (AbilitySystemComponent && DamageEffectSpec)
+	{
+		// Send the "GameplayEvent.ShieldBreak" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = H_GameplayEvent_Tags::TAG_GAMEPLAYEVENT_SHIELDBREAK;
+			Payload.Instigator = DamageInstigator;
+			Payload.Target = AbilitySystemComponent->GetAvatarActor();
+			Payload.OptionalObject = DamageEffectSpec->Def;
+			Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+			Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			Payload.EventMagnitude = DamageMagnitude;
+
+			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+
+			if(UAbilitySystemComponent* InstigatorASC = DamageEffectSpec->GetContext().GetInstigatorAbilitySystemComponent())
+			{
+				FScopedPredictionWindow NewScopedWindowInstigator(InstigatorASC, true);
+				InstigatorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+			}
+		}
+
+		// Send a standardized verb message that other systems can observe
+		{
+			FHVerbMessage Message;
+			Message.Verb = H_Message_Tags::TAG_SHIELDBREAK_MESSAGE;
+			Message.Instigator = DamageInstigator;
+			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Message.Target = UHVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());
+			Message.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
+			//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
+
+			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSystem.BroadcastMessage(Message.Verb, Message);
+		}
+	}
+#endif // #if WITH_SERVER_CODE
 }
 
 void UHHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
