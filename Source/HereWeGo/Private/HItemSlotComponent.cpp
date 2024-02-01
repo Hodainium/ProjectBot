@@ -15,12 +15,9 @@
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "HereWeGo/HAssetManager.h"
 #include "HereWeGo/Items/HWeaponItemDefinition.h"
+#include "HereWeGo/Tags/H_Tags.h"
 #include "Logging/StructuredLog.h"
 #include "Net/UnrealNetwork.h"
-
-UE_DEFINE_GAMEPLAY_TAG(TAG_ItemSlots_Message_SlotsChanged, "Inventory.ItemSlots.Message.SlotsChanged");
-UE_DEFINE_GAMEPLAY_TAG(TAG_ItemSlots_Message_ActiveIndexChanged, "Inventory.ItemSlots.Message.ActiveIndexChanged");
-UE_DEFINE_GAMEPLAY_TAG(TAG_ItemSlots_Message_NumSlotsChanged, "Inventory.ItemSlots.Message.ActiveIndexChanged");
 
 UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -273,7 +270,7 @@ void UHItemSlotComponent::Handle_OnRep_SlotsChanged(EHWeaponSlotType SlotType)
 	Message.SlotType = SlotType;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(TAG_ItemSlots_Message_SlotsChanged, Message);
+	MessageSystem.BroadcastMessage(H_ItemSlots_Tags::TAG_ITEMSLOTS_MESSAGE_SLOTSCHANGED, Message);
 }
 
 void UHItemSlotComponent::Handle_OnRep_NumSlotsChanged(EHWeaponSlotType SlotType)
@@ -286,7 +283,7 @@ void UHItemSlotComponent::Handle_OnRep_NumSlotsChanged(EHWeaponSlotType SlotType
 	Message.SlotType = SlotType;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(TAG_ItemSlots_Message_ActiveIndexChanged, Message);
+	MessageSystem.BroadcastMessage(H_ItemSlots_Tags::TAG_ITEMSLOTS_MESSAGE_NUMSLOTSCHANGED, Message);
 }
 
 void UHItemSlotComponent::Handle_OnRep_ActiveSlotIndexChanged(EHWeaponSlotType SlotType)
@@ -297,7 +294,7 @@ void UHItemSlotComponent::Handle_OnRep_ActiveSlotIndexChanged(EHWeaponSlotType S
 	Message.SlotType = SlotType;
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(TAG_ItemSlots_Message_NumSlotsChanged, Message);
+	MessageSystem.BroadcastMessage(H_ItemSlots_Tags::TAG_ITEMSLOTS_MESSAGE_ACTIVEINDEXCHANGED, Message);
 }
 
 void UHItemSlotComponent::OnRep_SlotStruct_Weapon_L(FHInventorySlotStruct& PreviousValue)
