@@ -59,6 +59,8 @@ AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer
 
 	CameraComp = CreateDefaultSubobject<UHCameraComponent>("CameraComp");
 	CameraComp->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
+
+
 	//CameraComp->SetupAttachment(SpringArmComp);
 
 	//TODO Remove this interactionComp
