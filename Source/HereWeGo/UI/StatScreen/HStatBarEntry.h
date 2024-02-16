@@ -7,6 +7,27 @@
 #include "HStatBarEntry.generated.h"
 
 USTRUCT(BlueprintType)
+struct HEREWEGO_API FHStatBarPipData
+{
+	GENERATED_BODY()
+
+	FHStatBarPipData()
+	{}
+
+	UPROPERTY(EditAnywhere)
+	int DefaultPips;
+
+	UPROPERTY(EditAnywhere)
+	int TempPips;
+
+	UPROPERTY(EditAnywhere)
+	int BonusPips;
+
+	UPROPERTY(EditAnywhere)
+	int NegativePips;
+};
+
+USTRUCT(BlueprintType)
 struct HEREWEGO_API FHStatBarEntry
 {
 	GENERATED_BODY()
