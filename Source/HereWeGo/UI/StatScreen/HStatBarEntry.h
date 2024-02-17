@@ -14,16 +14,16 @@ struct HEREWEGO_API FHStatBarPipData
 	FHStatBarPipData()
 	{}
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int DefaultPips;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int TempPips;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int BonusPips;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int NegativePips;
 };
 
@@ -45,16 +45,7 @@ struct HEREWEGO_API FHStatBarEntry
 	int StartTotalPips;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int StartDefaultPips;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int StartTempPips;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int StartBonusPips;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int StartNegativePips;
+	FHStatBarPipData StartPipData;
 };
 
 USTRUCT(BlueprintType)
