@@ -6,6 +6,17 @@
 #include "CommonActivatableWidget.h"
 #include "HCommonActivatableWidget.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FInputActionExecutedDelegate, FName, ActionName);
+
+USTRUCT(BlueprintType)
+struct FInputActionBindingHandle
+{
+	GENERATED_BODY()
+
+public:
+	FUIActionBindingHandle Handle;
+};
+
 /**
  * Input Modes that HActivatableWidgets can activate
  */
@@ -23,7 +34,7 @@ enum class EHWidgetInputMode : uint8
  *
  * An activatable widget that optionally overrides the input mode when activated
  */
-UCLASS(Abstract, Blueprintable, meta = (Category = "HUI"))
+UCLASS(Abstract, Blueprintable, meta = (Category = "HUI", DisableNativeTick))
 class HEREWEGO_API UHCommonActivatableWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
@@ -43,4 +54,19 @@ protected:
 	/** The desired mouse behavior when the game gets input. */
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	EMouseCaptureMode GameMouseCaptureMode = EMouseCaptureMode::CapturePermanently;
+
+protected:
+	virtual void NativeDestruct() override;
+
+	UFUNCTION(BlueprintCallable, Category = ExtendedActivatableWidget)
+	void RegisterBinding(FDataTableRowHandle InputAction, const FInputActionExecutedDelegate& Callback, FInputActionBindingHandle& BindingHandle);
+
+	UFUNCTION(BlueprintCallable, Category = ExtendedActivatableWidget)
+	void UnregisterBinding(FInputActionBindingHandle BindingHandle);
+
+	UFUNCTION(BlueprintCallable, Category = ExtendedActivatableWidget)
+	void UnregisterAllBindings();
+
+private:
+	TArray<FUIActionBindingHandle> BindingHandles;
 };
