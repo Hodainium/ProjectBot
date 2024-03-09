@@ -60,6 +60,21 @@ public:
 	void SetTabLabelInfo(const FHTabDescriptor& TabDescriptor);
 };
 
+UINTERFACE(BlueprintType)
+class UHTabbedMenuInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class IHTabbedMenuInterface
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Tab Menu")
+	void SetActiveTab(FName TabNameID, bool bSuppressClickFeedback = false);
+};
+
 UCLASS()
 class HEREWEGO_API UHTabListWidgetBase : public UCommonTabListWidgetBase
 {

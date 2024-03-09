@@ -478,9 +478,9 @@ void AHPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 			TArray<uint32> BindHandles;
 			HIC->BindAbilityActions(Config, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
 
-			HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Started, this, &ThisClass::Input_InteractHeld, /*bLogIfNotFound=*/ false);
-			HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Triggered, this, &ThisClass::Input_InteractTriggered, /*bLogIfNotFound=*/ false);
-			HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Completed, this, &ThisClass::Input_InteractReleased, /*bLogIfNotFound=*/ false);
+			//HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Started, this, &ThisClass::Input_InteractHeld, /*bLogIfNotFound=*/ false);
+			//HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Triggered, this, &ThisClass::Input_InteractTriggered, /*bLogIfNotFound=*/ false);
+			//HIC->BindNativeAction(Config, TAG_InputAction_Ability_Interact, ETriggerEvent::Completed, this, &ThisClass::Input_InteractReleased, /*bLogIfNotFound=*/ false);
 
 			HIC->BindNativeAction(Config, TAG_InputAction_Movement, ETriggerEvent::Triggered, this, &ThisClass::Input_Movement, /*bLogIfNotFound=*/ false);
 			HIC->BindNativeAction(Config, TAG_InputAction_LookMouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
