@@ -13,17 +13,6 @@
 UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_Message_StackChanged, "Inventory.Message.StackChanged");
 //UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_Item_Count, "ItemStatTags.Inventory.Item.Count");
 
-//FHInventoryEntry::FHInventoryEntry(UHGridEntry* Item)
-//{
-//	if (Item)
-//	{
-//		Instance = Item->Instance;
-//		TopLeftTilePoint = Item->TopLeftTilePoint;
-//		IsRotated = Item->IsRotated;
-//		StackCount = Item->StackCount;
-//	}
-//}
-
 FString FHInventoryEntry::GetDebugString() const
 {
 	UHItemDefinition* ItemDef = nullptr;

@@ -38,59 +38,6 @@ struct FHInventoryChangeMessage
 	int32 Delta = 0;
 };
 
-
-USTRUCT(BlueprintType)
-struct FHInventoryPoint
-{
-	GENERATED_BODY()
-
-	FHInventoryPoint()
-	{
-		X = MAX_uint8;
-		Y = MAX_uint8;
-	}
-
-	FHInventoryPoint(int32 InX, int32 InY) : X(InX), Y(InY)
-	{}
-
-	UPROPERTY(BlueprintReadOnly)
-	uint8 X;
-
-	UPROPERTY(BlueprintReadOnly)
-	uint8 Y;
-
-	bool operator==(const FHInventoryPoint& Other) const
-	{
-		return Equals(Other);
-	}
-
-	bool operator!=(const FHInventoryPoint& Other) const
-	{
-		return !Equals(Other);
-	}
-
-	bool Equals(const FHInventoryPoint& Other) const
-	{
-		return (X == Other.X && Y == Other.Y);
-	}
-
-public:
-	FString ToString() const
-	{
-		return FString::Printf(TEXT("({%u},{%u})"), X, Y);
-	}
-
-	bool IsValid() const
-	{
-		return !(X == MAX_uint8 || Y == MAX_uint8);
-	}
-
-	FHInventoryPoint operator+(const FHInventoryPoint& Other) const
-	{
-		return FHInventoryPoint(this->X + Other.X, this->Y + Other.Y);
-	}
-};
-
 USTRUCT(BlueprintType)
 struct FHInventoryEntry : public FFastArraySerializerItem
 {
@@ -100,22 +47,16 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 	{
 	}
 
-	FHInventoryEntry(UHInventoryItemInstance* InInstance, FHInventoryPoint InPoint, bool bIsRotated, int32 InStackCount) : Instance(InInstance),
+	FHInventoryEntry(UHInventoryItemInstance* InInstance, bool bIsRotated, int32 InStackCount) : Instance(InInstance),
 		StackCount(InStackCount)
 	{
 	}
-
-	//FHInventoryEntry(UHGridEntry* Item);
 
 	FString GetDebugString() const;
 
 private:
 	friend FHInventoryList;
 	friend UHInventoryComponent;
-	/*friend UHGridInventoryComponent;
-	friend UHGridEntry;
-	friend UHGridArray;
-	friend UHGridInventoryComponent;*/
 
 public:
 	UPROPERTY()

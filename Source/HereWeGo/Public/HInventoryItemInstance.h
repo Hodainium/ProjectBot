@@ -59,9 +59,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const;
 
-	UFUNCTION(BlueprintCallable, Category = Inventory)
-	FHInventoryPoint GetItemDimensions() const;
-
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
 	const UHInventoryItemFragment* FindFragmentByClass(TSubclassOf<UHInventoryItemFragment> FragmentClass) const;
 

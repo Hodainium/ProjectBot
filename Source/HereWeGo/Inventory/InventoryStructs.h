@@ -205,17 +205,17 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	bool IsValidEnum(EHWeaponSlotType Enum)
+//	bool IsValidEnum(EHInventorySlotType Enum)
 //	{
 //		return Entries.IsValidIndex(EnumToInt(Enum));
 //	}
 //
-//	inline int32 EnumToInt(EHWeaponSlotType Enum) const
+//	inline int32 EnumToInt(EHInventorySlotType Enum) const
 //	{
 //		return static_cast<int32>(Enum);
 //	}
 //
-//	TArray<TObjectPtr<UHInventoryItemInstance>>& GetSlotsArray_Mutable(EHWeaponSlotType SlotType)
+//	TArray<TObjectPtr<UHInventoryItemInstance>>& GetSlotsArray_Mutable(EHInventorySlotType SlotType)
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -229,7 +229,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	const TArray<TObjectPtr<UHInventoryItemInstance>>& GetSlotsArray_NonMutable(EHWeaponSlotType SlotType) const
+//	const TArray<TObjectPtr<UHInventoryItemInstance>>& GetSlotsArray_NonMutable(EHInventorySlotType SlotType) const
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -243,7 +243,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	int32& GetNumSlots_Mutable(EHWeaponSlotType SlotType)
+//	int32& GetNumSlots_Mutable(EHInventorySlotType SlotType)
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -257,7 +257,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	const int32& GetNumSlots_NonMutable(EHWeaponSlotType SlotType) const
+//	const int32& GetNumSlots_NonMutable(EHInventorySlotType SlotType) const
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -271,7 +271,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	int32& GetActiveSlotIndex_Mutable(EHWeaponSlotType SlotType)
+//	int32& GetActiveSlotIndex_Mutable(EHInventorySlotType SlotType)
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -285,7 +285,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	const int32& GetActiveSlotIndex_NonMutable(EHWeaponSlotType SlotType) const
+//	const int32& GetActiveSlotIndex_NonMutable(EHInventorySlotType SlotType) const
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -299,7 +299,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	TObjectPtr<UHEquipmentInstance>& GetEquippedItem_Mutable(EHWeaponSlotType SlotType)
+//	TObjectPtr<UHEquipmentInstance>& GetEquippedItem_Mutable(EHInventorySlotType SlotType)
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //
@@ -313,7 +313,7 @@ struct FHInventorySlotStruct
 //		}
 //	}
 //
-//	const TObjectPtr<UHEquipmentInstance>& GetEquippedItem_NonMutable(EHWeaponSlotType SlotType) const
+//	const TObjectPtr<UHEquipmentInstance>& GetEquippedItem_NonMutable(EHInventorySlotType SlotType) const
 //	{
 //		int32 Index = EnumToInt(SlotType);
 //

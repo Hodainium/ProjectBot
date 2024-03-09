@@ -14,12 +14,13 @@ class UHEquipmentInstance;
 class UHInventoryItemInstance;
 
 UENUM(BlueprintType)
-enum class EHWeaponSlotType : uint8
+enum class EHInventorySlotType : uint8
 {
 	Weapon_L,
-	Weapon_R
+	Weapon_R,
+	Temporary
 };
-ENUM_RANGE_BY_FIRST_AND_LAST(EHWeaponSlotType, EHWeaponSlotType::Weapon_L, EHWeaponSlotType::Weapon_R);
+ENUM_RANGE_BY_FIRST_AND_LAST(EHInventorySlotType, EHInventorySlotType::Weapon_L, EHInventorySlotType::Weapon_R);
 
 //The item slot component is in charge of equipping items
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -31,55 +32,55 @@ public:
 	UHItemSlotComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
-	void CycleActiveSlotForward(EHWeaponSlotType SlotType);
+	void CycleActiveSlotForward(EHInventorySlotType SlotType);
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
-	void CycleActiveSlotBackward(EHWeaponSlotType SlotType);
+	void CycleActiveSlotBackward(EHInventorySlotType SlotType);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Slots")
-	void SetActiveSlotIndexForEnum(EHWeaponSlotType SlotType, int32 NewIndex);
+	void SetActiveSlotIndexForEnum(EHInventorySlotType SlotType, int32 NewIndex);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	TArray<UHInventoryItemInstance*> GetSlotsForEnum(EHWeaponSlotType SlotType) const
+	TArray<UHInventoryItemInstance*> GetSlotsForEnum(EHInventorySlotType SlotType) const
 	{
 		return GetSlotStructForEnum_Const(SlotType).SlotArray;
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	int32 GetActiveSlotIndexForEnum(EHWeaponSlotType SlotType) const
+	int32 GetActiveSlotIndexForEnum(EHInventorySlotType SlotType) const
 	{
 		return GetSlotStructForEnum_Const(SlotType).ActiveSlotIndex;
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	UHInventoryItemInstance* GetActiveSlotItem(EHWeaponSlotType SlotType) const;
+	UHInventoryItemInstance* GetActiveSlotItem(EHInventorySlotType SlotType) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
-	int32 GetNextFreeItemSlot(EHWeaponSlotType SlotType) const;
+	int32 GetNextFreeItemSlot(EHInventorySlotType SlotType) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	void AddItemToSlot(EHWeaponSlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item);
+	void AddItemToSlot(EHInventorySlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	UHInventoryItemInstance* RemoveItemFromSlot(EHWeaponSlotType SlotType, int32 SlotIndex);
+	UHInventoryItemInstance* RemoveItemFromSlot(EHInventorySlotType SlotType, int32 SlotIndex);
 
 	virtual void BeginPlay() override;
-	void HandleResizeSlotArrayForEnum(EHWeaponSlotType SlotType);
+	void HandleResizeSlotArrayForEnum(EHInventorySlotType SlotType);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 
-	void UnequipItemInSlot(EHWeaponSlotType SlotType);
-	void EquipItemInSlot(EHWeaponSlotType SlotType);
+	void UnequipItemInSlot(EHInventorySlotType SlotType);
+	void EquipItemInSlot(EHInventorySlotType SlotType);
 
 	UHEquipmentComponent* FindEquipmentComponent() const;
 
-	void Handle_OnRep_SlotsChanged(EHWeaponSlotType SlotType);
+	void Handle_OnRep_SlotsChanged(EHInventorySlotType SlotType);
 
-	void Handle_OnRep_NumSlotsChanged(EHWeaponSlotType SlotType);
+	void Handle_OnRep_NumSlotsChanged(EHInventorySlotType SlotType);
 
-	void Handle_OnRep_ActiveSlotIndexChanged(EHWeaponSlotType SlotType);
+	void Handle_OnRep_ActiveSlotIndexChanged(EHInventorySlotType SlotType);
 
 protected:
 
@@ -95,11 +96,17 @@ protected:
 	UFUNCTION()
 	void OnRep_SlotStruct_Weapon_R(FHInventorySlotStruct& PreviousValue);
 
-	UFUNCTION()
-	FHInventorySlotStruct& GetSlotStructForEnum(EHWeaponSlotType SlotType);
+	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Temporary)
+	FHInventorySlotStruct SlotStruct_Temporary;
 
 	UFUNCTION()
-	const FHInventorySlotStruct& GetSlotStructForEnum_Const(EHWeaponSlotType SlotType) const;
+	void OnRep_SlotStruct_Temporary(FHInventorySlotStruct& PreviousValue);
+
+	UFUNCTION()
+	FHInventorySlotStruct& GetSlotStructForEnum(EHInventorySlotType SlotType);
+
+	UFUNCTION()
+	const FHInventorySlotStruct& GetSlotStructForEnum_Const(EHInventorySlotType SlotType) const;
 };
 
 USTRUCT(BlueprintType)
@@ -111,7 +118,7 @@ struct FHItemSlotsChangedMessage
 	TObjectPtr<AActor> Owner = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
-	EHWeaponSlotType SlotType;
+	EHInventorySlotType SlotType;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TArray<TObjectPtr<UHInventoryItemInstance>> Slots;
@@ -126,7 +133,7 @@ struct FHItemSlotsActiveIndexChangedMessage
 	TObjectPtr<AActor> Owner = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
-	EHWeaponSlotType SlotType;
+	EHInventorySlotType SlotType;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	int32 ActiveIndex = 0;
@@ -141,7 +148,7 @@ struct FHItemSlotsNumSlotsChangedMessage
 	TObjectPtr<AActor> Owner = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
-	EHWeaponSlotType SlotType;
+	EHInventorySlotType SlotType;
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	int32 NumSlots = 0;

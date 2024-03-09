@@ -81,11 +81,6 @@ bool UHInventoryItemInstance::IsItemStackCompatible(UHInventoryItemInstance* Inc
 	return false;
 }
 
-FHInventoryPoint UHInventoryItemInstance::GetItemDimensions() const
-{
-	return FHInventoryPoint(ItemDefinition->InventorySizeX, ItemDefinition->InventorySizeY);
-}
-
 const UHInventoryItemFragment* UHInventoryItemInstance::FindFragmentByClass(
 	TSubclassOf<UHInventoryItemFragment> FragmentClass) const
 {

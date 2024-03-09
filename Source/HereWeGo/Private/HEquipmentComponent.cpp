@@ -16,7 +16,7 @@ class FLifetimeProperty;
 struct FReplicationFlags;
 
 //////////////////////////////////////////////////////////////////////
-// FLyraAppliedEquipmentEntry
+// FHAppliedEquipmentEntry
 
 FString FHAppliedEquipmentEntry::GetDebugString() const
 {
@@ -24,7 +24,7 @@ FString FHAppliedEquipmentEntry::GetDebugString() const
 }
 
 //////////////////////////////////////////////////////////////////////
-// FLyraEquipmentList
+// FHEquipmentList
 
 void FHEquipmentList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 {
@@ -123,7 +123,7 @@ void FHEquipmentList::RemoveEntry(UHEquipmentInstance* Instance)
 }
 
 //////////////////////////////////////////////////////////////////////
-// ULyraEquipmentManagerComponent
+// UHEquipmentManagerComponent
 
 UHEquipmentComponent::UHEquipmentComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -218,7 +218,7 @@ void UHEquipmentComponent::ReadyForReplication()
 {
 	Super::ReadyForReplication();
 
-	// Register existing LyraEquipmentInstances
+	// Register existing HEquipmentInstances
 	if (IsUsingRegisteredSubObjectList())
 	{
 		for (const FHAppliedEquipmentEntry& Entry : EquipmentList.Entries)
