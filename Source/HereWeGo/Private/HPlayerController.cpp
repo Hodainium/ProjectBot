@@ -13,12 +13,14 @@
 #include "HereWeGo/Actors/Characters/HCharacterBase.h"
 #include "HereWeGo/Tags/H_Tags.h"
 #include "HereWeGo/UI/HHUDLayout.h"
+#include "HereWeGo/UI/IndicatorSystem/HIndicatorManagerComponent.h"
 #include "Logging/StructuredLog.h"
 
 AHPlayerController::AHPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PlayerCameraManagerClass = AHPlayerCameraManager::StaticClass();
+	IndicatorComponent = CreateDefaultSubobject<UHIndicatorManagerComponent>("IndicatorManagerComp");
 }
 
 AHPlayerState* AHPlayerController::GetHPlayerState() const
@@ -30,7 +32,6 @@ AHCharacterBase* AHPlayerController::GetHCharacterBase() const
 {
 	return CastChecked<AHCharacterBase>(GetPawn(), ECastCheckedType::NullAllowed);
 }
-
 
 UHAbilitySystemComponent* AHPlayerController::GetHAbilitySystemComponent() const
 {

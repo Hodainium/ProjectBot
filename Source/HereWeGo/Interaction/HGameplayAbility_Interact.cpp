@@ -4,12 +4,14 @@
 
 #include "AbilitySystemComponent.h"
 #include "GAT_GrantNearbyInteraction.h"
+#include "HLogChannels.h"
 #include "IInteractableTarget.h"
 #include "InteractionStatics.h"
 #include "NativeGameplayTags.h"
 #include "HPlayerController.h"
 #include "HereWeGo/UI/IndicatorSystem/HIndicatorManagerComponent.h"
 #include "HereWeGo/UI/IndicatorSystem/IndicatorDescriptor.h"
+#include "Logging/StructuredLog.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HGameplayAbility_Interact)
 
@@ -62,7 +64,6 @@ void UHGameplayAbility_Interact::UpdateInteractions(const TArray<FInteractionOpt
 				Indicator->SetSceneComponent(InteractableTargetActor->GetRootComponent());
 				Indicator->SetIndicatorClass(InteractionWidgetClass);
 				IndicatorManager->AddIndicator(Indicator);
-
 				Indicators.Add(Indicator);
 			}
 		}
