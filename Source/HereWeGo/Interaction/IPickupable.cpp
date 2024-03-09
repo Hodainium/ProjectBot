@@ -4,6 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "HInventoryComponent.h"
+#include "HItemSlotComponent.h"
 #include "UObject/ScriptInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(IPickupable)
@@ -50,6 +51,32 @@ void UPickupableStatics::AddPickupToInventory(UHInventoryComponent* InventoryCom
 		for (const FPickupInstance& Instance : PickupInventory.Instances)
 		{
 			InventoryComponent->AddItemInstance(Instance.Item);
+		}
+	}
+}
+
+void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup)
+{
+	UHInventoryComponent* InventoryComponent = PlayerPawn->GetComponentByClass<UHInventoryComponent>();
+	UHItemSlotComponent* SlotComponent = PlayerPawn->GetComponentByClass<UHItemSlotComponent>();
+	
+	if (InventoryComponent && SlotComponent && Pickup)
+	{
+		const FInventoryPickup& PickupInventory = Pickup->GetPickupInventory();
+
+		for (const FPickupTemplate& Template : PickupInventory.Templates)
+		{
+			UHItemDefinition* ItemDefRef = Template.ItemDef.LoadSynchronous();
+			UHInventoryItemInstance* ItemInstanceToAdd = InventoryComponent->AddItemDefinition(ItemDefRef, Template.StackCount);
+			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, ItemInstanceToAdd);
+			return;
+		}
+
+		for (const FPickupInstance& Instance : PickupInventory.Instances)
+		{
+			InventoryComponent->AddItemInstance(Instance.Item);
+			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, Instance.Item);
+			return;
 		}
 	}
 }

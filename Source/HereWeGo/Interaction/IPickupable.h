@@ -84,4 +84,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, meta = (WorldContext = "Ability"))
 	static void AddPickupToInventory(UHInventoryComponent* InventoryComponent, TScriptInterface<IPickupable> Pickup);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, meta = (WorldContext = "Ability"))
+	static void PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup);
 };
