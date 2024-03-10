@@ -57,6 +57,9 @@ public:
 	bool GetCanBeStacked();
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
+	TSoftObjectPtr<UTexture2D> GetItemIcon();
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))

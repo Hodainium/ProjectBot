@@ -65,6 +65,16 @@ bool UHInventoryItemInstance::GetCanBeStacked()
 	return ItemDefinition->CanBeStacked;
 }
 
+TSoftObjectPtr<UTexture2D> UHInventoryItemInstance::GetItemIcon()
+{
+	if (ItemDefinition)
+	{
+		return ItemDefinition->ItemIcon;
+	}
+
+	return nullptr;
+}
+
 bool UHInventoryItemInstance::IsItemStackCompatible(UHInventoryItemInstance* IncomingItem) const
 {
 	if (UHItemDefinition* IncomingItemDef = IncomingItem->GetItemDefinition())
