@@ -47,6 +47,12 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	int32 GetNumSlotsForEnum(EHInventorySlotType SlotType) const
+	{
+		return GetSlotStructForEnum_Const(SlotType).NumSlots;
+	}
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	int32 GetActiveSlotIndexForEnum(EHInventorySlotType SlotType) const
 	{
 		return GetSlotStructForEnum_Const(SlotType).ActiveSlotIndex;
@@ -84,19 +90,19 @@ private:
 
 protected:
 
-	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Weapon_L)
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Weapon_L)
 	FHInventorySlotStruct SlotStruct_Weapon_L;
 
 	UFUNCTION()
 	void OnRep_SlotStruct_Weapon_L(FHInventorySlotStruct& PreviousValue);
 
-	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Weapon_R)
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Weapon_R)
 	FHInventorySlotStruct SlotStruct_Weapon_R;
 
 	UFUNCTION()
 	void OnRep_SlotStruct_Weapon_R(FHInventorySlotStruct& PreviousValue);
 
-	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Temporary)
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Temporary)
 	FHInventorySlotStruct SlotStruct_Temporary;
 
 	UFUNCTION()

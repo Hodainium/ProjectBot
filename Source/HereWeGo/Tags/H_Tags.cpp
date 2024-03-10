@@ -104,5 +104,5 @@ namespace H_ItemSlots_Tags
 {
 	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEMSLOTS_MESSAGE_SLOTSCHANGED, "Inventory.ItemSlots.Message.SlotsChanged");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEMSLOTS_MESSAGE_ACTIVEINDEXCHANGED, "Inventory.ItemSlots.Message.ActiveIndexChanged");
-	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEMSLOTS_MESSAGE_NUMSLOTSCHANGED, "Inventory.ItemSlots.Message.ActiveIndexChanged");
+	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEMSLOTS_MESSAGE_NUMSLOTSCHANGED, "Inventory.ItemSlots.Message.NumSlotsChanged");
 }

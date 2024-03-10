@@ -308,12 +308,16 @@ protected:
 	TObjectPtr<UHAttributeSetBase> AttributeSetBase;
 	TObjectPtr<UHHealthSet> HealthSet;
 
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHWeaponComponent> WeaponComponent;
 
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHInventoryComponent> InventoryComponent;
 
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHEquipmentComponent> EquipmentComponent;
 
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHItemSlotComponent> ItemSlotComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "H|Character", Meta = (AllowPrivateAccess = "true"))

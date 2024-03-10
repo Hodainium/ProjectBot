@@ -147,7 +147,7 @@ public:
 
 protected:
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UHCharacterMovementComponent> HMovementComp;
 
 	UPROPERTY(VisibleAnywhere)
