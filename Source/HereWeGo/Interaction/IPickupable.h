@@ -87,4 +87,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, meta = (WorldContext = "Ability"))
 	static void PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup);
+
+	void OnWeaponLoad();
 };

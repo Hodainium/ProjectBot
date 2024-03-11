@@ -2,9 +2,11 @@
 
 #include "IPickupable.h"
 
+#include "AsyncMixin.h"
 #include "GameFramework/Actor.h"
 #include "HInventoryComponent.h"
 #include "HItemSlotComponent.h"
+#include "Engine/AssetManager.h"
 #include "UObject/ScriptInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(IPickupable)
@@ -67,6 +69,10 @@ void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IP
 		for (const FPickupTemplate& Template : PickupInventory.Templates)
 		{
 			UHItemDefinition* ItemDefRef = Template.ItemDef.LoadSynchronous();
+			UE_LOGFMT(LogHGame, Error, "WE ARE SYNC LOADING IN PUSHITEM TO PLAYER!!!!!!!!!!!!!!!!! FIX ASAP");
+
+			//FAsyncMixin::AsyncLoad(Template.ItemDef, )
+
 			UHInventoryItemInstance* ItemInstanceToAdd = InventoryComponent->AddItemDefinition(ItemDefRef, Template.StackCount);
 			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, ItemInstanceToAdd);
 			return;
@@ -79,4 +85,8 @@ void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IP
 			return;
 		}
 	}
+}
+
+void UPickupableStatics::OnWeaponLoad()
+{
 }
