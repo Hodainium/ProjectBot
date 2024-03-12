@@ -72,6 +72,7 @@ void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IP
 			UE_LOGFMT(LogHGame, Error, "WE ARE SYNC LOADING IN PUSHITEM TO PLAYER!!!!!!!!!!!!!!!!! FIX ASAP");
 
 			//FAsyncMixin::AsyncLoad(Template.ItemDef, )
+			//FStreamableManager::RequestAsyncLoad
 
 			UHInventoryItemInstance* ItemInstanceToAdd = InventoryComponent->AddItemDefinition(ItemDefRef, Template.StackCount);
 			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, ItemInstanceToAdd);

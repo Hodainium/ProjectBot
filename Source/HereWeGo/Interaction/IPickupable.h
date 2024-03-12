@@ -25,6 +25,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 StackCount = 1;
 
+	//TODO: MAKE this into a primary asset id
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UHItemDefinition> ItemDef;
 };
@@ -88,5 +89,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, meta = (WorldContext = "Ability"))
 	static void PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup);
 
+private:
+	//TODO finish async loading
 	void OnWeaponLoad();
 };

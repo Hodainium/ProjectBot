@@ -113,6 +113,21 @@ void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 Slot
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
 
+	UE_LOGFMT(LogHGame, Warning, "At least this is happening");
+
+	UE_LOGFMT(LogHGame, Warning, "size {size}", Slots.SlotArray.Num());
+	UE_LOGFMT(LogHGame, Warning, "{idx}", SlotIndex);
+
+	if (Slots.SlotArray.IsValidIndex(SlotIndex))
+	{
+		UE_LOGFMT(LogHGame, Warning, "At least this is happening1");
+	}
+
+	if(Item != nullptr)
+	{
+		UE_LOGFMT(LogHGame, Warning, "At least this is happening2");
+
+	}
 
 	if (Slots.SlotArray.IsValidIndex(SlotIndex) && (Item != nullptr))
 	{
@@ -185,6 +200,7 @@ void UHItemSlotComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, SlotStruct_Weapon_L);
 	DOREPLIFETIME(ThisClass, SlotStruct_Weapon_R);
+	DOREPLIFETIME(ThisClass, SlotStruct_Temporary);
 }
 
 void UHItemSlotComponent::UnequipItemInSlot(EHInventorySlotType SlotType)
@@ -268,6 +284,8 @@ void UHItemSlotComponent::Handle_OnRep_SlotsChanged(EHInventorySlotType SlotType
 	Message.Owner = GetOwner();
 	Message.Slots = GetSlotStructForEnum_Const(SlotType).SlotArray;
 	Message.SlotType = SlotType;
+
+	UE_LOGFMT(LogHGame, Warning, "This is happening!");
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
 	MessageSystem.BroadcastMessage(H_ItemSlots_Tags::TAG_ITEMSLOTS_MESSAGE_SLOTSCHANGED, Message);
