@@ -23,6 +23,9 @@ UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
+
+	UE_LOGFMT(LogHGame, Warning, "Temp slot info num: {num}", SlotStruct_Temporary.NumSlots);
+	UE_LOGFMT(LogHGame, Warning, "Temp slot info num: {num}", GetNumSlotsForEnum(EHInventorySlotType::Temporary));
 }
 
 void UHItemSlotComponent::CycleActiveSlotForward(EHInventorySlotType SlotType)
@@ -115,7 +118,8 @@ void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 Slot
 
 	UE_LOGFMT(LogHGame, Warning, "At least this is happening");
 
-	UE_LOGFMT(LogHGame, Warning, "size {size}", Slots.SlotArray.Num());
+	UE_LOGFMT(LogHGame, Warning, "size {size}", GetNumSlotsForEnum(EHInventorySlotType::Temporary));
+	UE_LOGFMT(LogHGame, Warning, "direct size {size}", Slots.SlotArray.Num());
 	UE_LOGFMT(LogHGame, Warning, "{idx}", SlotIndex);
 
 	if (Slots.SlotArray.IsValidIndex(SlotIndex))
