@@ -31,6 +31,8 @@ class HEREWEGO_API UHItemSlotComponent : public UActorComponent
 public:
 	UHItemSlotComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Slots")
 	void CycleActiveSlotForward(EHInventorySlotType SlotType);
 
@@ -65,12 +67,14 @@ public:
 	int32 GetNextFreeItemSlot(EHInventorySlotType SlotType) const;
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	void SetNumSlotsForEnum(EHInventorySlotType SlotType, int32 InNum);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void AddItemToSlot(EHInventorySlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	UHInventoryItemInstance* RemoveItemFromSlot(EHInventorySlotType SlotType, int32 SlotIndex);
 
-	virtual void BeginPlay() override;
 	void HandleResizeSlotArrayForEnum(EHInventorySlotType SlotType);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -90,19 +94,28 @@ private:
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Weapon_L)
+	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
+	int WeaponLStartingSlots = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
+	int WeaponRStartingSlots = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
+	int TemporaryStartingSlots = 0;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Weapon_L)
 	FHInventorySlotStruct SlotStruct_Weapon_L;
 
 	UFUNCTION()
 	void OnRep_SlotStruct_Weapon_L(FHInventorySlotStruct& PreviousValue);
 
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Weapon_R)
+	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Weapon_R)
 	FHInventorySlotStruct SlotStruct_Weapon_R;
 
 	UFUNCTION()
 	void OnRep_SlotStruct_Weapon_R(FHInventorySlotStruct& PreviousValue);
 
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_SlotStruct_Temporary)
+	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Temporary)
 	FHInventorySlotStruct SlotStruct_Temporary;
 
 	UFUNCTION()

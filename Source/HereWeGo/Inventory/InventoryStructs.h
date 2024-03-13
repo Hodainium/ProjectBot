@@ -18,7 +18,7 @@ struct FHInventorySlotStruct
 	UPROPERTY()
 	TArray<TObjectPtr<UHInventoryItemInstance>> SlotArray;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY()
 	int32 NumSlots = 2;
 
 	UPROPERTY()

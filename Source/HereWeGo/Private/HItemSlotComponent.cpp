@@ -23,9 +23,16 @@ UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
+}
 
-	UE_LOGFMT(LogHGame, Warning, "Temp slot info num: {num}", SlotStruct_Temporary.NumSlots);
-	UE_LOGFMT(LogHGame, Warning, "Temp slot info num: {num}", GetNumSlotsForEnum(EHInventorySlotType::Temporary));
+void UHItemSlotComponent::BeginPlay()
+{
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		SetNumSlotsForEnum(EHInventorySlotType::Weapon_L, WeaponLStartingSlots);
+		SetNumSlotsForEnum(EHInventorySlotType::Weapon_R, WeaponRStartingSlots);
+		SetNumSlotsForEnum(EHInventorySlotType::Temporary, TemporaryStartingSlots);
+	}
 }
 
 void UHItemSlotComponent::CycleActiveSlotForward(EHInventorySlotType SlotType)
@@ -112,6 +119,41 @@ int32 UHItemSlotComponent::GetNextFreeItemSlot(EHInventorySlotType SlotType) con
 	return INDEX_NONE;
 }
 
+void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32 InNum)
+{
+	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
+
+
+	UE_LOGFMT(LogHGame, Warning, "Set num slots 1");
+
+	if(Slots.SlotArray.Num() == InNum)
+	{
+		return;
+	}
+
+	UE_LOGFMT(LogHGame, Warning, "Set num slots 2");
+
+
+	if (Slots.SlotArray.Num() < InNum)
+	{
+		Slots.SlotArray.AddDefaulted(Slots.NumSlots - Slots.SlotArray.Num());
+	}
+	else if (Slots.SlotArray.Num() > InNum)
+	{
+		//Downsizing array not yet implemented
+		UE_LOGFMT(LogHGame, Warning, "Removing items but not yet dropping. Need to implement dropping items");
+
+		for (int i = 0; i < (InNum - Slots.SlotArray.Num()); i++)
+		{
+			//Should drop items at these indexes
+			Slots.SlotArray[Slots.SlotArray.Num() - i] = nullptr;
+			UE_LOGFMT(LogHGame, Warning, "Removing item at index: {idx}", i);
+		}
+	}
+	
+	Handle_OnRep_NumSlotsChanged(SlotType);
+}
+
 void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item)
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
@@ -169,34 +211,22 @@ UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlot
 	return Result;
 }
 
-
-// Called when the game starts
-void UHItemSlotComponent::BeginPlay()
-{
-	for (EHInventorySlotType SlotEnum : TEnumRange<EHInventorySlotType>())
-	{
-		HandleResizeSlotArrayForEnum(SlotEnum);
-	}
-
-	Super::BeginPlay();
-}
-
 void UHItemSlotComponent::HandleResizeSlotArrayForEnum(EHInventorySlotType SlotType)
 {
-	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
+	//FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
 
-	if (Slots.SlotArray.Num() < Slots.NumSlots)
-	{
-		Slots.SlotArray.AddDefaulted(Slots.NumSlots - Slots.SlotArray.Num());
-	}
-	else if (Slots.SlotArray.Num() == Slots.NumSlots)
-	{
-		//Do nothing
-	}
-	else
-	{
-		UE_LOGFMT(LogHGame, Error, "Downsizing array not yet implemented");
-	}
+	//if (Slots.SlotArray.Num() < Slots.NumSlots)
+	//{
+	//	Slots.SlotArray.AddDefaulted(Slots.NumSlots - Slots.SlotArray.Num());
+	//}
+	//else if (Slots.SlotArray.Num() == Slots.NumSlots)
+	//{
+	//	//Do nothing
+	//}
+	//else
+	//{
+	//	UE_LOGFMT(LogHGame, Error, "Downsizing array not yet implemented");
+	//}
 }
 
 void UHItemSlotComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
