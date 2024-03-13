@@ -150,6 +150,10 @@ void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32
 			UE_LOGFMT(LogHGame, Warning, "Removing item at index: {idx}", i);
 		}
 	}
+
+	UE_LOGFMT(LogHGame, Warning, "Set num slots 3 INNUM== {NUM}", InNum);
+
+	Slots.NumSlots = InNum;
 	
 	Handle_OnRep_NumSlotsChanged(SlotType);
 }
@@ -172,7 +176,6 @@ void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 Slot
 	if(Item != nullptr)
 	{
 		UE_LOGFMT(LogHGame, Warning, "At least this is happening2");
-
 	}
 
 	if (Slots.SlotArray.IsValidIndex(SlotIndex) && (Item != nullptr))
@@ -334,6 +337,8 @@ void UHItemSlotComponent::Handle_OnRep_NumSlotsChanged(EHInventorySlotType SlotT
 	Message.Owner = GetOwner();
 	Message.NumSlots = GetSlotStructForEnum_Const(SlotType).NumSlots;
 	Message.SlotType = SlotType;
+
+	UE_LOGFMT(LogHGame, Error, "Sending numslots message: {typ}", Message.NumSlots);
 
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
 	MessageSystem.BroadcastMessage(H_ItemSlots_Tags::TAG_ITEMSLOTS_MESSAGE_NUMSLOTSCHANGED, Message);
