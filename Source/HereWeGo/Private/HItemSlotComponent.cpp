@@ -179,6 +179,7 @@ void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 Slot
 	{
 		if (Slots.SlotArray[SlotIndex] == nullptr)
 		{
+			UE_LOGFMT(LogHGame, Warning, "Changing slot at index: {idx}", SlotIndex);
 			Slots.SlotArray[SlotIndex] = Item;
 			Handle_OnRep_SlotsChanged(SlotType);
 		}
