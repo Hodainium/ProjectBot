@@ -133,10 +133,25 @@ void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32
 
 	UE_LOGFMT(LogHGame, Warning, "Set num slots 2");
 
+	if (Slots.SlotArray.Num() < InNum)
+	{
+		UE_LOGFMT(LogHGame, Warning, "Set num slots raw {num}", Slots.SlotArray.Num());
+		UE_LOGFMT(LogHGame, Warning, "Set num slots command {num}", InNum);
+		UE_LOGFMT(LogHGame, Warning, "Set num slots less num to remove {num}", InNum - Slots.SlotArray.Num());
+	}
+	else if (Slots.SlotArray.Num() > InNum)
+	{
+		UE_LOGFMT(LogHGame, Warning, "Set num slots greater");
+	}
+	else if (Slots.SlotArray.Num() == InNum)
+	{
+		UE_LOGFMT(LogHGame, Warning, "Set num slots equal");
+	}
+
 
 	if (Slots.SlotArray.Num() < InNum)
 	{
-		Slots.SlotArray.AddDefaulted(Slots.NumSlots - Slots.SlotArray.Num());
+		Slots.SlotArray.AddDefaulted(InNum - Slots.SlotArray.Num());
 	}
 	else if (Slots.SlotArray.Num() > InNum)
 	{
@@ -149,7 +164,13 @@ void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32
 			Slots.SlotArray[Slots.SlotArray.Num() - i] = nullptr;
 			UE_LOGFMT(LogHGame, Warning, "Removing item at index: {idx}", i);
 		}
+
+		Slots.SlotArray.SetNum(InNum, true);
+		UE_LOGFMT(LogHGame, Warning, "Set num slots NEw raw size: {size}", Slots.SlotArray.Num());
 	}
+
+	UE_LOGFMT(LogHGame, Warning, "Num slots requesting size {size}", InNum);
+	UE_LOGFMT(LogHGame, Warning, "Num slots og size {size}", Slots.SlotArray.Num());
 
 	UE_LOGFMT(LogHGame, Warning, "Set num slots 3 INNUM== {NUM}", InNum);
 
