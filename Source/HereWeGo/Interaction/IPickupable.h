@@ -22,11 +22,11 @@ struct FPickupTemplate
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 StackCount = 1;
 
 	//TODO: MAKE this into a primary asset id
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSoftObjectPtr<UHItemDefinition> ItemDef;
 };
 
