@@ -46,7 +46,7 @@ public:
 };
 
 /**
- * ULyraInventoryItemDefinition
+ * UHInventoryItemDefinition
  */
 
 UCLASS(Abstract, BlueprintType)

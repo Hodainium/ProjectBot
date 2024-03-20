@@ -296,14 +296,17 @@ void UHItemSlotComponent::EquipItemInSlot(EHInventorySlotType SlotType)
 			{
 				if (UHEquipmentComponent* EquipmentManager = FindEquipmentComponent())
 				{
-					Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition);
+					//Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition);
+					Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition, SlotItem);
 
-					if (Slots.EquippedItem != nullptr)
+					/*if (Slots.EquippedItem != nullptr)
 					{
 						Slots.EquippedItem->SetInstigator(SlotItem);
-					}
+					}*/
 				}
 			}
+
+			break;
 		}
 		default:
 		{

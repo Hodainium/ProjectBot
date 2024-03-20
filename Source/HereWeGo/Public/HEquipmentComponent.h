@@ -106,7 +106,7 @@ public:
 	UHEquipmentComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	UHEquipmentInstance* EquipItem(UHEquipmentDefinition* EquipmentDefinition);
+	UHEquipmentInstance* EquipItem(UHEquipmentDefinition* EquipmentDefinition, UObject* InInstigator);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void UnequipItem(UHEquipmentInstance* EquipmentInstance);

@@ -90,7 +90,7 @@ UHEquipmentInstance* FHEquipmentList::AddEntry(UHEquipmentDefinition* EquipmentD
 	}
 	else
 	{
-		
+		//@TODO: Warning logging?
 	}
 
 	Result->SpawnEquipmentActors(EquipmentDefinition->ActorsToSpawn);
@@ -140,7 +140,7 @@ void UHEquipmentComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty 
 	DOREPLIFETIME(ThisClass, EquipmentList);
 }
 
-UHEquipmentInstance* UHEquipmentComponent::EquipItem(UHEquipmentDefinition* EquipmentClass)
+UHEquipmentInstance* UHEquipmentComponent::EquipItem(UHEquipmentDefinition* EquipmentClass, UObject* InInstigator)
 {
 	UHEquipmentInstance* Result = nullptr;
 
@@ -149,6 +149,7 @@ UHEquipmentInstance* UHEquipmentComponent::EquipItem(UHEquipmentDefinition* Equi
 		Result = EquipmentList.AddEntry(EquipmentClass);
 		if (Result != nullptr)
 		{
+			Result->SetInstigator(InInstigator);
 			Result->OnEquipped();
 			
 			if (IsUsingRegisteredSubObjectList() && IsReadyForReplication())
