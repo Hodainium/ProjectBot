@@ -21,5 +21,5 @@ void UHModifiedWeaponInstance::OnUnequipped()
 {
 	Super::OnUnequipped();
 
-
+	//For each mod in array perform removemod
 }

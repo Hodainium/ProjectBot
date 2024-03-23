@@ -17,4 +17,6 @@ class HEREWEGO_API UHModifiedWeaponInstance : public UHWeaponInstance
 	virtual void OnEquipped() override;
 
 	virtual void OnUnequipped() override;
+
+
 };
