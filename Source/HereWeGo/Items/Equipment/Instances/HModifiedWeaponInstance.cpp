@@ -14,6 +14,11 @@ void UHModifiedWeaponInstance::OnEquipped()
 	if(UHInventoryItemInstance* ItemInstance = Cast<UHInventoryItemInstance>(GetInstigator()))
 	{
 		//Untested but here we will grab mods from item instance and apply
+
+		/*for each mod : ItemInstance.Mods
+		{
+			mod.apply()
+		}*/
 	}
 }
 
