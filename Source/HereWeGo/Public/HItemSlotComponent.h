@@ -133,6 +133,10 @@ struct FHItemSlotsChangedMessage
 {
 	GENERATED_BODY()
 
+	FHItemSlotsChangedMessage() : SlotType(EHInventorySlotType::Weapon_L)
+	{
+	}
+
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
 
@@ -148,6 +152,10 @@ struct FHItemSlotsActiveIndexChangedMessage
 {
 	GENERATED_BODY()
 
+	FHItemSlotsActiveIndexChangedMessage() : SlotType(EHInventorySlotType::Weapon_L)
+	{
+	}
+
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TObjectPtr<AActor> Owner = nullptr;
 
@@ -162,6 +170,10 @@ USTRUCT(BlueprintType)
 struct FHItemSlotsNumSlotsChangedMessage
 {
 	GENERATED_BODY()
+
+	FHItemSlotsNumSlotsChangedMessage(): SlotType(EHInventorySlotType::Weapon_L)
+	{
+	}
 
 	UPROPERTY(BlueprintReadOnly, Category = Inventory)
 	TObjectPtr<AActor> Owner = nullptr;

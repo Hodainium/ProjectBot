@@ -27,6 +27,8 @@ UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitial
 
 void UHItemSlotComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (GetOwnerRole() == ROLE_Authority)
 	{
 		SetNumSlotsForEnum(EHInventorySlotType::Weapon_L, WeaponLStartingSlots);

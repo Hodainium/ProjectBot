@@ -43,11 +43,12 @@ struct FHInventoryEntry : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 
-	FHInventoryEntry()
+	FHInventoryEntry(): Index(0)
 	{
 	}
 
 	FHInventoryEntry(UHInventoryItemInstance* InInstance, bool bIsRotated, int32 InStackCount) : Instance(InInstance),
+		Index(0),
 		StackCount(InStackCount)
 	{
 	}
