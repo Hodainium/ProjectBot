@@ -3,9 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HAbilitySet.h"
 #include "HWeaponInstance.h"
 #include "HModifiedWeaponInstance.generated.h"
 
+class UAttributeSet;
+struct FActiveGameplayEffectHandle;
+struct FGameplayAbilitySpecHandle;
+class UHItemModInstance;
 /**
  * 
  */
@@ -18,5 +23,15 @@ class HEREWEGO_API UHModifiedWeaponInstance : public UHWeaponInstance
 
 	virtual void OnUnequipped() override;
 
+public:
+	UPROPERTY()
+	TArray<TSubclassOf<UGameplayEffect>> DamageGEArray;
 
+protected:
+
+	//Authority only list of applied mods so we know which to remove on unequip
+	UPROPERTY()
+	TArray<TObjectPtr<UHItemModInstance>> AppliedMods;
+
+	
 };

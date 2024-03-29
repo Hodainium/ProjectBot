@@ -8,6 +8,7 @@
 #include "UObject/NoExportTypes.h"
 #include "HInventoryItemInstance.generated.h"
 
+class UHItemModInstance;
 class UHItemDefinition;
 class UHGameplayAbility;
 class UHEquipmentDefinition;
@@ -51,6 +52,9 @@ public:
 	UHItemDefinition* GetItemDefinition() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
+	TArray<UHItemModInstance*> GetItemMods() const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	int32 GetMaxStack() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
@@ -77,6 +81,9 @@ private:
 	friend struct FHInventoryList;
 
 protected:
+	UPROPERTY(Replicated)
+	TArray<TObjectPtr<UHItemModInstance>> Mods;
+
 	UPROPERTY(Replicated)
 	FHGameplayTagStackContainer StatTags;
 

@@ -9,6 +9,7 @@
 #include "HItemDefinition.h"
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
+#include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
 #include "Net/UnrealNetwork.h"
 
 UHInventoryItemInstance::UHInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
@@ -48,6 +49,11 @@ bool UHInventoryItemInstance::HasStatTag(FGameplayTag Tag) const
 UHItemDefinition* UHInventoryItemInstance::GetItemDefinition() const
 {
 	return ItemDefinition;
+}
+
+TArray<UHItemModInstance*> UHInventoryItemInstance::GetItemMods() const
+{
+	return Mods;
 }
 
 int32 UHInventoryItemInstance::GetMaxStack() const

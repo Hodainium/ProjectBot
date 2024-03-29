@@ -3,6 +3,9 @@
 
 #include "HWeaponInstance.h"
 
+#include "AbilitySystemGlobals.h"
+#include "AbilitySystemInterface.h"
+
 UHWeaponInstance::UHWeaponInstance(const FObjectInitializer& ObjectInitializer)
 {
 }
@@ -50,4 +53,14 @@ TSubclassOf<UAnimInstance> UHWeaponInstance::SelectBestAnimLayer(bool bEquipped,
 {
 	const FHAnimLayerSelectionSet& SetToQuery = (bEquipped ? EquippedAnimSet : UnequippedAnimSet);
 	return SetToQuery.SelectBestLayer(CosmeticTags);
+}
+
+UHAbilitySystemComponent* UHWeaponInstance::GetASCFromOwningPawn()
+{
+	if(APawn* Pawn = GetPawn())
+	{
+		return Cast<UHAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Pawn));
+	}
+
+	return nullptr;
 }
