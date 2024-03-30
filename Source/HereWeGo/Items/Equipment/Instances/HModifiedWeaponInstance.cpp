@@ -25,8 +25,9 @@ void UHModifiedWeaponInstance::OnEquipped()
 		{
 			if (Mod != nullptr)
 			{
-				Mod->HandleOnEquipped(this);
-				AppliedMods.Add(Mod);
+				FHItemModDef_GrantedHandles GrantedHandles;
+				Mod->AddToWeaponInstance(this, &GrantedHandles);
+				AppliedModHandles.Add(GrantedHandles);
 			}
 		}
 	}
@@ -43,41 +44,35 @@ void UHModifiedWeaponInstance::OnUnequipped()
 		return;
 	}
 
-	UHAbilitySystemComponent* HASC = GetASCFromOwningPawn();
-	check(HASC)
-
-	for (const FGameplayAbilitySpecHandle& Handle : GrantedAbilitySpecHandles)
+	if (UHInventoryItemInstance* ItemInstance = Cast<UHInventoryItemInstance>(GetInstigator()))
 	{
-		if (Handle.IsValid())
+		//Untested but here we will grab mods from item instance and apply
+
+		for (FHItemModDef_GrantedHandles& Handle : AppliedModHandles)
 		{
-			HASC->ClearAbility(Handle);
+			Handle.RemoveModFromEquipmentInstance(this);
 		}
+
+		AppliedModHandles.Reset();
 	}
+}
 
-	for (const FActiveGameplayEffectHandle& Handle : GrantedGameplayEffectHandles)
-	{
-		if (Handle.IsValid())
-		{
-			HASC->RemoveActiveGameplayEffect(Handle);
-		}
-	}
+void UHModifiedWeaponInstance::AddDamageGE(TSubclassOf<UGameplayEffect> Effect)
+{
+	DamageGEArray.Add(Effect);
+}
 
-	for (UAttributeSet* Set : GrantedAttributeSets)
-	{
-		HASC->RemoveSpawnedAttribute(Set);
-	}
+void UHModifiedWeaponInstance::RemoveDamageGE(TSubclassOf<UGameplayEffect> Effect)
+{
+	DamageGEArray.RemoveSingle(Effect);
+}
 
-	for (const FGameplayTag& CueTag : GrantedPersistingCues)
-	{
-		HASC->RemoveGameplayCue(CueTag);
-	}
+void UHModifiedWeaponInstance::AddEffectOnHit(TSubclassOf<UGameplayEffect> Effect)
+{
+	AdditionalEffectsToApplyOnHit.Add(Effect);
+}
 
-	DamageGEArray.Reset();
-
-	GrantedAbilitySpecHandles.Reset();
-	GrantedGameplayEffectHandles.Reset();
-	GrantedAttributeSets.Reset();
-	GrantedPersistingCues.Reset();
-
-	AppliedMods.Reset();
+void UHModifiedWeaponInstance::RemoveEffectOnHit(TSubclassOf<UGameplayEffect> Effect)
+{
+	AdditionalEffectsToApplyOnHit.RemoveSingle(Effect);
 }

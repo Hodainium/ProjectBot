@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "HAbilitySet.h"
 #include "HWeaponInstance.h"
+#include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
 #include "HModifiedWeaponInstance.generated.h"
 
 class UAttributeSet;
@@ -24,14 +25,25 @@ class HEREWEGO_API UHModifiedWeaponInstance : public UHWeaponInstance
 	virtual void OnUnequipped() override;
 
 public:
-	UPROPERTY()
-	TArray<TSubclassOf<UGameplayEffect>> DamageGEArray;
+	void AddDamageGE(TSubclassOf<UGameplayEffect> Effect);
+
+	void RemoveDamageGE(TSubclassOf<UGameplayEffect> Effect);
+
+	void AddEffectOnHit(TSubclassOf<UGameplayEffect> Effect);
+
+	void RemoveEffectOnHit(TSubclassOf<UGameplayEffect> Effect);
 
 protected:
 
 	//Authority only list of applied mods so we know which to remove on unequip
 	UPROPERTY()
-	TArray<TObjectPtr<UHItemModInstance>> AppliedMods;
+	TArray<FHItemModDef_GrantedHandles> AppliedModHandles;
+
+	UPROPERTY()
+	TArray<TSubclassOf<UGameplayEffect>> DamageGEArray;
+
+	UPROPERTY()
+	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffectsToApplyOnHit;
 
 	
 };

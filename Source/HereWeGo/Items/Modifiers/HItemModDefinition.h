@@ -123,11 +123,15 @@ public:
 	void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddGameplayCue(const FGameplayEffectCue& InCue);
+	void AddGrantedDamageGE(const FHItemModDef_DamageType& Effect);
+	void AddGrantedOnHitGE(const FHItemModDef_GameplayEffect& Effect);
+	void AddGrantedTexture(const FHItemModDef_TextureOverride& Tex);
+	void AddActorSpawned(AActor* Actor);
 
-	void RemoveMod(UHModifiedWeaponInstance* Instance);
+	void RemoveModFromEquipmentInstance(UHModifiedWeaponInstance* Instance);
 
 protected:
-	//Handles to granted abilties
+	//Handles to granted abilities
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
 
@@ -143,14 +147,18 @@ protected:
 	UPROPERTY()
 	TArray<FHItemModDef_DamageType> GrantedDamageTypes;
 
+	//Granted damageTypes
+	UPROPERTY()
+	TArray<FHItemModDef_GameplayEffect> GrantedEffectsToApplyOnHit;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
 	TArray<FHItemModDef_TextureOverride> GrantedTextureOverrides;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
-	TArray<TObjectPtr<AActor>> ActorsSpawned;
+	TArray<TObjectPtr<AActor>> ExtraActorsSpawned;
 };
 
-UCLASS()
+UCLASS(BlueprintType, Const)
 class HEREWEGO_API UHItemModDefinition : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
@@ -158,10 +166,10 @@ class HEREWEGO_API UHItemModDefinition : public UPrimaryDataAsset
 public:
 	UHItemModDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void AddMod(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles) const;
+	//Need to remove just here for now. The function will just have mag=1
+	void AddModToEquipmentInstance(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude = 1) const;
 
 public:
-
 	/** Text that describes the mod */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	FText Title;
@@ -178,21 +186,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
 	TArray<FHItemModDef_GameplayAbility> GameplayAbilitiesToGrant;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
 	TArray<FHItemModDef_GameplayEffect> GameplayEffectsToGrant;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Cues")
 	TArray<FHItemModDef_GameplayCue> GameplayCuesToPlay;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TArray<FHItemModDef_DamageType> DamageTypesToGrant;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TArray<FHItemModDef_GameplayEffect> EffectsToApplyOnHit;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Graphical")
 	TArray<FHItemModDef_TextureOverride> TextureOverrides;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	UPROPERTY(EditDefaultsOnly, Category = "Actors")
 	TArray<FHItemModDef_ActorToSpawn> ActorsToSpawn;
-	
 };
 
 

@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HItemModInstance.generated.h"
 
+struct FHItemModDef_GrantedHandles;
 class UHModifiedWeaponInstance;
 class UHItemModDefinition;
 
@@ -20,7 +22,8 @@ public:
 	UPROPERTY()
 	float Magnitude;
 
-	void HandleOnEquipped(UHModifiedWeaponInstance* Equipment);
+	//TODO eventually make this accept Uobjects and check if they implement a certain interface?
+	void AddToWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* OutGrantedHandles);
 
-	void HandleOnUnequipped(UHModifiedWeaponInstance* Item);
+	//void RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* GrantedHandles);
 };

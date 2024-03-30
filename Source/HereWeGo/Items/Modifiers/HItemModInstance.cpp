@@ -4,29 +4,32 @@
 #include "HItemModInstance.h"
 
 #include "HItemModDefinition.h"
+#include "HLogChannels.h"
+#include "Logging/StructuredLog.h"
 
-void UHItemModInstance::HandleOnEquipped(UHModifiedWeaponInstance* Equipment)
+void UHItemModInstance::AddToWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance,
+                                            FHItemModDef_GrantedHandles* OutGrantedHandles)
 {
-	if (!Equipment || !ModDef)
+	if (!EquipmentInstance || !ModDef)
 	{
+		UE_LOGFMT(LogHGame, Error, "Attempted to add mods to item instance but equipment or moddef were null");
 		return;
 	}
 
-	/*for (UHItemModFragment* Fragment : ModDef->Fragments)
-	{
-		Fragment->HandleOnEquipped(Equipment);
-	}*/
+	ModDef->AddModToEquipmentInstance(EquipmentInstance, OutGrantedHandles, Magnitude);
 }
 
-void UHItemModInstance::HandleOnUnequipped(UHModifiedWeaponInstance* Equipment)
-{
-	if (!Equipment || !ModDef)
-	{
-		return;
-	}
-
-	/*for (UHItemModFragment* Fragment : ModDef->Fragments)
-	{
-		Fragment->HandleOnUnequipped(Equipment);
-	}*/
-}
+//void UHItemModInstance::RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance,
+//	FHItemModDef_GrantedHandles* GrantedHandles)
+//{
+//	if (!EquipmentInstance || !ModDef)
+//	{
+//		UE_LOGFMT(LogHGame, Error, "Attempted to remove mods to item instance but equipment or moddef were null");
+//		return;
+//	}
+//
+//	if(GrantedHandles)
+//	{
+//		GrantedHandles->RemoveModFromEquipmentInstance(EquipmentInstance);
+//	}
+//}
