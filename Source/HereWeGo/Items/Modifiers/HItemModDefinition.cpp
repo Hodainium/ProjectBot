@@ -5,6 +5,7 @@
 
 #include "HAbilitySystemComponent.h"
 #include "HLogChannels.h"
+#include "HereWeGo/HAssetManager.h"
 #include "HereWeGo/Items/Equipment/Instances/HModifiedWeaponInstance.h"
 #include "Logging/StructuredLog.h"
 
@@ -229,4 +230,9 @@ void UHItemModDefinition::AddModToEquipmentInstance(UHModifiedWeaponInstance* In
 			OutGrantedHandles->AddGrantedDamageGE(DamageType);
 		}
 	}
+}
+
+FPrimaryAssetId UHItemModDefinition::GetPrimaryAssetId() const
+{
+	return FPrimaryAssetId(UHAssetManager::ItemModItemType, GetFName());
 }

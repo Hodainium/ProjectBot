@@ -24,6 +24,8 @@ void UHInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 	DOREPLIFETIME(ThisClass, StatTags);
 	DOREPLIFETIME(ThisClass, ItemDefinition);
+	DOREPLIFETIME(ThisClass, ItemQualityTag);
+	DOREPLIFETIME(ThisClass, Mods);
 }
 
 void UHInventoryItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
@@ -56,6 +58,37 @@ TArray<UHItemModInstance*> UHInventoryItemInstance::GetItemMods() const
 	return Mods;
 }
 
+EHItemType UHInventoryItemInstance::GetItemTypeEnum() const
+{
+	return ItemDefinition->ItemType;
+}
+
+UStaticMesh* UHInventoryItemInstance::GetDisplayMesh() const
+{
+	if(ItemDefinition)
+	{
+		return ItemDefinition->LowQualityWorldModel;
+	}
+
+	return nullptr;
+}
+
+UStaticMesh* UHInventoryItemInstance::GetDisplayMeshHQ(const FHOnItemMeshLoaded& Delegate) const
+{
+	if (ItemDefinition)
+	{
+		if(UStaticMesh* HQMesh = ItemDefinition->HighQualityWorldModel.Get())
+		{
+			return HQMesh;
+		}
+		//todo start async load here and link callback
+		return ItemDefinition->LowQualityWorldModel;
+	}
+
+
+	return nullptr;
+}
+
 int32 UHInventoryItemInstance::GetMaxStack() const
 {
 	if(ItemDefinition)
@@ -64,6 +97,11 @@ int32 UHInventoryItemInstance::GetMaxStack() const
 	}
 
 	return INDEX_NONE;
+}
+
+FGameplayTag UHInventoryItemInstance::GetItemQuality() const
+{
+	return ItemQualityTag;
 }
 
 bool UHInventoryItemInstance::GetCanBeStacked()

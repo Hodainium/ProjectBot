@@ -45,11 +45,24 @@ struct FInventoryPickup
 {
 	GENERATED_BODY()
 
+	FInventoryPickup()
+	{
+	}
+
+	FInventoryPickup(UHInventoryItemInstance* InInstance)
+	{
+		if(InInstance)
+		{
+			FPickupInstance Pickup = FPickupInstance(InInstance);
+			Instances.Add(Pickup);
+		}
+	}
+
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FPickupInstance> Instances;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FPickupTemplate> Templates;
 };
 
@@ -87,7 +100,7 @@ public:
 	static void AddPickupToInventory(UHInventoryComponent* InventoryComponent, TScriptInterface<IPickupable> Pickup);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, meta = (WorldContext = "Ability"))
-	static void PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup);
+	static void PushPickupToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup);
 
 private:
 	//TODO finish async loading

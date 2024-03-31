@@ -169,17 +169,31 @@ public:
 	//Need to remove just here for now. The function will just have mag=1
 	void AddModToEquipmentInstance(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude = 1) const;
 
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+
 public:
 	/** Text that describes the mod */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	FText Title;
 
 	/** Text that describes the mod */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	FText Description;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	bool bDisplayInUI = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
+	FGameplayTag QualityTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
+	FGameplayTagContainer AssetTags;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
+	FGameplayTagContainer RequiredTags;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
+	FGameplayTagContainer BlockedTags;
 
 protected:
 

@@ -31,3 +31,27 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FInventoryPickup StaticInventory;
 };
+
+UCLASS(Abstract, Blueprintable)
+class AHWorldCollectableInstance : public AHWorldInteractable, public IPickupable
+{
+	GENERATED_BODY()
+
+public:
+
+	AHWorldCollectableInstance();
+
+	virtual FInventoryPickup GetPickupInventory() const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnItemInstanceSet();
+
+	UFUNCTION()
+	void OnRep_ItemInstance();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = "OnRep_ItemInstance", meta = (ExposeOnSpawn = true))
+	TObjectPtr<UHInventoryItemInstance> ItemInstance = nullptr;
+};

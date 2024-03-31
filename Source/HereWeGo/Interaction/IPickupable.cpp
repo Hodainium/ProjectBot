@@ -5,6 +5,8 @@
 #include "AsyncMixin.h"
 #include "GameFramework/Actor.h"
 #include "HInventoryComponent.h"
+#include "HInventoryItemInstance.h"
+#include "HItemDefinition.h"
 #include "HItemSlotComponent.h"
 #include "Engine/AssetManager.h"
 #include "UObject/ScriptInterface.h"
@@ -57,7 +59,7 @@ void UPickupableStatics::AddPickupToInventory(UHInventoryComponent* InventoryCom
 	}
 }
 
-void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup)
+void UPickupableStatics::PushPickupToPlayer(APawn* PlayerPawn, TScriptInterface<IPickupable> Pickup)
 {
 	UHInventoryComponent* InventoryComponent = PlayerPawn->GetComponentByClass<UHInventoryComponent>();
 	UHItemSlotComponent* SlotComponent = PlayerPawn->GetComponentByClass<UHItemSlotComponent>();
@@ -74,15 +76,47 @@ void UPickupableStatics::PushItemToPlayer(APawn* PlayerPawn, TScriptInterface<IP
 			//FAsyncMixin::AsyncLoad(Template.ItemDef, )
 			//FStreamableManager::RequestAsyncLoad
 
-			UHInventoryItemInstance* ItemInstanceToAdd = InventoryComponent->AddItemDefinition(ItemDefRef, Template.StackCount);
-			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, ItemInstanceToAdd);
+			if(ItemDefRef->ItemType == EHItemType::Weapon)
+			{
+				UHInventoryItemInstance* ItemInstanceToAdd = InventoryComponent->AddItemDefinition(ItemDefRef, Template.StackCount);
+
+				if(SlotComponent->GetSlotsForEnum(EHInventorySlotType::Temporary)[0] != nullptr)
+				{
+					UE_LOGFMT(LogHGame, Warning, "Dropping extra gun from pickup not yet implemented");
+				}
+				else
+				{
+					SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, ItemInstanceToAdd);
+				}
+			}
+			else
+			{
+				UE_LOGFMT(LogHGame, Error, "Dropping extra gun from pickup not yet implemented");
+			}
+
+			
 			return;
 		}
 
 		for (const FPickupInstance& Instance : PickupInventory.Instances)
 		{
-			InventoryComponent->AddItemInstance(Instance.Item);
-			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, Instance.Item);
+			/*InventoryComponent->AddItemInstance(Instance.Item);
+			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, Instance.Item);*/
+
+			if (Instance.Item->GetItemTypeEnum() == EHItemType::Weapon)
+			{
+				InventoryComponent->AddItemInstance(Instance.Item);
+
+				if (SlotComponent->GetSlotsForEnum(EHInventorySlotType::Temporary)[0] != nullptr)
+				{
+					UE_LOGFMT(LogHGame, Warning, "Dropping extra gun from pickup not yet implemented");
+				}
+				else
+				{
+					SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, Instance.Item);
+				}
+			}
+
 			return;
 		}
 	}

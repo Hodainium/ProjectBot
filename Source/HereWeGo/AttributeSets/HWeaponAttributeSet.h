@@ -23,6 +23,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UHWeaponAttributeSet, WeaponFireRate);
 	ATTRIBUTE_ACCESSORS(UHWeaponAttributeSet, WeaponRange);
 	ATTRIBUTE_ACCESSORS(UHWeaponAttributeSet, WeaponAccuracy);
+	ATTRIBUTE_ACCESSORS(UHWeaponAttributeSet, WeaponReloadSpeed);
 
 	//ATTRIBUTE_ACCESSORS(UHWeaponAttributeSet, Element);
 
@@ -38,6 +39,9 @@ public:
 	// Delegate when accuracy changes, some information may be missing on the client
 	mutable FHAttributeEvent OnWeaponAccuracyChanged;
 
+	// Delegate when accuracy changes, some information may be missing on the client
+	mutable FHAttributeEvent OnWeaponReloadSpeedChanged;
+
 protected:
 
 	UFUNCTION()
@@ -51,6 +55,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_WeaponAccuracy(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	void OnRep_WeaponReloadSpeed(const FGameplayAttributeData& OldValue);
 
 
 private:
@@ -70,4 +77,8 @@ private:
 	// The current accuracy attribute
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponAccuracy, Category = "H|WeaponAccuracy", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData WeaponAccuracy;
+
+	// The current accuracy attribute
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponReloadSpeed, Category = "H|WeaponReload", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData WeaponReloadSpeed;
 };

@@ -8,12 +8,16 @@
 #include "UObject/NoExportTypes.h"
 #include "HInventoryItemInstance.generated.h"
 
+enum EHItemType : int;
 class UHItemModInstance;
 class UHItemDefinition;
 class UHGameplayAbility;
 class UHEquipmentDefinition;
 class UHInventoryItemFragment;
 class AHWeaponBase;
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FHOnItemMeshLoaded, UStaticMesh*, StaticMeshHQ);
+
 /**
  * 
  */
@@ -55,7 +59,20 @@ public:
 	TArray<UHItemModInstance*> GetItemMods() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
+	EHItemType GetItemTypeEnum() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Item|Display|World")
+	UStaticMesh* GetDisplayMesh() const;
+
+	//Todo implement fsyncmix and have this callback to requesting item when hq loaded
+	UFUNCTION(BlueprintCallable, Category = "Item|Display|World", meta = (AutoCreateRefTerm = "Delegate"))
+	UStaticMesh* GetDisplayMeshHQ(const FHOnItemMeshLoaded& Delegate) const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
 	int32 GetMaxStack() const;
+
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	FGameplayTag GetItemQuality() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool GetCanBeStacked();
@@ -79,10 +96,14 @@ private:
 	void SetItemDef(UHItemDefinition* InDef);
 
 	friend struct FHInventoryList;
+	friend class ULootGenGameInstanceSubsystem;
 
 protected:
 	UPROPERTY(Replicated)
 	TArray<TObjectPtr<UHItemModInstance>> Mods;
+
+	UPROPERTY(Replicated)
+	FGameplayTag ItemQualityTag;
 
 	UPROPERTY(Replicated)
 	FHGameplayTagStackContainer StatTags;

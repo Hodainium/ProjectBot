@@ -105,10 +105,8 @@ public:
 	}
 
 	UHInventoryItemInstance* AddEntry(UHItemDefinition* ItemDef, int32 StackCount);
+
 	void AddEntry(UHInventoryItemInstance* Instance);
-
-	void AddEntry(FHInventoryEntry& InEntry);
-
 	void RemoveEntry(UHInventoryItemInstance* Instance);
 
 	bool MarkItemIDDirty(int32 ItemID);

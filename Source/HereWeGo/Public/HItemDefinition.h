@@ -86,6 +86,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
 	TSoftObjectPtr<UTexture2D> ItemIcon;
 
+	/** Pickup mesh to display */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Graphics|World")
+	TObjectPtr<UStaticMesh> LowQualityWorldModel;
+
+	/** Pickup mesh to display */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Graphics|World")
+	TSoftObjectPtr<UStaticMesh> HighQualityWorldModel;
+
 	/** Item Quality */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
 	uint8 ItemQuality;
@@ -111,6 +119,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
 	int InventorySizeY;
+
+	////Sound to play when picked up
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pickup")
+	//TObjectPtr<USoundBase> PickedUpSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
 	float Weight;

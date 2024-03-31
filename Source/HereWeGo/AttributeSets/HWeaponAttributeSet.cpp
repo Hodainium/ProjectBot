@@ -13,6 +13,7 @@ void UHWeaponAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION_NOTIFY(UHWeaponAttributeSet, WeaponFireRate, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UHWeaponAttributeSet, WeaponRange, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UHWeaponAttributeSet, WeaponAccuracy, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UHWeaponAttributeSet, WeaponReloadSpeed, COND_None, REPNOTIFY_Always);
 }
 
 UHWeaponAttributeSet::UHWeaponAttributeSet()
@@ -20,6 +21,7 @@ UHWeaponAttributeSet::UHWeaponAttributeSet()
 	, WeaponFireRate(0.f)
 	, WeaponRange(0.f)
 	, WeaponAccuracy(0.f)
+	, WeaponReloadSpeed(0.f)
 {
 }
 
@@ -57,4 +59,13 @@ void UHWeaponAttributeSet::OnRep_WeaponAccuracy(const FGameplayAttributeData& Ol
 	// Call the change callback, but without an instigator
 	// This could be changed to an explicit RPC in the future
 	OnWeaponAccuracyChanged.Broadcast(nullptr, nullptr, nullptr, GetWeaponAccuracy() - OldValue.GetCurrentValue(), OldValue.GetCurrentValue(), GetWeaponAccuracy());
+}
+
+void UHWeaponAttributeSet::OnRep_WeaponReloadSpeed(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UHWeaponAttributeSet, WeaponReloadSpeed, OldValue);
+
+	// Call the change callback, but without an instigator
+	// This could be changed to an explicit RPC in the future
+	OnWeaponReloadSpeedChanged.Broadcast(nullptr, nullptr, nullptr, GetWeaponReloadSpeed() - OldValue.GetCurrentValue(), OldValue.GetCurrentValue(), GetWeaponReloadSpeed());
 }

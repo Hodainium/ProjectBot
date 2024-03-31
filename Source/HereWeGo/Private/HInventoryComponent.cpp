@@ -147,13 +147,18 @@ UHInventoryItemInstance* FHInventoryList::AddEntry(UHItemDefinition* ItemDef, in
 
 void FHInventoryList::AddEntry(UHInventoryItemInstance* Instance)
 {
-	unimplemented();
-}
+	check(Instance != nullptr);
+	check(OwnerComponent);
 
-void FHInventoryList::AddEntry(FHInventoryEntry& InEntry)
-{
-	Entries.Add(InEntry);
-	MarkItemDirty(InEntry);
+	AActor* OwningActor = OwnerComponent->GetOwner();
+	check(OwningActor->HasAuthority());
+
+
+	FHInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
+	NewEntry.Instance = Instance;  //@TODO: Using the actor instead of component as the outer due to UE-127172
+	NewEntry.StackCount = 1;
+
+	MarkItemDirty(NewEntry);
 }
 
 UHInventoryComponent::UHInventoryComponent(const FObjectInitializer& ObjectInitializer)
