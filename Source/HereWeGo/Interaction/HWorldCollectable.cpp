@@ -20,7 +20,7 @@ FInventoryPickup AHWorldCollectable::GetPickupInventory() const
 
 AHWorldCollectableInstance::AHWorldCollectableInstance()
 {
-	SetReplicates(true);
+	bReplicates = true;
 }
 
 FInventoryPickup AHWorldCollectableInstance::GetPickupInventory() const
