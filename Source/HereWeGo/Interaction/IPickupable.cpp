@@ -98,10 +98,14 @@ void UPickupableStatics::PushPickupToPlayer(APawn* PlayerPawn, TScriptInterface<
 			return;
 		}
 
+		int i = 0;
+
 		for (const FPickupInstance& Instance : PickupInventory.Instances)
 		{
 			/*InventoryComponent->AddItemInstance(Instance.Item);
 			SlotComponent->AddItemToSlot(EHInventorySlotType::Temporary, 0, Instance.Item);*/
+
+			UE_LOGFMT(LogHGame, Warning, "Loop: {num}", i);
 
 			if (Instance.Item->GetItemTypeEnum() == EHItemType::Weapon)
 			{
