@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LootGenGameInstanceSubsystem.generated.h"
 
+enum class EHLootQuality : uint8;
 class UHItemDefinition;
 class UHInventoryItemInstance;
 
@@ -27,9 +28,19 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
+	/*UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
+	UHInventoryItemInstance* GenerateItemInstance();
+
+	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
+	UHInventoryItemInstance* GenerateItemInstanceFromPool(UHItemPool* Pool);*/
+
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
 	UHInventoryItemInstance* GenerateItemInstance(UHItemDefinition* ItemDef);
 
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem", meta = (AutoCreateRefTerm = "Delegate"))
 	void GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate);
+
+protected:
+
+	EHLootQuality GenerateLootQuality();
 };

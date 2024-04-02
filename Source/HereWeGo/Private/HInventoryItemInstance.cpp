@@ -25,7 +25,7 @@ void UHInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(ThisClass, StatTags);
 	DOREPLIFETIME(ThisClass, ItemDefinition);
 	DOREPLIFETIME(ThisClass, ItemQuality);
-	DOREPLIFETIME(ThisClass, Mods);
+	DOREPLIFETIME(ThisClass, ItemMods);
 }
 
 void UHInventoryItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
@@ -55,7 +55,7 @@ UHItemDefinition* UHInventoryItemInstance::GetItemDefinition() const
 
 TArray<UHItemModInstance*> UHInventoryItemInstance::GetItemMods() const
 {
-	return Mods;
+	return ItemMods;
 }
 
 EHItemType UHInventoryItemInstance::GetItemTypeEnum() const
@@ -99,7 +99,7 @@ int32 UHInventoryItemInstance::GetMaxStack() const
 	return INDEX_NONE;
 }
 
-EHItemQuality UHInventoryItemInstance::GetItemQuality() const
+EHLootQuality UHInventoryItemInstance::GetItemQuality() const
 {
 	return ItemQuality;
 }
@@ -149,5 +149,15 @@ const UHInventoryItemFragment* UHInventoryItemInstance::FindFragmentByClass(
 void UHInventoryItemInstance::SetItemDef(UHItemDefinition* InDef)
 {
 	ItemDefinition = InDef;
+}
+
+void UHInventoryItemInstance::SetItemQuality(EHLootQuality InQuality)
+{
+	ItemQuality = InQuality;
+}
+
+void UHInventoryItemInstance::AddItemMod(UHItemModInstance* InMod)
+{
+	ItemMods.Add(InMod);
 }
 

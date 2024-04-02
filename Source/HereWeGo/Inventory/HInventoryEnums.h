@@ -8,7 +8,7 @@
  * 
  */
 UENUM(BlueprintType)
-enum class EHItemQuality : uint8
+enum class EHLootQuality : uint8
 {
 	Quality0,
 	Quality1,

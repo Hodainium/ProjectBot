@@ -36,30 +36,11 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 		}
 	}
 
-	//Can this be an int?
-	float randNum = FMath::RandRange(0.f, 100.f);
+	EHLootQuality LootQuality = GenerateLootQuality();
 
-	EHItemQuality ItemQuality;
+	Instance->SetItemQuality(LootQuality);
 
-	//Maybe move to function. GetItemQualityForVal(randNum)?
-	//This will need to be more extendable to allow for items like the isaac sacred orb that enhances item rolls
-
-	if(randNum < 50)
-	{
-		
-	}
-	else if(randNum < 7.77f)
-	{
-		
-	}
-	else
-	{
-		ItemQuality = EHItemQuality::Quality0;
-	}
-
-	//Todo generate a random int or float 0-1, 0-100 whatever and based on that value choose an enum 
-
-	UE_LOGFMT(LogHLootSubsystem, Warning, "Should have generated instance with num: {num}", randNum);
+	UE_LOGFMT(LogHLootSubsystem, Warning, "Should have generated instance with num: {num}", UEnum::GetValueAsString(LootQuality));
 
 	return Instance;
 }
@@ -78,4 +59,38 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 		});
 		StartAsyncLoading();
 	}
+}
+
+EHLootQuality ULootGenGameInstanceSubsystem::GenerateLootQuality()
+{
+	//Can this be an int?
+	float randNum = FMath::RandRange(0.f, 100.f);
+
+	EHLootQuality ItemQuality = EHLootQuality::Quality0;
+
+	//Maybe move to function. GetItemQualityForVal(randNum)?
+	//This will need to be more extendable to allow for items like the isaac sacred orb that enhances item rolls
+
+	if (randNum < 1.f)
+	{
+		ItemQuality = EHLootQuality::Quality4;
+	}
+	else if (randNum < 7.77f)
+	{
+		ItemQuality = EHLootQuality::Quality3;
+	}
+	else if (randNum < 20.f)
+	{
+		ItemQuality = EHLootQuality::Quality2;
+	}
+	else if (randNum < 50.f)
+	{
+		ItemQuality = EHLootQuality::Quality1;
+	}
+	else
+	{
+		ItemQuality = EHLootQuality::Quality0;
+	}
+
+	return ItemQuality;
 }

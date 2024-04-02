@@ -10,7 +10,7 @@
 
 //Like fragments but 100% different. These define the base of mnodifiers we can recieve. Maybe should have their own fragments. 
 
-enum class EHItemQuality : uint8;
+enum class EHLootQuality : uint8;
 class UHAbilitySystemComponent;
 class UHGameplayAbility;
 class UGameplayEffect;
@@ -185,7 +185,7 @@ public:
 	bool bDisplayInUI = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
-	EHItemQuality Quality;
+	EHLootQuality Quality;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
 	FGameplayTagContainer AssetTags;
