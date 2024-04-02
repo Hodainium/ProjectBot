@@ -679,7 +679,7 @@ void SActorCanvas::GetOffsetAndSize(const UIndicatorDescriptor* Indicator,
 		break;
 
 	case HAlign_Center:
-		OutOffset.X = (AllottedSize.X - OutSize.X) / 2.0f; 
+		OutOffset.X = (AllottedSize.X - OutSize.X) / 2.0f;
 		OutPaddingMin.X = OutSize.X / 2.0f;
 		OutPaddingMax.X = OutPaddingMin.X;
 		break;

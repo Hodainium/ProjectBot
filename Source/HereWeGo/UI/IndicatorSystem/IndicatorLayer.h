@@ -31,3 +31,5 @@ protected:
 protected:
 	TSharedPtr<SActorCanvas> MyActorCanvas;
 };
+
+

@@ -2,9 +2,9 @@
 
 #include "IndicatorDescriptor.h"
 
-#include "HIndicatorManagerComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "SceneView.h"
+#include "HIndicatorManagerComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(IndicatorDescriptor)
 
