@@ -116,11 +116,6 @@ void AHPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
-FVector AHPlayerCharacter::GetPawnViewLocation() const
-{
-	return CameraComp->GetComponentLocation();
-}
-
 // Called every frame
 void AHPlayerCharacter::Tick(float DeltaTime)
 {

@@ -118,8 +118,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "HPlayer|MovementComponent")
 	UHCharacterMovementComponent* GetHMovementComponent() const;
 
-	virtual FVector GetPawnViewLocation() const override;
-
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void UnPossessed() override;
