@@ -24,7 +24,7 @@ void UHInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 	DOREPLIFETIME(ThisClass, StatTags);
 	DOREPLIFETIME(ThisClass, ItemDefinition);
-	DOREPLIFETIME(ThisClass, ItemQualityTag);
+	DOREPLIFETIME(ThisClass, ItemQuality);
 	DOREPLIFETIME(ThisClass, Mods);
 }
 
@@ -99,9 +99,9 @@ int32 UHInventoryItemInstance::GetMaxStack() const
 	return INDEX_NONE;
 }
 
-FGameplayTag UHInventoryItemInstance::GetItemQuality() const
+EHItemQuality UHInventoryItemInstance::GetItemQuality() const
 {
-	return ItemQualityTag;
+	return ItemQuality;
 }
 
 bool UHInventoryItemInstance::GetCanBeStacked()

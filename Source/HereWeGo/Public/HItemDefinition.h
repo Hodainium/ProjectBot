@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "HereWeGo/Inventory/HInventoryEnums.h"
 #include "UObject/NoExportTypes.h"
 #include "HItemDefinition.generated.h"
 
 
-
+enum class EHItemQuality : uint8;
 class UHInventoryItemInstance;
 class UHEquipmentDefinition;
 /**
@@ -57,7 +58,7 @@ class HEREWEGO_API UHItemDefinition : public UPrimaryDataAsset
 public:
 
 	UHItemDefinition()
-		: ItemQuality(0), Price(0)
+		: BaseItemQuality(EHItemQuality::Quality0), Price(0)
 		  , CanBeStacked(false), MaxStack(1)
 		  , MaxDurability(0), InventorySizeX(1)
 		  , InventorySizeY(1)
@@ -96,7 +97,7 @@ public:
 
 	/** Item Quality */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
-	uint8 ItemQuality;
+	EHItemQuality BaseItemQuality;
 
 	/** Price in game */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)

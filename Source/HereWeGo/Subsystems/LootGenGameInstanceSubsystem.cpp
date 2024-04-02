@@ -36,7 +36,28 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 		}
 	}
 
-	int randNum = FMath::RandRange(0, 5);
+	//Can this be an int?
+	float randNum = FMath::RandRange(0.f, 100.f);
+
+	EHItemQuality ItemQuality;
+
+	//Maybe move to function. GetItemQualityForVal(randNum)?
+	//This will need to be more extendable to allow for items like the isaac sacred orb that enhances item rolls
+
+	if(randNum < 50)
+	{
+		
+	}
+	else if(randNum < 7.77f)
+	{
+		
+	}
+	else
+	{
+		ItemQuality = EHItemQuality::Quality0;
+	}
+
+	//Todo generate a random int or float 0-1, 0-100 whatever and based on that value choose an enum 
 
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Should have generated instance with num: {num}", randNum);
 

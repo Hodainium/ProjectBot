@@ -8,6 +8,7 @@
 #include "UObject/NoExportTypes.h"
 #include "HInventoryItemInstance.generated.h"
 
+enum class EHItemQuality : uint8;
 enum EHItemType : int;
 class UHItemModInstance;
 class UHItemDefinition;
@@ -72,7 +73,7 @@ public:
 	int32 GetMaxStack() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
-	FGameplayTag GetItemQuality() const;
+	EHItemQuality GetItemQuality() const;
 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	bool GetCanBeStacked();
@@ -103,7 +104,7 @@ protected:
 	TArray<TObjectPtr<UHItemModInstance>> Mods;
 
 	UPROPERTY(Replicated)
-	FGameplayTag ItemQualityTag;
+	EHItemQuality ItemQuality;
 
 	UPROPERTY(Replicated)
 	FHGameplayTagStackContainer StatTags;
