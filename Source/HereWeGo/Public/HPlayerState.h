@@ -27,6 +27,12 @@ class HEREWEGO_API AHPlayerState : public AModularPlayerState
 
 public:
 	AHPlayerState();
+
+	//// Gets the replicated view rotation of this player, used for spectating
+	//FRotator GetReplicatedViewRotation() const;
+
+	//// Sets the replicated view rotation, only valid on the server
+	//void SetReplicatedViewRotation(const FRotator& NewRotation);
 	
 
 protected:

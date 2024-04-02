@@ -19,7 +19,6 @@ class UHCameraComponent;
 struct FGameplayAbilitySpecHandle;
 class UHCameraMode;
 class UHCharacterMovementComponent;
-class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
@@ -183,17 +182,8 @@ protected:
 	//TODO: Remove asap 1/27/24
 #pragma region Camera
 
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USpringArmComponent> SpringArmComp;
-
 	float SavedCameraTargetArmLength;
 	FVector SavedCameraSocketOffset;
-
-	UPROPERTY(EditAnywhere, Category = "HPlayer|ADSCamera")
-	float ADSCameraArmLength;
-
-	UPROPERTY(EditAnywhere, Category = "HPlayer|ADSCamera")
-	FVector ADSCameraSocketOffset;
 
 #pragma endregion
 

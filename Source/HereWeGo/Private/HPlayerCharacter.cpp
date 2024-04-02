@@ -52,11 +52,6 @@ AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
-	SpringArmComp->bUsePawnControlRotation = true;
-	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->SetUsingAbsoluteRotation(true);
-
 	CameraComp = CreateDefaultSubobject<UHCameraComponent>("CameraComp");
 	CameraComp->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 
@@ -81,8 +76,6 @@ AHPlayerCharacter::AHPlayerCharacter(const FObjectInitializer& ObjectInitializer
 	HasInteracted = false;
 
 	WeaponEquipped = false;
-
-	ADSCameraSocketOffset = FVector::Zero();
 
 	GunDamage = 12.f;
 
@@ -110,9 +103,6 @@ void AHPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(TestContext, 1);
 		}
 	}*/
-
-	SavedCameraTargetArmLength = SpringArmComp->TargetArmLength;
-	SavedCameraSocketOffset = SpringArmComp->SocketOffset;
 
 	LandedDelegate.AddDynamic(this, &AHPlayerCharacter::OnLandedEvent);
 
@@ -317,17 +307,11 @@ void AHPlayerCharacter::StartAiming()
 	//Here we can implement 
 	HMovementComp->StartAimDownSights();
 
-	SpringArmComp->TargetArmLength = ADSCameraArmLength;
-	SpringArmComp->SocketOffset = ADSCameraSocketOffset;
-
 }
 
 void AHPlayerCharacter::StopAiming()
 {
 	HMovementComp->StopAimDownSights();
-
-	SpringArmComp->TargetArmLength = SavedCameraTargetArmLength;
-	SpringArmComp->SocketOffset = SavedCameraSocketOffset;
 }
 
 void AHPlayerCharacter::OnShootCooldownReached()

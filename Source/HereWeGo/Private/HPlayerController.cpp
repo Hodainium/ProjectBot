@@ -98,6 +98,38 @@ void AHPlayerController::PostProcessInput(const float DeltaTime, const bool bGam
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }
 
+void AHPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+
+	//AHPlayerState* HPlayerState = GetHPlayerState();
+
+	//if (PlayerCameraManager && HPlayerState)
+	//{
+	//	APawn* TargetPawn = PlayerCameraManager->GetViewTargetPawn();
+
+	//	if (TargetPawn)
+	//	{
+	//		// Update view rotation on the server so it replicates
+	//		if (HasAuthority() || TargetPawn->IsLocallyControlled())
+	//		{
+	//			HPlayerState->SetReplicatedViewRotation(TargetPawn->GetViewRotation());
+	//		}
+
+	//		// Update the target view rotation if the pawn isn't locally controlled
+	//		if (!TargetPawn->IsLocallyControlled())
+	//		{
+	//			HPlayerState = TargetPawn->GetPlayerState<AHPlayerState>();
+	//			if (HPlayerState)
+	//			{
+	//				// Get it from the spectated pawn's player state, which may not be the same as the PC's playerstate
+	//				TargetViewRotation = HPlayerState->GetReplicatedViewRotation();
+	//			}
+	//		}
+	//	}
+	//}
+}
+
 void AHPlayerController::InitPlayerState()
 {
 	Super::InitPlayerState();

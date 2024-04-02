@@ -51,6 +51,7 @@ public:
 
 	//~APlayerController interface
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+	virtual void PlayerTick(float DeltaTime) override;
 	//~End of APlayerController interface
 
 	virtual void InitPlayerState() override;
