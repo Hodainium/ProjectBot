@@ -15,6 +15,21 @@ DECLARE_LOG_CATEGORY_EXTERN(LogHLootSubsystem, Log, All);
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FHItemInstanceGenerated, UHInventoryItemInstance*, GeneratedInstance);
 
+USTRUCT(BlueprintType)
+struct FHTextRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+
+	FHTextRow()
+	{
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FText Text;
+};
+
 /**
  * 
  */
@@ -34,6 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
 	UHInventoryItemInstance* GenerateItemInstanceFromPool(UHItemPool* Pool);*/
 
+	FText RequestAdjectiveForKey(FName InKey);
+	
+
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
 	UHInventoryItemInstance* GenerateItemInstance(UHItemDefinition* ItemDef);
 
@@ -41,6 +59,8 @@ public:
 	void GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate);
 
 protected:
+	UPROPERTY()
+	TObjectPtr<UDataTable> CachedAdjectiveTable;
 
 	EHLootQuality GenerateLootQuality();
 };

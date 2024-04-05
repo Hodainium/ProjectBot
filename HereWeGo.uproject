@@ -18,7 +18,8 @@
 				"PhysicsCore",
 				"CommonGame",
 				"CommonUI",
-				"ModularGameplay"
+				"ModularGameplay",
+				"DeveloperSettings"
 			]
 		}
 	],

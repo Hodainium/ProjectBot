@@ -5,18 +5,32 @@
 
 #include "HInventoryItemInstance.h"
 #include "HItemDefinition.h"
+#include "HereWeGo/DeveloperSettings/HLootSettings.h"
 #include "Logging/StructuredLog.h"
 
 DEFINE_LOG_CATEGORY(LogHLootSubsystem);
 
 void ULootGenGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	Super::Initialize(Collection);
+
+	const UHLootSettings* LootSettings = GetDefault<UHLootSettings>(); // Access via CDO
+	// Access defaults from DefaultGame.ini
+	CachedAdjectiveTable = LootSettings->AdjectiveTable.LoadSynchronous();
+
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Loot system initted");
 }
 
 void ULootGenGameInstanceSubsystem::Deinitialize()
 {
+	Super::Deinitialize();
+
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Loot system Deinitted");
+}
+
+FText ULootGenGameInstanceSubsystem::RequestAdjectiveForKey(FName InKey)
+{
+
 }
 
 UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHItemDefinition* ItemDef)
@@ -25,6 +39,8 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 	{
 		return nullptr;
 	}
+
+	
 
 	UHInventoryItemInstance* Instance = NewObject<UHInventoryItemInstance>(GetWorld());
 	Instance->SetItemDef(ItemDef);

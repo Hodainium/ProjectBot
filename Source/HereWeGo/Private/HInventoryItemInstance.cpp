@@ -10,6 +10,7 @@
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
 #include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
+#include "HereWeGo/Subsystems/LootGenGameInstanceSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
 UHInventoryItemInstance::UHInventoryItemInstance(const FObjectInitializer& ObjectInitializer)
@@ -61,6 +62,21 @@ TArray<UHItemModInstance*> UHInventoryItemInstance::GetItemMods() const
 EHItemType UHInventoryItemInstance::GetItemTypeEnum() const
 {
 	return ItemDefinition->ItemType;
+}
+
+FText UHInventoryItemInstance::GetItemName() const
+{
+	if(ReplicatedAdjectiveIndexKey != NAME_None)
+	{
+		
+	}
+
+	if (ItemDefinition)
+	{
+		return ItemDefinition->ItemName;
+	}
+
+	return FText::GetEmpty();
 }
 
 UStaticMesh* UHInventoryItemInstance::GetDisplayMesh() const
@@ -159,5 +175,14 @@ void UHInventoryItemInstance::SetItemQuality(EHLootQuality InQuality)
 void UHInventoryItemInstance::AddItemMod(UHItemModInstance* InMod)
 {
 	ItemMods.Add(InMod);
+}
+
+void UHInventoryItemInstance::OnRep_ReplicatedAdjectiveIndexKey()
+{
+	if(ULootGenGameInstanceSubsystem* LootSystem = GetWorld()->GetSubsystem<ULootGenGameInstanceSubsystem>())
+	{
+		CachedAdjective = LootSystem->RequestAdjectiveForKey(ReplicatedAdjectiveIndexKey);
+		//TODO: Broadcast text changed maybe
+	}
 }
 

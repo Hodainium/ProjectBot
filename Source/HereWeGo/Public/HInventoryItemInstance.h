@@ -62,6 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	EHItemType GetItemTypeEnum() const;
 
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	FText GetItemName() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Item|Display|World")
 	UStaticMesh* GetDisplayMesh() const;
 
@@ -100,12 +103,21 @@ private:
 
 	void AddItemMod(UHItemModInstance* InMod);
 
+	UFUNCTION()
+	void OnRep_ReplicatedAdjectiveIndexKey();
+
 	friend struct FHInventoryList;
 	friend class ULootGenGameInstanceSubsystem;
 
 protected:
 	UPROPERTY(Replicated)
 	TArray<TObjectPtr<UHItemModInstance>> ItemMods;
+
+	UPROPERTY(ReplicatedUsing="OnRep_ReplicatedAdjectiveIndexKey")
+	FName ReplicatedAdjectiveIndexKey;
+
+	UPROPERTY()
+	FText CachedAdjective;
 
 	UPROPERTY(Replicated)
 	EHLootQuality ItemQuality;
