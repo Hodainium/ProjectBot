@@ -28,9 +28,34 @@ void ULootGenGameInstanceSubsystem::Deinitialize()
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Loot system Deinitted");
 }
 
-FText ULootGenGameInstanceSubsystem::RequestAdjectiveForKey(FName InKey)
+FText ULootGenGameInstanceSubsystem::GetAdjectiveForKey(FName InKey)
 {
+	if (CachedAdjectiveTable)
+	{
+		if(FHTextRow* Row = CachedAdjectiveTable->FindRow<FHTextRow>(InKey, ""))
+		{
+			return Row->Text;
+		}
+	}
 
+	return FText::GetEmpty();
+}
+
+FName ULootGenGameInstanceSubsystem::GetRandomAdjectiveRowKey()
+{
+	if (CachedAdjectiveTable)
+	{
+		TArray<FName> AdjectiveRowNames = CachedAdjectiveTable->GetRowNames();
+
+		if (AdjectiveRowNames.Num() > 0)
+		{
+			int randIndex = FMath::RandRange(0, AdjectiveRowNames.Num() - 1);
+
+			return AdjectiveRowNames[randIndex];
+		}
+	}
+
+	return NAME_None;
 }
 
 UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHItemDefinition* ItemDef)
@@ -39,8 +64,6 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 	{
 		return nullptr;
 	}
-
-	
 
 	UHInventoryItemInstance* Instance = NewObject<UHInventoryItemInstance>(GetWorld());
 	Instance->SetItemDef(ItemDef);
@@ -53,8 +76,14 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 	}
 
 	EHLootQuality LootQuality = GenerateLootQuality();
-
 	Instance->SetItemQuality(LootQuality);
+
+	FName RowKey = GetRandomAdjectiveRowKey();
+
+	if(RowKey.IsValid())
+	{
+		Instance->SetItemAdjectiveText(RowKey);
+	}
 
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Should have generated instance with num: {num}", UEnum::GetValueAsString(LootQuality));
 

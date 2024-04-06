@@ -49,8 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
 	UHInventoryItemInstance* GenerateItemInstanceFromPool(UHItemPool* Pool);*/
 
-	FText RequestAdjectiveForKey(FName InKey);
-	
+	FName GetRandomAdjectiveRowKey();
+
+	FText GetAdjectiveForKey(FName InKey);
 
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
 	UHInventoryItemInstance* GenerateItemInstance(UHItemDefinition* ItemDef);

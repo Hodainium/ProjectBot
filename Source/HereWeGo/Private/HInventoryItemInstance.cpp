@@ -27,6 +27,7 @@ void UHInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(ThisClass, ItemDefinition);
 	DOREPLIFETIME(ThisClass, ItemQuality);
 	DOREPLIFETIME(ThisClass, ItemMods);
+	DOREPLIFETIME(ThisClass, ReplicatedAdjectiveIndexKey);
 }
 
 void UHInventoryItemInstance::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
@@ -66,13 +67,13 @@ EHItemType UHInventoryItemInstance::GetItemTypeEnum() const
 
 FText UHInventoryItemInstance::GetItemName() const
 {
-	if(ReplicatedAdjectiveIndexKey != NAME_None)
-	{
-		
-	}
-
 	if (ItemDefinition)
 	{
+		if(!CachedAdjective.IsEmpty())
+		{
+			return FText::Format(NSLOCTEXT("WeaponUI", "WeaponTitle", "{Adjective} {Name}"), CachedAdjective, ItemDefinition->ItemName);
+		}
+
 		return ItemDefinition->ItemName;
 	}
 
@@ -172,6 +173,12 @@ void UHInventoryItemInstance::SetItemQuality(EHLootQuality InQuality)
 	ItemQuality = InQuality;
 }
 
+void UHInventoryItemInstance::SetItemAdjectiveText(FName NameKey)
+{
+	ReplicatedAdjectiveIndexKey = NameKey;
+	OnRep_ReplicatedAdjectiveIndexKey();
+}
+
 void UHInventoryItemInstance::AddItemMod(UHItemModInstance* InMod)
 {
 	ItemMods.Add(InMod);
@@ -179,9 +186,9 @@ void UHInventoryItemInstance::AddItemMod(UHItemModInstance* InMod)
 
 void UHInventoryItemInstance::OnRep_ReplicatedAdjectiveIndexKey()
 {
-	if(ULootGenGameInstanceSubsystem* LootSystem = GetWorld()->GetSubsystem<ULootGenGameInstanceSubsystem>())
+	if(ULootGenGameInstanceSubsystem* LootSystem = GetWorld()->GetGameInstance()->GetSubsystem<ULootGenGameInstanceSubsystem>())
 	{
-		CachedAdjective = LootSystem->RequestAdjectiveForKey(ReplicatedAdjectiveIndexKey);
+		CachedAdjective = LootSystem->GetAdjectiveForKey(ReplicatedAdjectiveIndexKey);
 		//TODO: Broadcast text changed maybe
 	}
 }

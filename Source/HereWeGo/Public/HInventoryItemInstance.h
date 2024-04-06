@@ -101,6 +101,8 @@ private:
 
 	void SetItemQuality(EHLootQuality InQuality);
 
+	void SetItemAdjectiveText(FName NameKey);
+
 	void AddItemMod(UHItemModInstance* InMod);
 
 	UFUNCTION()
