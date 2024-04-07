@@ -71,7 +71,7 @@ FText UHInventoryItemInstance::GetItemName() const
 	{
 		if(!CachedAdjective.IsEmpty())
 		{
-			return FText::Format(NSLOCTEXT("WeaponUI", "WeaponTitle", "{Adjective} {Name}"), CachedAdjective, ItemDefinition->ItemName);
+			return FText::Format(NSLOCTEXT("WeaponUI", "WeaponTitle", "{0} {1}"), CachedAdjective, ItemDefinition->ItemName);
 		}
 
 		return ItemDefinition->ItemName;

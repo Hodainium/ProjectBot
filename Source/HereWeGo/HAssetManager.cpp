@@ -6,6 +6,7 @@
 #include "HItemDefinition.h"
 #include "HLogChannels.h"
 #include "HGameData.h"
+#include "Logging/StructuredLog.h"
 #include "Misc/ScopedSlowTask.h"
 
 const FPrimaryAssetType	UHAssetManager::UndefinedItemType = TEXT("UNDEFINED_Type");
@@ -62,11 +63,35 @@ void UHAssetManager::GetAllItemModsMatching(FHItemSearchQuery& SearchQuery, TArr
 	GetPrimaryAssetDataList(FPrimaryAssetType(ItemModItemType), ModAssetData);
 	for (const auto& Asset : ModAssetData)
 	{
-		/*FString OutAllowedTagsString;
-		Asset.GetTagValue("AllowedTags", OutAllowedTagsString);
-		FGameplayTagContainer AllowedTags;
-		AllowedTags.FromExportString(OutAllowedTagsString);
-		if (AllowedTags.HasTag(WeaponTag))
+		////Item quality
+		//EHItemQuality OutQuality;
+		//Asset.GetTagValue("Quality", OutQuality);
+
+		//Asset tags
+		FString OutAssetTagsString;
+		Asset.GetTagValue("AssetTags", OutAssetTagsString);
+		FGameplayTagContainer AssetTags;
+		AssetTags.FromExportString(OutAssetTagsString);
+
+		//Tags to grant during query
+		FString OutTagsToGrantDuringQueryString;
+		Asset.GetTagValue("TagsToGrantDuringQuery", OutTagsToGrantDuringQueryString);
+		FGameplayTagContainer TagsToGrantDuringQuery;
+		TagsToGrantDuringQuery.FromExportString(OutAssetTagsString);
+
+		//Required tags
+		FString OutRequiredTagsString;
+		Asset.GetTagValue("RequiredTags", OutRequiredTagsString);
+		FGameplayTagContainer RequiredTags;
+		RequiredTags.FromExportString(OutRequiredTagsString);
+
+		//Blocked tags
+		FString OutBlockedTagsString;
+		Asset.GetTagValue("BlockedTags", OutBlockedTagsString);
+		FGameplayTagContainer BlockedTags;
+		BlockedTags.FromExportString(OutBlockedTagsString);
+
+		/*if (AllowedTags.HasTag(WeaponTag))
 		{
 			OutAssets.Add(Asset);
 		}*/

@@ -12,6 +12,11 @@ UHItemModDefinition* UHItemModInstance::GetModDefinition() const
 	return ModDef;
 }
 
+EHItemQuality UHItemModInstance::GetModQuality() const
+{
+	return ModQuality;
+}
+
 float UHItemModInstance::GetModMagnitude() const
 {
 	return Magnitude;
@@ -27,6 +32,21 @@ void UHItemModInstance::OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInst
 	}
 
 	ModDef->ApplyToEquipmentInstance(EquipmentInstance, OutGrantedHandles, Magnitude);
+}
+
+void UHItemModInstance::SetModMagnitude(float inMagnitude)
+{
+	Magnitude = inMagnitude;
+}
+
+void UHItemModInstance::SetModDefinition(UHItemModDefinition* InDef)
+{
+	ModDef = InDef;
+}
+
+void UHItemModInstance::SetModQuality(EHItemQuality InQuality)
+{
+	ModQuality = InQuality;
 }
 
 //void UHItemModInstance::RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance,

@@ -8,6 +8,7 @@
 #include "HereWeGo/HAssetManager.h"
 #include "HereWeGo/DeveloperSettings/HLootSettings.h"
 #include "HereWeGo/Items/LootGen/HItemAssetFilter.h"
+#include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
 #include "Logging/StructuredLog.h"
 
 DEFINE_LOG_CATEGORY(LogHLootSubsystem);
@@ -92,9 +93,16 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 		Instance->SetItemAdjectiveText(RowKey);
 	}
 
+	GenerateModsForItemInstance(Instance);
+
+	return Instance;
+}
+
+void ULootGenGameInstanceSubsystem::GenerateModsForItemInstance(UHInventoryItemInstance* ItemInstance)
+{
 	//Generate mods here
 
-	int numMods = GenerateNumMods(ItemQuality);
+	int numMods = GenerateNumMods(ItemInstance->GetItemQuality());
 	UE_LOGFMT(LogHLootSubsystem, Warning, "Num mods produced: {num}", numMods);
 
 	FHItemSearchQuery Query = FHItemSearchQuery();
@@ -102,26 +110,42 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 
 	UHAssetManager::Get().GetAllItemModsMatching(Query, ModAssetData);
 
-	for (const auto& Data : ModAssetData)
+	TArray<FAssetData> SelectedMods;
+
+	for (int i = 0; i < numMods; i++) //const auto& Data : ModAssetData
+	{
+		UE_LOGFMT(LogHLootSubsystem, Warning, "Found mod: {mod}", ModAssetData[i].AssetName);
+
+		//EHItemQuality ModQuality = GenerateItemQuality();
+
+		//Pick random indexes here
+
+		int randIndex = FMath::RandRange(0, ModAssetData.Num()-1);
+
+		SelectedMods.Add(ModAssetData[randIndex]);
+		ModAssetData.RemoveAt(randIndex);
+	}
+
+	/*for (const auto& Data : SelectedMods)
 	{
 		UE_LOGFMT(LogHLootSubsystem, Warning, "Found mod: {mod}", Data.AssetName);
-	}
 
+		FPrimaryAssetId AssetID = Data.GetPrimaryAssetId();
 
-	if(numMods > 0)
-	{
-
-
-		for (int i = 0; i < numMods; i++)
+		if (AssetID.IsValid())
 		{
-			//Get random mod, add to iteminstance
-			//Instance->AddItemMod()
+			AsyncLoad(AssetID, [this, AssetID]() {
+				if (UHItemModDefinition* ModDef = UHAssetManager::GetPrimaryAssetObject(AssetID))
+				{
 
-
+				}
+			});
+			StartAsyncLoading();
 		}
-	}
+	}*/
 
-	return Instance;
+	EHItemQuality ModQuality = GenerateItemQuality();
+
 }
 
 void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate)

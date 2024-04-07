@@ -9,7 +9,7 @@
 #include "HInventoryItemInstance.generated.h"
 
 enum class EHItemQuality : uint8;
-enum EHItemType : int;
+enum class EHItemType : uint8;
 class UHItemModInstance;
 class UHItemDefinition;
 class UHGameplayAbility;
@@ -122,7 +122,7 @@ protected:
 	FText CachedAdjective;
 
 	UPROPERTY(Replicated)
-	TEnumAsByte<EHItemQuality> ItemQuality;
+	EHItemQuality ItemQuality;
 
 	UPROPERTY(Replicated)
 	FHGameplayTagStackContainer StatTags;

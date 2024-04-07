@@ -188,10 +188,13 @@ public:
 	bool bDisplayInUI = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
-	TEnumAsByte<EHItemQuality> Quality;
+	TSet<EHItemQuality> AvailableQualities;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
 	FGameplayTagContainer AssetTags;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
+	FGameplayTagContainer TagsToGrantDuringQuery;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
 	FGameplayTagContainer RequiredTags;

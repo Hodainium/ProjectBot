@@ -24,7 +24,7 @@ class UHEquipmentDefinition;
 
 //Enum item type that is mapped to PrimaryAssetType
 UENUM(BlueprintType)
-enum EHItemType
+enum class EHItemType : uint8
 {
 	Weapon,
 	Armor,
@@ -70,7 +70,7 @@ public:
 
 	/** Type of this item, set in native parent class */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item, AssetRegistrySearchable)
-	TEnumAsByte<EHItemType> ItemType;
+	EHItemType ItemType;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Item)
 	FGameplayTagContainer FlavorTags;
@@ -97,7 +97,7 @@ public:
 
 	/** Item Quality */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
-	TEnumAsByte<EHItemQuality> BaseItemQuality;
+	EHItemQuality BaseItemQuality;
 
 	/** Price in game */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)

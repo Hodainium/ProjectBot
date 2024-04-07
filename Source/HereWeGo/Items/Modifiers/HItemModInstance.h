@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "HItemModInstance.generated.h"
 
+enum class EHItemQuality : uint8;
 struct FHItemModDef_GrantedHandles;
 class UHModifiedWeaponInstance;
 class UHItemModDefinition;
@@ -19,12 +20,23 @@ public:
 	UHItemModDefinition* GetModDefinition() const;
 
 	UFUNCTION(BlueprintCallable)
+	EHItemQuality GetModQuality() const;
+
+	UFUNCTION(BlueprintCallable)
 	float GetModMagnitude() const;
 
 	//TODO eventually make this accept Uobjects and check if they implement a certain interface?
 	void OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* OutGrantedHandles);
 	
 protected:
+
+	friend class ULootGenGameInstanceSubsystem;
+
+	void SetModMagnitude(float inMagnitude);
+
+	void SetModDefinition(UHItemModDefinition* InDef);
+
+	void SetModQuality(EHItemQuality InQuality);
 
 	/** ItemMod definition. The static data that this instance points to. */
 	UPROPERTY()
@@ -33,7 +45,8 @@ protected:
 	UPROPERTY()
 	float Magnitude;
 
-	
+	UPROPERTY()
+	EHItemQuality ModQuality;
 
 	//void RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* GrantedHandles);
 };

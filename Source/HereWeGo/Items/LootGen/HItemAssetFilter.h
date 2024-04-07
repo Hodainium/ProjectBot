@@ -19,11 +19,18 @@ struct HEREWEGO_API FHItemSearchQuery
 	{}
 
 public:
+	UPROPERTY(BlueprintReadWrite)
 	FGameplayTagContainer RequiredTags;
 
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTagContainer BlockedTags;
+
+	UPROPERTY(BlueprintReadWrite)
 	FGameplayTagContainer AccumulatedTags;
 
+	UPROPERTY(BlueprintReadWrite)
 	TSet<EHItemQuality> BlockedModQualities;
 
+	UPROPERTY(BlueprintReadWrite)
 	TSet<FName> BlockedAssetNames;
 };
