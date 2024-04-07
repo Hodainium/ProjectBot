@@ -126,6 +126,8 @@ void ULootGenGameInstanceSubsystem::GenerateModsForItemInstance(UHInventoryItemI
 		ModAssetData.RemoveAt(randIndex);
 	}
 
+	//TODO Sync load for now the mods are extremely small right now. We can change later need be. But mods and weapons should be ready to be sync loaded at any point
+
 	/*for (const auto& Data : SelectedMods)
 	{
 		UE_LOGFMT(LogHLootSubsystem, Warning, "Found mod: {mod}", Data.AssetName);
