@@ -9,7 +9,7 @@
 #include "HItemDefinition.generated.h"
 
 
-enum class EHLootQuality : uint8;
+enum class EHItemQuality : uint8;
 class UHInventoryItemInstance;
 class UHEquipmentDefinition;
 /**
@@ -58,7 +58,7 @@ class HEREWEGO_API UHItemDefinition : public UPrimaryDataAsset
 public:
 
 	UHItemDefinition()
-		: BaseItemQuality(EHLootQuality::Quality0), Price(0)
+		: BaseItemQuality(EHItemQuality::Quality0), Price(0)
 		  , CanBeStacked(false), MaxStack(1)
 		  , MaxDurability(0), InventorySizeX(1)
 		  , InventorySizeY(1)
@@ -97,7 +97,7 @@ public:
 
 	/** Item Quality */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
-	EHLootQuality BaseItemQuality;
+	TEnumAsByte<EHItemQuality> BaseItemQuality;
 
 	/** Price in game */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)

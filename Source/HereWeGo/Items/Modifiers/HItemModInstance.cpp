@@ -7,7 +7,17 @@
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
 
-void UHItemModInstance::AddToWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance,
+UHItemModDefinition* UHItemModInstance::GetModDefinition() const
+{
+	return ModDef;
+}
+
+float UHItemModInstance::GetModMagnitude() const
+{
+	return Magnitude;
+}
+
+void UHItemModInstance::OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInstance,
                                             FHItemModDef_GrantedHandles* OutGrantedHandles)
 {
 	if (!EquipmentInstance || !ModDef)
@@ -16,7 +26,7 @@ void UHItemModInstance::AddToWeaponInstance(UHModifiedWeaponInstance* EquipmentI
 		return;
 	}
 
-	ModDef->AddModToEquipmentInstance(EquipmentInstance, OutGrantedHandles, Magnitude);
+	ModDef->ApplyToEquipmentInstance(EquipmentInstance, OutGrantedHandles, Magnitude);
 }
 
 //void UHItemModInstance::RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance,

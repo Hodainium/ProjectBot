@@ -9,21 +9,31 @@ struct FHItemModDef_GrantedHandles;
 class UHModifiedWeaponInstance;
 class UHItemModDefinition;
 
-UCLASS()
+UCLASS(BlueprintType)
 class HEREWEGO_API UHItemModInstance : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable)
+	UHItemModDefinition* GetModDefinition() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetModMagnitude() const;
+
+	//TODO eventually make this accept Uobjects and check if they implement a certain interface?
+	void OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* OutGrantedHandles);
+	
+protected:
+
 	/** ItemMod definition. The static data that this instance points to. */
 	UPROPERTY()
-	TObjectPtr<const UHItemModDefinition> ModDef;
+	TObjectPtr<UHItemModDefinition> ModDef;
 
 	UPROPERTY()
 	float Magnitude;
 
-	//TODO eventually make this accept Uobjects and check if they implement a certain interface?
-	void AddToWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* OutGrantedHandles);
+	
 
 	//void RemoveFromWeaponInstance(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* GrantedHandles);
 };

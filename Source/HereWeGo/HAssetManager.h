@@ -7,6 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "HAssetManager.generated.h"
 
+struct FHItemSearchQuery;
 class UHItemDefinition;
 class UHGameData;
 /**
@@ -47,6 +48,10 @@ public:
 	 * @param bDisplayWarning If true, this will log a warning if the item failed to load
 	 */
 	UHItemDefinition* ForceLoadItem(const FPrimaryAssetId& PrimaryAssetId, bool bLogWarning = true);
+
+public:
+
+	void GetAllItemModsMatching(FHItemSearchQuery& SearchQuery, TArray<FAssetData>& OutAssets);
 
 protected:
 

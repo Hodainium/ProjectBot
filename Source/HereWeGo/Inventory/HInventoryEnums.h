@@ -3,17 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HInventoryEnums.generated.h"
 
 /**
  * 
  */
 UENUM(BlueprintType)
-enum class EHLootQuality : uint8
+enum class EHItemQuality : uint8
 {
 	Quality0,
 	Quality1,
 	Quality2,
 	Quality3,
 	Quality4,
-	Quality5
+	Quality5,
+	Count UMETA(Hidden)
 };
+ENUM_RANGE_BY_COUNT(EHItemQuality, EHItemQuality::Count);

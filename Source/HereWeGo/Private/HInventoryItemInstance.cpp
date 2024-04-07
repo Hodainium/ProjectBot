@@ -116,7 +116,7 @@ int32 UHInventoryItemInstance::GetMaxStack() const
 	return INDEX_NONE;
 }
 
-EHLootQuality UHInventoryItemInstance::GetItemQuality() const
+EHItemQuality UHInventoryItemInstance::GetItemQuality() const
 {
 	return ItemQuality;
 }
@@ -168,7 +168,7 @@ void UHInventoryItemInstance::SetItemDef(UHItemDefinition* InDef)
 	ItemDefinition = InDef;
 }
 
-void UHInventoryItemInstance::SetItemQuality(EHLootQuality InQuality)
+void UHInventoryItemInstance::SetItemQuality(EHItemQuality InQuality)
 {
 	ItemQuality = InQuality;
 }

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AsyncMixin.h"
+#include "GameplayTagContainer.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LootGenGameInstanceSubsystem.generated.h"
 
-enum class EHLootQuality : uint8;
+enum class EHItemQuality : uint8;
 class UHItemDefinition;
 class UHInventoryItemInstance;
 
@@ -51,6 +52,8 @@ public:
 
 	FName GetRandomAdjectiveRowKey();
 
+	int GenerateNumMods(EHItemQuality InQuality);
+
 	FText GetAdjectiveForKey(FName InKey);
 
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
@@ -63,5 +66,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UDataTable> CachedAdjectiveTable;
 
-	EHLootQuality GenerateLootQuality();
+	EHItemQuality GenerateItemQuality();
+
+	TSet<EHItemQuality> GetBlockedItemQualitiesForRange(EHItemQuality inMin, EHItemQuality inMax);
 };

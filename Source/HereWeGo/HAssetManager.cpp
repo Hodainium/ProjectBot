@@ -56,6 +56,25 @@ UHItemDefinition* UHAssetManager::ForceLoadItem(const FPrimaryAssetId& PrimaryAs
 	return LoadedItem;
 }
 
+void UHAssetManager::GetAllItemModsMatching(FHItemSearchQuery& SearchQuery, TArray<FAssetData>& OutAssets)
+{
+	TArray<FAssetData> ModAssetData;
+	GetPrimaryAssetDataList(FPrimaryAssetType(ItemModItemType), ModAssetData);
+	for (const auto& Asset : ModAssetData)
+	{
+		/*FString OutAllowedTagsString;
+		Asset.GetTagValue("AllowedTags", OutAllowedTagsString);
+		FGameplayTagContainer AllowedTags;
+		AllowedTags.FromExportString(OutAllowedTagsString);
+		if (AllowedTags.HasTag(WeaponTag))
+		{
+			OutAssets.Add(Asset);
+		}*/
+
+		OutAssets.Add(Asset);
+	}
+}
+
 UObject* UHAssetManager::SynchronousLoadAsset(const FSoftObjectPath& AssetPath)
 {
 	if (AssetPath.IsValid())

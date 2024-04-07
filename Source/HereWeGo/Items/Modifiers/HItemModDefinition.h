@@ -10,7 +10,7 @@
 
 //Like fragments but 100% different. These define the base of mnodifiers we can recieve. Maybe should have their own fragments. 
 
-enum class EHLootQuality : uint8;
+enum class EHItemQuality : uint8;
 class UHAbilitySystemComponent;
 class UHGameplayAbility;
 class UGameplayEffect;
@@ -167,10 +167,13 @@ class HEREWEGO_API UHItemModDefinition : public UPrimaryDataAsset
 public:
 	UHItemModDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	//Need to remove just here for now. The function will just have mag=1
-	void AddModToEquipmentInstance(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude = 1) const;
-
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+
+protected:
+	//Need to remove just here for now. The function will just have mag=1
+	void ApplyToEquipmentInstance(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude = 1) const;
+
+	friend class UHItemModInstance;
 
 public:
 	/** Text that describes the mod */
@@ -185,7 +188,7 @@ public:
 	bool bDisplayInUI = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
-	EHLootQuality Quality;
+	TEnumAsByte<EHItemQuality> Quality;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
 	FGameplayTagContainer AssetTags;

@@ -26,7 +26,7 @@ void UHModifiedWeaponInstance::OnEquipped()
 			if (Mod != nullptr)
 			{
 				FHItemModDef_GrantedHandles GrantedHandles;
-				Mod->AddToWeaponInstance(this, &GrantedHandles);
+				Mod->OnWeaponEquipped(this, &GrantedHandles);
 				AppliedModHandles.Add(GrantedHandles);
 			}
 		}

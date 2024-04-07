@@ -118,7 +118,7 @@ UHItemModDefinition::UHItemModDefinition(const FObjectInitializer& ObjectInitial
 {
 }
 
-void UHItemModDefinition::AddModToEquipmentInstance(UHModifiedWeaponInstance* Instance,
+void UHItemModDefinition::ApplyToEquipmentInstance(UHModifiedWeaponInstance* Instance,
 	FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude) const
 {
 	if (!(Instance->GetPawn() && Instance->GetPawn()->HasAuthority()))
