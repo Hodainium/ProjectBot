@@ -16,6 +16,8 @@ class HEREWEGO_API UHItemModInstance : public UObject
 	GENERATED_BODY()
 
 public:
+	UHItemModInstance();
+
 	UFUNCTION(BlueprintCallable)
 	UHItemModDefinition* GetModDefinition() const;
 
@@ -23,7 +25,7 @@ public:
 	EHItemQuality GetModQuality() const;
 
 	UFUNCTION(BlueprintCallable)
-	float GetModMagnitude() const;
+	float GetModLevel() const;
 
 	//TODO eventually make this accept Uobjects and check if they implement a certain interface?
 	void OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInstance, FHItemModDef_GrantedHandles* OutGrantedHandles);
@@ -32,7 +34,7 @@ protected:
 
 	friend class ULootGenGameInstanceSubsystem;
 
-	void SetModMagnitude(float inMagnitude);
+	void SetModLevelOffset(float inLevelOffset);
 
 	void SetModDefinition(UHItemModDefinition* InDef);
 
@@ -43,7 +45,7 @@ protected:
 	TObjectPtr<UHItemModDefinition> ModDef;
 
 	UPROPERTY()
-	float Magnitude;
+	float LevelOffset;
 
 	UPROPERTY()
 	EHItemQuality ModQuality;

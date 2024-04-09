@@ -9,6 +9,7 @@
 #include "HereWeGo/DeveloperSettings/HLootSettings.h"
 #include "HereWeGo/Items/LootGen/HItemAssetFilter.h"
 #include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
+#include "HereWeGo/Items/Modifiers/HItemModInstance.h"
 #include "Logging/StructuredLog.h"
 
 DEFINE_LOG_CATEGORY(LogHLootSubsystem);
@@ -93,61 +94,16 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 		Instance->SetItemAdjectiveText(RowKey);
 	}
 
-	GenerateModsForItemInstance(Instance);
-
 	return Instance;
 }
 
-void ULootGenGameInstanceSubsystem::GenerateModsForItemInstance(UHInventoryItemInstance* ItemInstance)
+void ULootGenGameInstanceSubsystem::GetCompatibleModAssetsForItemInstance(UHInventoryItemInstance* ItemInstance,
+                                                                          TArray<FAssetData>& OutDataArray)
 {
-	//Generate mods here
-
-	int numMods = GenerateNumMods(ItemInstance->GetItemQuality());
-	UE_LOGFMT(LogHLootSubsystem, Warning, "Num mods produced: {num}", numMods);
-
 	FHItemSearchQuery Query = FHItemSearchQuery();
-	TArray<FAssetData> ModAssetData;
+	//Query.BlockedModQualities = GetBlockedItemQualitiesForRange(EHItemQuality::Quality0, ItemInstance->GetItemQuality());
 
-	UHAssetManager::Get().GetAllItemModsMatching(Query, ModAssetData);
-
-	TArray<FAssetData> SelectedMods;
-
-	for (int i = 0; i < numMods; i++) //const auto& Data : ModAssetData
-	{
-		UE_LOGFMT(LogHLootSubsystem, Warning, "Found mod: {mod}", ModAssetData[i].AssetName);
-
-		//EHItemQuality ModQuality = GenerateItemQuality();
-
-		//Pick random indexes here
-
-		int randIndex = FMath::RandRange(0, ModAssetData.Num()-1);
-
-		SelectedMods.Add(ModAssetData[randIndex]);
-		ModAssetData.RemoveAt(randIndex);
-	}
-
-	//TODO Sync load for now the mods are extremely small right now. We can change later need be. But mods and weapons should be ready to be sync loaded at any point
-
-	/*for (const auto& Data : SelectedMods)
-	{
-		UE_LOGFMT(LogHLootSubsystem, Warning, "Found mod: {mod}", Data.AssetName);
-
-		FPrimaryAssetId AssetID = Data.GetPrimaryAssetId();
-
-		if (AssetID.IsValid())
-		{
-			AsyncLoad(AssetID, [this, AssetID]() {
-				if (UHItemModDefinition* ModDef = UHAssetManager::GetPrimaryAssetObject(AssetID))
-				{
-
-				}
-			});
-			StartAsyncLoading();
-		}
-	}*/
-
-	EHItemQuality ModQuality = GenerateItemQuality();
-
+	UHAssetManager::Get().GetAllItemModsMatching(Query, OutDataArray);
 }
 
 void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate)
@@ -155,11 +111,72 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 	// Async load the indicator, and pool the results so that it's easy to use and reuse the widgets.
 	if (!ItemDefRef.IsNull())
 	{
-		AsyncLoad(ItemDefRef, [this, ItemDefRef, Delegate]() {
+		AsyncLoad(ItemDefRef, [this, ItemDefRef, Delegate]() 
+		{
 			if (UHItemDefinition* ItemDef = ItemDefRef.Get())
 			{
-				UHInventoryItemInstance* GeneratedInstance = GenerateItemInstance(ItemDef);
-				Delegate.ExecuteIfBound(GeneratedInstance);
+				UHInventoryItemInstance* WeaponInstance = GenerateItemInstance(ItemDef);
+
+				TArray<FAssetData> TotalModData;
+				GetCompatibleModAssetsForItemInstance(WeaponInstance, TotalModData);
+
+				TArray<FPrimaryAssetId> SelectedModIDs;
+				TArray<EHItemQuality> SelectedQualities;
+
+				int numMods = GenerateNumMods(WeaponInstance->GetItemQuality()); 
+
+				for (int i = 0; i < numMods; i++)
+				{
+					bool bModFound = false;
+
+					EHItemQuality RolledModQuality = GenerateItemQuality(); //GenRarity()
+
+					int j = 0;
+
+					do
+					{ 
+						int maxIndex = TotalModData.Num() - 1 - j;
+						int randIndex = FMath::RandRange(0, maxIndex);
+
+						////Item quality
+						//TSet<EHItemQuality> OutQualities;
+						//TotalModData[randIndex].GetTagValue("AvailableQualities", OutQualities);
+						//TODO Tset doesnt work will need to do bitmap
+
+						//if(OutQualities.Contains(RolledModQuality))
+						//{
+						//	
+						//}
+
+						TotalModData.Swap(randIndex, TotalModData.Num() - 1 - j);
+						SelectedModIDs.Add(TotalModData[randIndex].GetPrimaryAssetId());
+						SelectedQualities.Add(RolledModQuality);
+						bModFound = true;
+
+						UE_LOGFMT(LogHLootSubsystem, Warning, "Mod found!!!");
+
+					} while (!bModFound && j < TotalModData.Num());
+				}
+
+				TArray<FName> Bundles;
+
+				AsyncPreloadPrimaryAssetsAndBundles(SelectedModIDs, Bundles, [this, SelectedModIDs, SelectedQualities, WeaponInstance, Delegate]()
+				{
+					for (int i = 0; i < SelectedModIDs.Num(); i++)
+					{
+						if (UHItemModDefinition* ModDef = Cast<UHItemModDefinition>(UHAssetManager::Get().GetPrimaryAssetObject(SelectedModIDs[i])))
+						{
+							UHItemModInstance* ModInstance = NewObject<UHItemModInstance>(WeaponInstance);  //@TODO: Using the actor instead of component as the outer due to UE-127172
+							ModInstance->SetModDefinition(ModDef);
+							ModInstance->SetModQuality(SelectedQualities[i]);
+
+							//ModInstance->SetModLevelOffset();
+							WeaponInstance->AddItemMod(ModInstance);
+						}
+					}
+					Delegate.ExecuteIfBound(WeaponInstance);
+				});
+				StartAsyncLoading();
 			}
 		});
 		StartAsyncLoading();

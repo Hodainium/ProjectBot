@@ -23,6 +23,21 @@ class UHItemModFragment;
 // DefaultToInstanced, EditInlineNew, Abstract
 
 USTRUCT(BlueprintType)
+struct FHItemModDef_MagnitudeDisplay
+{
+	GENERATED_BODY()
+
+public:
+	// Effect index in modDef
+	UPROPERTY(EditDefaultsOnly)
+	int32 ArrayIndex = 0;
+
+	// Magnitude index within effect
+	UPROPERTY(EditDefaultsOnly)
+	int32 MagnitudeIndex = 0;
+};
+
+USTRUCT(BlueprintType)
 struct FHItemModDef_GameplayAbility
 {
 	GENERATED_BODY()
@@ -169,6 +184,8 @@ public:
 
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
 
+	float GetDisplayMagnitude(float InLevel = 0.f);
+
 protected:
 	//Need to remove just here for now. The function will just have mag=1
 	void ApplyToEquipmentInstance(UHModifiedWeaponInstance* Instance, FHItemModDef_GrantedHandles* OutGrantedHandles, int Magnitude = 1) const;
@@ -186,6 +203,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	bool bDisplayInUI = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (ToolTip = "This is also the fallback value in case getting a magnitude fails"))
+	float DefaultDisplayMagnitude = -1.;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (InlineEditConditionToggle))
+	bool bUseGEMagnitude = false;
+
+	UPROPERTY(EditAnywhere, Category = "UI", meta = (EditCondition = "bUseGEMagnitude"))
+	FHItemModDef_MagnitudeDisplay EffectDisplayMagnitudeIndex;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
 	TSet<EHItemQuality> AvailableQualities;

@@ -3,9 +3,16 @@
 
 #include "HItemModInstance.h"
 
+#include "HItemDefinition.h"
 #include "HItemModDefinition.h"
 #include "HLogChannels.h"
 #include "Logging/StructuredLog.h"
+
+UHItemModInstance::UHItemModInstance() 
+{
+	ModQuality = EHItemQuality::Quality0;
+	LevelOffset = 0;
+}
 
 UHItemModDefinition* UHItemModInstance::GetModDefinition() const
 {
@@ -17,9 +24,9 @@ EHItemQuality UHItemModInstance::GetModQuality() const
 	return ModQuality;
 }
 
-float UHItemModInstance::GetModMagnitude() const
+float UHItemModInstance::GetModLevel() const
 {
-	return Magnitude;
+	return static_cast<int>(ModQuality) + 1 + LevelOffset;
 }
 
 void UHItemModInstance::OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInstance,
@@ -31,12 +38,12 @@ void UHItemModInstance::OnWeaponEquipped(UHModifiedWeaponInstance* EquipmentInst
 		return;
 	}
 
-	ModDef->ApplyToEquipmentInstance(EquipmentInstance, OutGrantedHandles, Magnitude);
+	ModDef->ApplyToEquipmentInstance(EquipmentInstance, OutGrantedHandles, GetModLevel());
 }
 
-void UHItemModInstance::SetModMagnitude(float inMagnitude)
+void UHItemModInstance::SetModLevelOffset(float inLevelOffset)
 {
-	Magnitude = inMagnitude;
+	LevelOffset = inLevelOffset;
 }
 
 void UHItemModInstance::SetModDefinition(UHItemModDefinition* InDef)

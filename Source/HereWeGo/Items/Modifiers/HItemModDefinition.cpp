@@ -236,3 +236,26 @@ FPrimaryAssetId UHItemModDefinition::GetPrimaryAssetId() const
 {
 	return FPrimaryAssetId(UHAssetManager::ItemModItemType, GetFName());
 }
+
+float UHItemModDefinition::GetDisplayMagnitude(float InLevel)
+{
+	if(bUseGEMagnitude)
+	{
+		if(GameplayEffectsToGrant.IsValidIndex(EffectDisplayMagnitudeIndex.ArrayIndex))
+		{
+			if (const UGameplayEffect* GE = GetDefault<UGameplayEffect>(GameplayEffectsToGrant[EffectDisplayMagnitudeIndex.ArrayIndex].GameplayEffect))
+			{
+				if(GE->Modifiers.IsValidIndex(EffectDisplayMagnitudeIndex.MagnitudeIndex))
+				{
+					float outMag;
+					if (GE->Modifiers[EffectDisplayMagnitudeIndex.MagnitudeIndex].ModifierMagnitude.GetStaticMagnitudeIfPossible(InLevel, outMag))
+					{
+						return outMag;
+					}
+				}
+			}
+		}
+	}
+
+	return DefaultDisplayMagnitude;
+}

@@ -60,7 +60,7 @@ public:
 	UHInventoryItemInstance* GenerateItemInstance(UHItemDefinition* ItemDef);
 
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem")
-	void GenerateModsForItemInstance(UHInventoryItemInstance* ItemInstance);
+	void GetCompatibleModAssetsForItemInstance(UHInventoryItemInstance* ItemInstance, TArray<FAssetData>& OutDataArray);
 
 	UFUNCTION(BlueprintCallable, Category = "LootGenSystem", meta = (AutoCreateRefTerm = "Delegate"))
 	void GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate);
