@@ -123,7 +123,9 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 				TArray<FPrimaryAssetId> SelectedModIDs;
 				TArray<EHItemQuality> SelectedQualities;
 
-				int numMods = GenerateNumMods(WeaponInstance->GetItemQuality()); 
+				int numMods = GenerateNumMods(WeaponInstance->GetItemQuality()) + 1; //TODO: Make a cvar
+
+				UE_LOGFMT(LogHLootSubsystem, Warning, "Num mods: {0}", numMods);
 
 				for (int i = 0; i < numMods; i++)
 				{

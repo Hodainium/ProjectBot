@@ -24,6 +24,15 @@ EHItemQuality UHItemModInstance::GetModQuality() const
 	return ModQuality;
 }
 
+float UHItemModInstance::GetDisplayMagnitude() const
+{
+	if(ModDef)
+	{
+		return ModDef->GetDisplayMagnitude(GetModLevel());
+	}
+	return -2;
+}
+
 float UHItemModInstance::GetModLevel() const
 {
 	return static_cast<int>(ModQuality) + 1 + LevelOffset;

@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EHItemQuality GetModQuality() const;
 
+	UFUNCTION(BlueprintCallable, Category="Mods|Display")
+	float GetDisplayMagnitude() const;
+
 	UFUNCTION(BlueprintCallable)
 	float GetModLevel() const;
 
