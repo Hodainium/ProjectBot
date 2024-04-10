@@ -6,6 +6,7 @@
 #include "HItemDefinition.h"
 #include "HLogChannels.h"
 #include "HGameData.h"
+#include "Items/Modifiers/HItemModDefinition.h"
 #include "Logging/StructuredLog.h"
 #include "Misc/ScopedSlowTask.h"
 
@@ -67,27 +68,29 @@ void UHAssetManager::GetAllItemModsMatching(FHItemSearchQuery& SearchQuery, TArr
 		//EHItemQuality OutQuality;
 		//Asset.GetTagValue("Quality", OutQuality);
 
+		
+
 		//Asset tags
 		FString OutAssetTagsString;
-		Asset.GetTagValue("AssetTags", OutAssetTagsString);
+		Asset.GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AssetTags), OutAssetTagsString);
 		FGameplayTagContainer AssetTags;
 		AssetTags.FromExportString(OutAssetTagsString);
 
 		//Tags to grant during query
 		FString OutTagsToGrantDuringQueryString;
-		Asset.GetTagValue("TagsToGrantDuringQuery", OutTagsToGrantDuringQueryString);
+		Asset.GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, TagsToGrantDuringQuery), OutTagsToGrantDuringQueryString);
 		FGameplayTagContainer TagsToGrantDuringQuery;
 		TagsToGrantDuringQuery.FromExportString(OutAssetTagsString);
 
 		//Required tags
 		FString OutRequiredTagsString;
-		Asset.GetTagValue("RequiredTags", OutRequiredTagsString);
+		Asset.GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, RequiredTags), OutRequiredTagsString);
 		FGameplayTagContainer RequiredTags;
 		RequiredTags.FromExportString(OutRequiredTagsString);
 
 		//Blocked tags
 		FString OutBlockedTagsString;
-		Asset.GetTagValue("BlockedTags", OutBlockedTagsString);
+		Asset.GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, BlockedTags), OutBlockedTagsString);
 		FGameplayTagContainer BlockedTags;
 		BlockedTags.FromExportString(OutBlockedTagsString);
 

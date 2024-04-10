@@ -100,10 +100,7 @@ UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHI
 void ULootGenGameInstanceSubsystem::GetCompatibleModAssetsForItemInstance(UHInventoryItemInstance* ItemInstance,
                                                                           TArray<FAssetData>& OutDataArray)
 {
-	FHItemSearchQuery Query = FHItemSearchQuery();
-	//Query.BlockedModQualities = GetBlockedItemQualitiesForRange(EHItemQuality::Quality0, ItemInstance->GetItemQuality());
-
-	UHAssetManager::Get().GetAllItemModsMatching(Query, OutDataArray);
+	
 }
 
 void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectPtr<UHItemDefinition> ItemDefRef, const FHItemInstanceGenerated& Delegate)
@@ -118,20 +115,24 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 				UHInventoryItemInstance* WeaponInstance = GenerateItemInstance(ItemDef);
 
 				TArray<FAssetData> TotalModData;
-				GetCompatibleModAssetsForItemInstance(WeaponInstance, TotalModData);
+
+				FHItemSearchQuery Query = FHItemSearchQuery();
+				//Query.BlockedModQualities = GetBlockedItemQualitiesForRange(EHItemQuality::Quality0, ItemInstance->GetItemQuality());
+				UHAssetManager::Get().GetAllItemModsMatching(Query, TotalModData);
 
 				TArray<FPrimaryAssetId> SelectedModIDs;
 				TArray<EHItemQuality> SelectedQualities;
 
-				int numMods = GenerateNumMods(WeaponInstance->GetItemQuality()) + 1; //TODO: Make a cvar
+				int numMods = GenerateNumMods(WeaponInstance->GetItemQuality()); // +1 TODO: Make this a cvar
 
 				UE_LOGFMT(LogHLootSubsystem, Warning, "Num mods: {0}", numMods);
 
+				//Find mods to add
 				for (int i = 0; i < numMods; i++)
 				{
 					bool bModFound = false;
 
-					EHItemQuality RolledModQuality = GenerateItemQuality(); //GenRarity()
+					EHItemQuality RolledModQuality = GenerateItemQuality(EHItemQuality::Quality0, WeaponInstance->GetItemQuality()); //GenRarity()
 
 					int j = 0;
 
@@ -140,9 +141,10 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 						int maxIndex = TotalModData.Num() - 1 - j;
 						int randIndex = FMath::RandRange(0, maxIndex);
 
-						////Item quality
-						//TSet<EHItemQuality> OutQualities;
-						//TotalModData[randIndex].GetTagValue("AvailableQualities", OutQualities);
+						//Item quality
+						//FHItemModDef_QualityRange OutQualities;
+						//TotalModData[randIndex].GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AvailableQualities), OutQualities);
+						
 						//TODO Tset doesnt work will need to do bitmap
 
 						//if(OutQualities.Contains(RolledModQuality))
@@ -185,21 +187,22 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 	}
 }
 
-EHItemQuality ULootGenGameInstanceSubsystem::GenerateItemQuality()
+EHItemQuality ULootGenGameInstanceSubsystem::GenerateItemQuality(EHItemQuality MinQuality, EHItemQuality MaxQuality)
 {
 	//Can this be an int?
 	float randNum = FMath::RandRange(0.f, 100.f);
 
-	EHItemQuality ItemQuality = EHItemQuality::Quality0;
+	EHItemQuality ItemQuality;
 
 	//Maybe move to function. GetItemQualityForVal(randNum)?
 	//This will need to be more extendable to allow for items like the isaac sacred orb that enhances item rolls
+	//TODO add addition here for each weight. EX: randum < 1f + q4extraWeight
 
-	if (randNum < 1.f)
+	if (randNum < 1.f) //+ extra q4 weight
 	{
 		ItemQuality = EHItemQuality::Quality4;
 	}
-	else if (randNum < 7.77f)
+	else if (randNum < 7.77f) //+ extra q4 weight + extra q3 weight?
 	{
 		ItemQuality = EHItemQuality::Quality3;
 	}
@@ -214,6 +217,16 @@ EHItemQuality ULootGenGameInstanceSubsystem::GenerateItemQuality()
 	else
 	{
 		ItemQuality = EHItemQuality::Quality0;
+	}
+
+	if (ItemQuality < MinQuality)
+	{
+		ItemQuality = MinQuality;
+	}
+
+	if(ItemQuality > MaxQuality)
+	{
+		ItemQuality = MaxQuality;
 	}
 
 	return ItemQuality;

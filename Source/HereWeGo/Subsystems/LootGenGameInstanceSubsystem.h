@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AsyncMixin.h"
 #include "GameplayTagContainer.h"
+#include "HItemDefinition.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LootGenGameInstanceSubsystem.generated.h"
 
@@ -69,7 +70,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UDataTable> CachedAdjectiveTable;
 
-	EHItemQuality GenerateItemQuality();
+	EHItemQuality GenerateItemQuality(EHItemQuality MinQuality = EHItemQuality::Quality0, EHItemQuality MaxQuality = EHItemQuality::Quality5);
 
 	TSet<EHItemQuality> GetBlockedItemQualitiesForRange(EHItemQuality inMin, EHItemQuality inMax);
 };

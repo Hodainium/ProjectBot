@@ -23,6 +23,24 @@ class UHItemModFragment;
 // DefaultToInstanced, EditInlineNew, Abstract
 
 USTRUCT(BlueprintType)
+struct FHItemModDef_QualityRange
+{
+	GENERATED_BODY()
+
+public:
+	FHItemModDef_QualityRange(): SpawnQ0(false), SpawnQ1(false), SpawnQ2(false), SpawnQ3(false), SpawnQ4(false), SpawnQ5(false)
+	{
+	}
+
+	bool SpawnQ0;
+	bool SpawnQ1;
+	bool SpawnQ2;
+	bool SpawnQ3;
+	bool SpawnQ4;
+	bool SpawnQ5;
+};
+
+USTRUCT(BlueprintType)
 struct FHItemModDef_MagnitudeDisplay
 {
 	GENERATED_BODY()
@@ -214,7 +232,7 @@ public:
 	FHItemModDef_MagnitudeDisplay EffectDisplayMagnitudeIndex;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
-	TSet<EHItemQuality> AvailableQualities;
+	FHItemModDef_QualityRange AvailableQualities;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable, Category = "Tags")
 	FGameplayTagContainer AssetTags;
