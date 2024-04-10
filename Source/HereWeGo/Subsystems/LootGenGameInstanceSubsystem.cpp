@@ -128,6 +128,8 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 
 				UE_LOGFMT(LogHLootSubsystem, Warning, "Num mods: {0}", numMods);
 
+				
+				
 				//Find mods to add
 				for (int i = 0; i < numMods; i++)
 				{
@@ -135,32 +137,35 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 
 					EHItemQuality RolledModQuality = GenerateItemQuality(EHItemQuality::Quality0, WeaponInstance->GetItemQuality()); //GenRarity()
 
-					int j = 0;
+					int offsetFromEndIdx = 0;
 
 					do
 					{ 
-						int maxIndex = TotalModData.Num() - 1 - j;
-						int randIndex = FMath::RandRange(0, maxIndex);
+						int maxIndex = TotalModData.Num() - 1 - offsetFromEndIdx;
+						int currentIndex = FMath::RandRange(0, maxIndex);
 
 						//Item quality
 						FString OutQualitiesString;
-						TotalModData[randIndex].GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AvailableQualities), OutQualitiesString);
+						TotalModData[currentIndex].GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AvailableQualities), OutQualitiesString);
 						FGameplayTagContainer QualityTags;
 						QualityTags.FromExportString(OutQualitiesString);
 
 						if(QualityTags.HasTag(ConvertQualityEnumToTag(RolledModQuality)))
 						{
-							TotalModData.Swap(randIndex, TotalModData.Num() - 1 - j);
-							SelectedModIDs.Add(TotalModData[randIndex].GetPrimaryAssetId());
+							SelectedModIDs.Add(TotalModData[currentIndex].GetPrimaryAssetId());
 							SelectedQualities.Add(RolledModQuality);
+							TotalModData.RemoveAt(currentIndex);
 							bModFound = true;
 
 							UE_LOGFMT(LogHLootSubsystem, Warning, "Mod found!!!");
 						}
+						else
+						{
+							TotalModData.Swap(currentIndex, maxIndex);
 
-						j++;
-
-					} while (!bModFound && j < TotalModData.Num());
+							offsetFromEndIdx++;
+						}
+					} while (!bModFound && offsetFromEndIdx < TotalModData.Num());
 				}
 
 				TArray<FName> Bundles;
