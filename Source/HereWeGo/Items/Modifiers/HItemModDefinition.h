@@ -30,11 +30,7 @@ struct FHItemModDef_MagnitudeDisplay
 public:
 	// Effect index in modDef
 	UPROPERTY(EditDefaultsOnly)
-	int32 ArrayIndex = 0;
-
-	// Magnitude index within effect
-	UPROPERTY(EditDefaultsOnly)
-	int32 MagnitudeIndex = 0;
+	int32 DisplayGEIndex = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -204,7 +200,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	bool bDisplayInUI = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (ToolTip = "This is also the fallback value in case getting a magnitude fails"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (ToolTip = "This is also the default value but also a fallback if magnitude fails"))
 	float DefaultDisplayMagnitude = -1.;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (InlineEditConditionToggle))

@@ -6,6 +6,7 @@
 #include "HAbilitySystemComponent.h"
 #include "HLogChannels.h"
 #include "HereWeGo/HAssetManager.h"
+#include "HereWeGo/GameplayEffects/HGameplayEffectUIData_Magnitude.h"
 #include "HereWeGo/Items/Equipment/Instances/HModifiedWeaponInstance.h"
 #include "Logging/StructuredLog.h"
 
@@ -241,18 +242,23 @@ float UHItemModDefinition::GetDisplayMagnitude(float InLevel)
 {
 	if(bUseGEMagnitude)
 	{
-		if(GameplayEffectsToGrant.IsValidIndex(EffectDisplayMagnitudeIndex.ArrayIndex))
+		if(GameplayEffectsToGrant.IsValidIndex(EffectDisplayMagnitudeIndex.DisplayGEIndex))
 		{
-			if (const UGameplayEffect* GE = GetDefault<UGameplayEffect>(GameplayEffectsToGrant[EffectDisplayMagnitudeIndex.ArrayIndex].GameplayEffect))
+			if (const UGameplayEffect* GE = GetDefault<UGameplayEffect>(GameplayEffectsToGrant[EffectDisplayMagnitudeIndex.DisplayGEIndex].GameplayEffect))
 			{
-				if(GE->Modifiers.IsValidIndex(EffectDisplayMagnitudeIndex.MagnitudeIndex))
+				if(const UHGameplayEffectUIData_Magnitude* DataComp = GE->FindComponent<UHGameplayEffectUIData_Magnitude>())
 				{
-					float outMag;
-					if (GE->Modifiers[EffectDisplayMagnitudeIndex.MagnitudeIndex].ModifierMagnitude.GetStaticMagnitudeIfPossible(InLevel, outMag))
-					{
-						return outMag;
-					}
+					return DataComp->DisplayMagnitude.GetValueAtLevel(InLevel);
 				}
+
+				//if(GE->Modifiers.IsValidIndex(EffectDisplayMagnitudeIndex.MagnitudeIndex))
+				//{
+				//	float outMag;
+				//	if (GE->Modifiers[EffectDisplayMagnitudeIndex.MagnitudeIndex].ModifierMagnitude.GetStaticMagnitudeIfPossible(InLevel, outMag))
+				//	{
+				//		return outMag;
+				//	}
+				//}
 			}
 		}
 	}

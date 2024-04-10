@@ -65,7 +65,7 @@ FName ULootGenGameInstanceSubsystem::GetRandomAdjectiveRowKey()
 
 int ULootGenGameInstanceSubsystem::GenerateNumMods(EHItemQuality InQuality)
 {
-	return FMath::RandRange(static_cast<int>(InQuality) / 2, static_cast<int>(InQuality) + 1);
+	return FMath::RandRange((static_cast<int>(InQuality) + 1) / 2, static_cast<int>(InQuality) + 1);
 }
 
 UHInventoryItemInstance* ULootGenGameInstanceSubsystem::GenerateItemInstance(UHItemDefinition* ItemDef)
@@ -135,7 +135,11 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 				{
 					bool bModFound = false;
 
-					EHItemQuality RolledModQuality = GenerateItemQuality(EHItemQuality::Quality0, WeaponInstance->GetItemQuality()); //GenRarity()
+					//static_cast<EHItemQuality>((static_cast<int>(WeaponInstance->GetItemQuality()) + 1))
+
+					EHItemQuality MinQuality = static_cast<EHItemQuality>(static_cast<int>(WeaponInstance->GetItemQuality()) / 2);
+
+					EHItemQuality RolledModQuality = GenerateItemQuality(MinQuality, WeaponInstance->GetItemQuality()); //GenRarity()
 
 					int offsetFromEndIdx = 0;
 
