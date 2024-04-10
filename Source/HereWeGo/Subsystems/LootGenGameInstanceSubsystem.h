@@ -72,5 +72,5 @@ protected:
 
 	EHItemQuality GenerateItemQuality(EHItemQuality MinQuality = EHItemQuality::Quality0, EHItemQuality MaxQuality = EHItemQuality::Quality5);
 
-	TSet<EHItemQuality> GetBlockedItemQualitiesForRange(EHItemQuality inMin, EHItemQuality inMax);
+	FGameplayTag ConvertQualityEnumToTag(EHItemQuality InQuality);
 };

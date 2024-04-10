@@ -10,6 +10,7 @@
 #include "HereWeGo/Items/LootGen/HItemAssetFilter.h"
 #include "HereWeGo/Items/Modifiers/HItemModDefinition.h"
 #include "HereWeGo/Items/Modifiers/HItemModInstance.h"
+#include "HereWeGo/Tags/H_Tags.h"
 #include "Logging/StructuredLog.h"
 
 DEFINE_LOG_CATEGORY(LogHLootSubsystem);
@@ -142,22 +143,22 @@ void ULootGenGameInstanceSubsystem::GenerateItemInstanceFromSoftDel(TSoftObjectP
 						int randIndex = FMath::RandRange(0, maxIndex);
 
 						//Item quality
-						//FHItemModDef_QualityRange OutQualities;
-						//TotalModData[randIndex].GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AvailableQualities), OutQualities);
-						
-						//TODO Tset doesnt work will need to do bitmap
+						FString OutQualitiesString;
+						TotalModData[randIndex].GetTagValue(GET_MEMBER_NAME_CHECKED(UHItemModDefinition, AvailableQualities), OutQualitiesString);
+						FGameplayTagContainer QualityTags;
+						QualityTags.FromExportString(OutQualitiesString);
 
-						//if(OutQualities.Contains(RolledModQuality))
-						//{
-						//	
-						//}
+						if(QualityTags.HasTag(ConvertQualityEnumToTag(RolledModQuality)))
+						{
+							TotalModData.Swap(randIndex, TotalModData.Num() - 1 - j);
+							SelectedModIDs.Add(TotalModData[randIndex].GetPrimaryAssetId());
+							SelectedQualities.Add(RolledModQuality);
+							bModFound = true;
 
-						TotalModData.Swap(randIndex, TotalModData.Num() - 1 - j);
-						SelectedModIDs.Add(TotalModData[randIndex].GetPrimaryAssetId());
-						SelectedQualities.Add(RolledModQuality);
-						bModFound = true;
+							UE_LOGFMT(LogHLootSubsystem, Warning, "Mod found!!!");
+						}
 
-						UE_LOGFMT(LogHLootSubsystem, Warning, "Mod found!!!");
+						j++;
 
 					} while (!bModFound && j < TotalModData.Num());
 				}
@@ -232,17 +233,27 @@ EHItemQuality ULootGenGameInstanceSubsystem::GenerateItemQuality(EHItemQuality M
 	return ItemQuality;
 }
 
-TSet<EHItemQuality> ULootGenGameInstanceSubsystem::GetBlockedItemQualitiesForRange(EHItemQuality inMin, EHItemQuality inMax)
+FGameplayTag ULootGenGameInstanceSubsystem::ConvertQualityEnumToTag(EHItemQuality InQuality)
 {
-	TSet<EHItemQuality> OutSet;
-
-	for (EHItemQuality Quality : TEnumRange<EHItemQuality>())
+	switch(InQuality)
 	{
-		if (!(Quality >= inMin && Quality <= inMax))
+	case EHItemQuality::Quality0:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_0;
+	case EHItemQuality::Quality1:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_1;
+	case EHItemQuality::Quality2:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_2;
+	case EHItemQuality::Quality3:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_3;
+	case EHItemQuality::Quality4:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_4;
+	case EHItemQuality::Quality5:
+		return H_ItemQuality_Tags::TAG_ITEM_QUALITY_5;
+	default:
 		{
-			OutSet.Add(Quality);
+			UE_LOGFMT(LogHLootSubsystem, Error, "Invalid or not implemented loot enum passed to generate tag. Giving Q0");
+
+			return H_ItemQuality_Tags::TAG_ITEM_QUALITY_0;
 		}
 	}
-
-	return OutSet;
 }
