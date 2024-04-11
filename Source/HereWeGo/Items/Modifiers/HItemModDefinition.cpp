@@ -240,28 +240,48 @@ FPrimaryAssetId UHItemModDefinition::GetPrimaryAssetId() const
 
 float UHItemModDefinition::GetDisplayMagnitude(float InLevel)
 {
-	if(bUseGEMagnitude)
+	if(bUseCurveMagnitude)
 	{
-		if(GameplayEffectsToGrant.IsValidIndex(EffectDisplayMagnitudeIndex.DisplayGEIndex))
+		if(DisplayMagnitudeInfo.DisplayMagnitude.IsValid())
 		{
-			if (const UGameplayEffect* GE = GetDefault<UGameplayEffect>(GameplayEffectsToGrant[EffectDisplayMagnitudeIndex.DisplayGEIndex].GameplayEffect))
-			{
-				if(const UHGameplayEffectUIData_Magnitude* DataComp = GE->FindComponent<UHGameplayEffectUIData_Magnitude>())
-				{
-					return DataComp->DisplayMagnitude.GetValueAtLevel(InLevel);
-				}
-
-				//if(GE->Modifiers.IsValidIndex(EffectDisplayMagnitudeIndex.MagnitudeIndex))
-				//{
-				//	float outMag;
-				//	if (GE->Modifiers[EffectDisplayMagnitudeIndex.MagnitudeIndex].ModifierMagnitude.GetStaticMagnitudeIfPossible(InLevel, outMag))
-				//	{
-				//		return outMag;
-				//	}
-				//}
-			}
+			return DisplayMagnitudeInfo.DisplayMagnitude.GetValueAtLevel(InLevel);
 		}
+
+		//if(GameplayEffectsToGrant.IsValidIndex(DisplayMagnitudeInfo.DisplayGEIndex))
+		//{
+		//	if (const UGameplayEffect* GE = GetDefault<UGameplayEffect>(GameplayEffectsToGrant[DisplayMagnitudeInfo.DisplayGEIndex].GameplayEffect))
+		//	{
+		//		if(const UHGameplayEffectUIData_Magnitude* DataComp = GE->FindComponent<UHGameplayEffectUIData_Magnitude>())
+		//		{
+		//			return DataComp->DisplayMagnitude.GetValueAtLevel(InLevel);
+		//		}
+
+		//		//if(GE->Modifiers.IsValidIndex(DisplayMagnitudeInfo.MagnitudeIndex))
+		//		//{
+		//		//	float outMag;
+		//		//	if (GE->Modifiers[DisplayMagnitudeInfo.MagnitudeIndex].ModifierMagnitude.GetStaticMagnitudeIfPossible(InLevel, outMag))
+		//		//	{
+		//		//		return outMag;
+		//		//	}
+		//		//}
+		//	}
+		//}
 	}
 
 	return DefaultDisplayMagnitude;
+}
+
+FText UHItemModDefinition::GetModDescription(float inLevel)
+{
+	return FText::Format(Description, GetDisplayMagnitude(inLevel));
+}
+
+EDataValidationResult UHItemModDefinition::IsDataValid(FDataValidationContext& Context) const
+{
+	if(bUseCurveMagnitude && !DisplayMagnitudeInfo.DisplayMagnitude.IsValid())
+	{
+		return EDataValidationResult::Invalid;
+	}
+
+	return Super::IsDataValid(Context);
 }

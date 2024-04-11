@@ -28,9 +28,12 @@ struct FHItemModDef_MagnitudeDisplay
 	GENERATED_BODY()
 
 public:
-	// Effect index in modDef
-	UPROPERTY(EditDefaultsOnly)
-	int32 DisplayGEIndex = 0;
+	//// Effect index in modDef
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	//int32 DisplayGEIndex = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FScalableFloat DisplayMagnitude;
 };
 
 USTRUCT(BlueprintType)
@@ -180,7 +183,13 @@ public:
 
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
 
+	UFUNCTION(BlueprintCallable, Category = "Mods|Definition|Display")
 	float GetDisplayMagnitude(float InLevel = 0.f);
+
+	UFUNCTION(BlueprintCallable, Category="Mods|Definition|Display")
+	FText GetModDescription(float inLevel = 0.f);
+
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
 protected:
 	//Need to remove just here for now. The function will just have mag=1
@@ -204,10 +213,10 @@ public:
 	float DefaultDisplayMagnitude = -1.;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (InlineEditConditionToggle))
-	bool bUseGEMagnitude = false;
+	bool bUseCurveMagnitude = false;
 
-	UPROPERTY(EditAnywhere, Category = "UI", meta = (EditCondition = "bUseGEMagnitude"))
-	FHItemModDef_MagnitudeDisplay EffectDisplayMagnitudeIndex;
+	UPROPERTY(EditAnywhere, Category = "UI", meta = (EditCondition = "bUseCurveMagnitude"))
+	FHItemModDef_MagnitudeDisplay DisplayMagnitudeInfo;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, AssetRegistrySearchable ,Category = "Quality", meta = (Categories = "Item.Quality"))
 	FGameplayTagContainer AvailableQualities;

@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Mods|Display")
 	float GetDisplayMagnitude() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Mods|Display")
+	FText GetDisplayDescription() const;
+
 	UFUNCTION(BlueprintCallable)
 	float GetModLevel() const;
 

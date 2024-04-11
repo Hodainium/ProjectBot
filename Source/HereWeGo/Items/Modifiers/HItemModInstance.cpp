@@ -33,6 +33,16 @@ float UHItemModInstance::GetDisplayMagnitude() const
 	return -2;
 }
 
+FText UHItemModInstance::GetDisplayDescription() const
+{
+	if (ModDef)
+	{
+		return ModDef->GetModDescription(GetModLevel());
+	}
+
+	return FText::GetEmpty();
+}
+
 float UHItemModInstance::GetModLevel() const
 {
 	return static_cast<int>(ModQuality) + 1 + LevelOffset;
