@@ -57,6 +57,9 @@ void UHItemSlotComponent::CycleActiveSlotForward(EHInventorySlotType SlotType)
 			return;
 		}
 	} while (NewIndex != OldIndex);
+
+	//Get an empty slot. No other occupied slots are available
+	SetActiveSlotIndexForEnum(SlotType, GetNextFreeItemSlot(SlotType));
 }
 
 void UHItemSlotComponent::CycleActiveSlotBackward(EHInventorySlotType SlotType)
@@ -79,6 +82,9 @@ void UHItemSlotComponent::CycleActiveSlotBackward(EHInventorySlotType SlotType)
 			return;
 		}
 	} while (NewIndex != OldIndex);
+
+	//Get an empty slot. No other occupied slots are available
+	SetActiveSlotIndexForEnum(SlotType, GetNextFreeItemSlot(SlotType));
 }
 
 void UHItemSlotComponent::SetActiveSlotIndexForEnum_Implementation(EHInventorySlotType SlotType, int32 NewIndex)
@@ -121,35 +127,44 @@ int32 UHItemSlotComponent::GetNextFreeItemSlot(EHInventorySlotType SlotType) con
 	return INDEX_NONE;
 }
 
+void UHItemSlotComponent::SwapSlots_Implementation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex)
+{
+	FHInventorySlotStruct& SourceSlots = GetSlotStructForEnum(SourceIndex.SlotType);
+	FHInventorySlotStruct& TargetSlots = GetSlotStructForEnum(TargetIndex.SlotType);
+
+	if (SourceSlots.SlotArray.IsValidIndex(SourceIndex.SlotIndex) && TargetSlots.SlotArray.IsValidIndex(TargetIndex.SlotIndex))
+	{
+		UHInventoryItemInstance* TempInstance = TargetSlots.SlotArray[TargetIndex.SlotIndex];
+
+		TargetSlots.SlotArray[TargetIndex.SlotIndex] = SourceSlots.SlotArray[SourceIndex.SlotIndex];
+
+		SourceSlots.SlotArray[SourceIndex.SlotIndex] = TempInstance;
+
+		Handle_OnRep_SlotsChanged(SourceIndex.SlotType);
+		Handle_OnRep_SlotsChanged(TargetIndex.SlotType);
+
+		if(SourceSlots.ActiveSlotIndex == SourceIndex.SlotIndex)
+		{
+			UnequipItemInSlot(SourceIndex.SlotType);
+			EquipItemInSlot(SourceIndex.SlotType);
+		}
+
+		if (TargetSlots.ActiveSlotIndex == TargetIndex.SlotIndex)
+		{
+			UnequipItemInSlot(TargetIndex.SlotType);
+			EquipItemInSlot(TargetIndex.SlotType);
+		}
+	}
+}
+
 void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32 InNum)
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
-
-
-	UE_LOGFMT(LogHGame, Warning, "Set num slots 1");
 
 	if(Slots.SlotArray.Num() == InNum)
 	{
 		return;
 	}
-
-	UE_LOGFMT(LogHGame, Warning, "Set num slots 2");
-
-	if (Slots.SlotArray.Num() < InNum)
-	{
-		UE_LOGFMT(LogHGame, Warning, "Set num slots raw {num}", Slots.SlotArray.Num());
-		UE_LOGFMT(LogHGame, Warning, "Set num slots command {num}", InNum);
-		UE_LOGFMT(LogHGame, Warning, "Set num slots less num to remove {num}", InNum - Slots.SlotArray.Num());
-	}
-	else if (Slots.SlotArray.Num() > InNum)
-	{
-		UE_LOGFMT(LogHGame, Warning, "Set num slots greater");
-	}
-	else if (Slots.SlotArray.Num() == InNum)
-	{
-		UE_LOGFMT(LogHGame, Warning, "Set num slots equal");
-	}
-
 
 	if (Slots.SlotArray.Num() < InNum)
 	{
@@ -159,47 +174,41 @@ void UHItemSlotComponent::SetNumSlotsForEnum(EHInventorySlotType SlotType, int32
 	{
 		//Downsizing array not yet implemented
 		UE_LOGFMT(LogHGame, Warning, "Removing items but not yet dropping. Need to implement dropping items");
+		//TODO maybe we can just send a gameplay event because dropping is handled via gas
 
-		for (int i = 0; i < (InNum - Slots.SlotArray.Num()); i++)
+		for (int i = 0; i < (Slots.SlotArray.Num() - InNum); i++)
 		{
+			int currentIdx = Slots.SlotArray.Num() - 1 - i;
+
 			//Should drop items at these indexes
-			Slots.SlotArray[Slots.SlotArray.Num() - i] = nullptr;
-			UE_LOGFMT(LogHGame, Warning, "Removing item at index: {idx}", i);
+			Slots.SlotArray[currentIdx] = nullptr;
 		}
 
 		Slots.SlotArray.SetNum(InNum, true);
-		UE_LOGFMT(LogHGame, Warning, "Set num slots NEw raw size: {size}", Slots.SlotArray.Num());
+
+		//Set active index to be within bounds
+		if(Slots.ActiveSlotIndex >= InNum)
+		{
+			SetActiveSlotIndexForEnum(SlotType, InNum - 1);
+		}
+
+		UE_LOGFMT(LogHGame, Warning, "Set num slots New raw size: {size}", Slots.SlotArray.Num());
 	}
 
 	UE_LOGFMT(LogHGame, Warning, "Num slots requesting size {size}", InNum);
 	UE_LOGFMT(LogHGame, Warning, "Num slots og size {size}", Slots.SlotArray.Num());
 
-	UE_LOGFMT(LogHGame, Warning, "Set num slots 3 INNUM== {NUM}", InNum);
+	UE_LOGFMT(LogHGame, Warning, "Set num slots == {NUM}", InNum);
 
 	Slots.NumSlots = InNum;
 	
 	Handle_OnRep_NumSlotsChanged(SlotType);
+	Handle_OnRep_SlotsChanged(SlotType);
 }
 
 void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 SlotIndex, UHInventoryItemInstance* Item)
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
-
-	UE_LOGFMT(LogHGame, Warning, "At least this is happening");
-
-	UE_LOGFMT(LogHGame, Warning, "size {size}", GetNumSlotsForEnum(EHInventorySlotType::Temporary));
-	UE_LOGFMT(LogHGame, Warning, "direct size {size}", Slots.SlotArray.Num());
-	UE_LOGFMT(LogHGame, Warning, "{idx}", SlotIndex);
-
-	if (Slots.SlotArray.IsValidIndex(SlotIndex))
-	{
-		UE_LOGFMT(LogHGame, Warning, "At least this is happening1");
-	}
-
-	if(Item != nullptr)
-	{
-		UE_LOGFMT(LogHGame, Warning, "At least this is happening2");
-	}
 
 	if (Slots.SlotArray.IsValidIndex(SlotIndex) && (Item != nullptr))
 	{
@@ -218,11 +227,11 @@ UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlot
 
 	UHInventoryItemInstance* Result = nullptr;
 
-	if (Slots.ActiveSlotIndex == SlotIndex)
-	{
-		UnequipItemInSlot(SlotType);
-		Slots.ActiveSlotIndex = -1;
-	}
+	//if (Slots.ActiveSlotIndex == SlotIndex)
+	//{
+	//	UnequipItemInSlot(SlotType);
+	//	//Slots.ActiveSlotIndex = -1;
+	//}
 
 	if (Slots.SlotArray.IsValidIndex(SlotIndex))
 	{
@@ -235,25 +244,16 @@ UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlot
 		}
 	}
 
+	//This should be safe to do after
+	if(Slots.ActiveSlotIndex == SlotIndex)
+	{
+		UnequipItemInSlot(SlotType);
+
+		//Now equip the null weapon
+		EquipItemInSlot(SlotType);
+	}
+
 	return Result;
-}
-
-void UHItemSlotComponent::HandleResizeSlotArrayForEnum(EHInventorySlotType SlotType)
-{
-	//FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
-
-	//if (Slots.SlotArray.Num() < Slots.NumSlots)
-	//{
-	//	Slots.SlotArray.AddDefaulted(Slots.NumSlots - Slots.SlotArray.Num());
-	//}
-	//else if (Slots.SlotArray.Num() == Slots.NumSlots)
-	//{
-	//	//Do nothing
-	//}
-	//else
-	//{
-	//	UE_LOGFMT(LogHGame, Error, "Downsizing array not yet implemented");
-	//}
 }
 
 void UHItemSlotComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -300,11 +300,6 @@ void UHItemSlotComponent::EquipItemInSlot(EHInventorySlotType SlotType)
 				{
 					//Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition);
 					Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition, SlotItem);
-
-					/*if (Slots.EquippedItem != nullptr)
-					{
-						Slots.EquippedItem->SetInstigator(SlotItem);
-					}*/
 				}
 			}
 
@@ -315,21 +310,53 @@ void UHItemSlotComponent::EquipItemInSlot(EHInventorySlotType SlotType)
 			UE_LOG(LogHGame, Error, TEXT("ITEMSLOTCOMP::Bruh you didn't include equipItemInSlot logic. For item: %s"), *SlotItem->GetItemDefinition()->ItemName.ToString());
 		}
 		}
+	}
+	else
+	{
+		//Search null equipment array for valid weapon def if so equip it.
 
-		/*if (const UHInventoryFragment_EquippableItem* EquipInfo = SlotItem->FindFragmentByClass<UHInventoryFragment_EquippableItem>())
+		if(NullEquipmentStack.Num() > 0) 
 		{
-			if (EquipInfo->EquipmentDefinition != nullptr)
+			UHWeaponItemDefinition* NullWeaponDef = nullptr; 
+
+			for(int i = 0; i < NullEquipmentStack.Num(); i++)
+			{
+				if(NullEquipmentStack[NullEquipmentStack.Num() - 1 - i].WeaponDefinition != nullptr)
+				{
+					NullWeaponDef = NullEquipmentStack[NullEquipmentStack.Num() - 1 - i].WeaponDefinition;
+					break;
+				}
+			}
+
+			if(NullWeaponDef)
 			{
 				if (UHEquipmentComponent* EquipmentManager = FindEquipmentComponent())
 				{
-					EquippedItem = EquipmentManager->EquipItem(EquipInfo->EquipmentDefinition);
-					if (EquippedItem != nullptr)
-					{
-						EquippedItem->SetInstigator(SlotItem);
-					}
+					//TODO create variants within null equipment entry for both left and right weapon slot
+
+					//Slots.EquippedItem = EquipmentManager->EquipItem(ItemDef->WeaponDefinition);
+					Slots.EquippedItem = EquipmentManager->EquipItem(NullWeaponDef->WeaponDefinition, SlotItem);
 				}
 			}
-		}*/
+		}
+	}
+}
+
+void UHItemSlotComponent::HandleNullEquipmentChange()
+{
+	FHInventorySlotStruct& LeftSlots = GetSlotStructForEnum(EHInventorySlotType::Weapon_L);
+	FHInventorySlotStruct& RightSlots = GetSlotStructForEnum(EHInventorySlotType::Weapon_R);
+
+	if(LeftSlots.SlotArray.IsValidIndex(LeftSlots.ActiveSlotIndex) && LeftSlots.SlotArray[LeftSlots.ActiveSlotIndex] == nullptr)
+	{
+		UnequipItemInSlot(EHInventorySlotType::Weapon_L);
+		EquipItemInSlot(EHInventorySlotType::Weapon_L);
+	}
+
+	if (RightSlots.SlotArray.IsValidIndex(RightSlots.ActiveSlotIndex) && RightSlots.SlotArray[RightSlots.ActiveSlotIndex] == nullptr)
+	{
+		UnequipItemInSlot(EHInventorySlotType::Weapon_R);
+		EquipItemInSlot(EHInventorySlotType::Weapon_R);
 	}
 }
 
@@ -357,8 +384,6 @@ void UHItemSlotComponent::Handle_OnRep_SlotsChanged(EHInventorySlotType SlotType
 
 void UHItemSlotComponent::Handle_OnRep_NumSlotsChanged(EHInventorySlotType SlotType)
 {
-	HandleResizeSlotArrayForEnum(SlotType);
-
 	FHItemSlotsNumSlotsChangedMessage Message;
 	Message.Owner = GetOwner();
 	Message.NumSlots = GetSlotStructForEnum_Const(SlotType).NumSlots;
@@ -433,6 +458,42 @@ void UHItemSlotComponent::OnRep_SlotStruct_Temporary(FHInventorySlotStruct& Prev
 	{
 		Handle_OnRep_ActiveSlotIndexChanged(EHInventorySlotType::Temporary);
 	}
+}
+
+void UHItemSlotComponent::AddNullEquipment(UHWeaponItemDefinition* InEquipment)
+{
+	bool bFound = false;
+	for (FHNullEquipmentEntry& Entry : NullEquipmentStack)
+	{
+		if(Entry.WeaponDefinition == InEquipment)
+		{
+			Entry.StackNumber += 1;
+			bFound = true;
+			break;
+		}
+	}
+
+	if(!bFound)
+	{
+		NullEquipmentStack.Add(FHNullEquipmentEntry(InEquipment));
+	}
+
+	HandleNullEquipmentChange();
+}
+
+void UHItemSlotComponent::RemoveNullEquipment(UHWeaponItemDefinition* EquipmentToRemove)
+{
+	for (FHNullEquipmentEntry& Entry : NullEquipmentStack)
+	{
+		if (Entry.WeaponDefinition == EquipmentToRemove)
+		{
+			Entry.StackNumber -= 1;
+			HandleNullEquipmentChange();
+			return;
+		}
+	}
+
+	UE_LOGFMT(LogHGame, Error, "Tried to remove null equipment that didnt exist");
 }
 
 //ALSO NEED TO CHANGE CONST VERSION

@@ -105,6 +105,8 @@ public:
 	// Sets default values for this component's properties
 	UHEquipmentComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	UHEquipmentInstance* EquipItem(UHEquipmentDefinition* EquipmentDefinition, UObject* InInstigator);
 

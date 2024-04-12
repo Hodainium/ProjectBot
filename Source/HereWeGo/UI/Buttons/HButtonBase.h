@@ -23,10 +23,18 @@ protected:
 	virtual void NativePreConstruct() override;
 	// End of UUserWidget interface
 
+	// UCommonButtonBase interface
+	virtual void UpdateInputActionWidget() override;
+	virtual void OnInputMethodChanged(ECommonInputType CurrentInputType) override;
+	// End of UCommonButtonBase interface
+
 	void RefreshButtonText();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateButtonText(const FText& InText);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateButtonStyle();
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Button", meta = (InlineEditConditionToggle))

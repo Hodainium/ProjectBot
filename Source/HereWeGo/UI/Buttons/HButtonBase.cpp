@@ -18,6 +18,21 @@ void UHButtonBase::NativePreConstruct()
 	RefreshButtonText();
 }
 
+void UHButtonBase::UpdateInputActionWidget()
+{
+	Super::UpdateInputActionWidget();
+
+	UpdateButtonStyle();
+	RefreshButtonText();
+}
+
+void UHButtonBase::OnInputMethodChanged(ECommonInputType CurrentInputType)
+{
+	Super::OnInputMethodChanged(CurrentInputType);
+
+	UpdateButtonStyle();
+}
+
 void UHButtonBase::RefreshButtonText()
 {
 	if (bOverride_ButtonText || ButtonText.IsEmpty())
