@@ -36,6 +36,7 @@ void UHItemSlotComponent::BeginPlay()
 		SetNumSlotsForEnum(EHInventorySlotType::Weapon_L, WeaponLStartingSlots);
 		SetNumSlotsForEnum(EHInventorySlotType::Weapon_R, WeaponRStartingSlots);
 		SetNumSlotsForEnum(EHInventorySlotType::Temporary, TemporaryStartingSlots);
+		SetNumSlotsForEnum(EHInventorySlotType::Item, ItemStartingSlots);
 	}
 }
 
@@ -281,12 +282,19 @@ UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlot
 	return Result;
 }
 
+bool UHItemSlotComponent::GetIsPendingServerConfirmation()
+{
+	return IsPendingServerConfirmation;
+}
+
 void UHItemSlotComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, SlotStruct_Weapon_L);
 	DOREPLIFETIME(ThisClass, SlotStruct_Weapon_R);
 	DOREPLIFETIME(ThisClass, SlotStruct_Temporary);
+	DOREPLIFETIME(ThisClass, SlotStruct_Item);
+	DOREPLIFETIME(ThisClass, NullEquipmentStack);
 }
 
 void UHItemSlotComponent::UnequipItemInSlot(EHInventorySlotType SlotType)
@@ -485,6 +493,24 @@ void UHItemSlotComponent::OnRep_SlotStruct_Temporary(FHInventorySlotStruct& Prev
 	}
 }
 
+void UHItemSlotComponent::OnRep_SlotStruct_Item(FHInventorySlotStruct& PreviousValue)
+{
+	if (SlotStruct_Temporary.SlotArray != PreviousValue.SlotArray)
+	{
+		Handle_OnRep_SlotsChanged(EHInventorySlotType::Item);
+	}
+
+	if (SlotStruct_Temporary.NumSlots != PreviousValue.NumSlots)
+	{
+		Handle_OnRep_NumSlotsChanged(EHInventorySlotType::Item);
+	}
+
+	if (SlotStruct_Temporary.ActiveSlotIndex != PreviousValue.ActiveSlotIndex)
+	{
+		Handle_OnRep_ActiveSlotIndexChanged(EHInventorySlotType::Item);
+	}
+}
+
 void UHItemSlotComponent::AddNullEquipment(UHWeaponItemDefinition* InEquipment)
 {
 	bool bFound = false;
@@ -532,6 +558,8 @@ FHInventorySlotStruct& UHItemSlotComponent::GetSlotStructForEnum(EHInventorySlot
 		return SlotStruct_Weapon_R;
 	case EHInventorySlotType::Temporary:
 		return SlotStruct_Temporary;
+	case EHInventorySlotType::Item:
+		return SlotStruct_Item;
 	default:
 		{
 			UE_LOGFMT(LogHGame, Error, "Invalid enum in getslotstruct invcomp");
@@ -551,6 +579,8 @@ const FHInventorySlotStruct& UHItemSlotComponent::GetSlotStructForEnum_Const(EHI
 		return SlotStruct_Weapon_R;
 	case EHInventorySlotType::Temporary:
 		return SlotStruct_Temporary;
+	case EHInventorySlotType::Item:
+		return SlotStruct_Item;
 	default:
 	{
 		UE_LOGFMT(LogHGame, Error, "Invalid enum in getslotstruct invcomp");

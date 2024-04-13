@@ -22,9 +22,9 @@ enum class EHInventorySlotType : uint8
 {
 	Weapon_L,
 	Weapon_R,
-	Temporary
+	Temporary,
+	Item
 };
-ENUM_RANGE_BY_FIRST_AND_LAST(EHInventorySlotType, EHInventorySlotType::Weapon_L, EHInventorySlotType::Weapon_R);
 
 USTRUCT(BlueprintType)
 struct FHNullEquipmentEntry
@@ -63,6 +63,21 @@ public:
 	{
 		SlotType = EHInventorySlotType::Weapon_L;
 		SlotIndex = 255;
+	}
+
+	bool operator==(const FHInventorySlotIndex& Other) const
+	{
+		return Equals(Other);
+	}
+
+	bool operator!=(const FHInventorySlotIndex& Other) const
+	{
+		return !Equals(Other);
+	}
+
+	bool Equals(const FHInventorySlotIndex& Other) const
+	{
+		return (SlotType == Other.SlotType) && (SlotIndex == Other.SlotIndex);
 	}
 
 	UPROPERTY(BlueprintReadWrite, Category = Inventory)
@@ -134,6 +149,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	UHInventoryItemInstance* RemoveItemFromSlot(EHInventorySlotType SlotType, int32 SlotIndex);
 
+	UFUNCTION(BlueprintCallable, Category = "ItemSlots|Net")
+	bool GetIsPendingServerConfirmation();
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
@@ -166,7 +184,7 @@ protected:
 	void Client_SwapSlots(bool bWasSuccessful);
 
 	//Flag that is set and removed when sending a server swap request and recieving confirmation
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	bool IsPendingServerConfirmation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
@@ -177,6 +195,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
 	int TemporaryStartingSlots = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
+	int ItemStartingSlots = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Weapon_L)
 	FHInventorySlotStruct SlotStruct_Weapon_L;
@@ -195,6 +216,18 @@ protected:
 
 	UFUNCTION()
 	void OnRep_SlotStruct_Temporary(FHInventorySlotStruct& PreviousValue);
+
+	UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Item)
+	FHInventorySlotStruct SlotStruct_Item;
+
+	UFUNCTION()
+	void OnRep_SlotStruct_Item(FHInventorySlotStruct& PreviousValue);
+
+	/*UPROPERTY(ReplicatedUsing = OnRep_SlotStruct_Item)
+	FHInventorySlotStruct SlotStruct_Core;
+
+	UFUNCTION()
+	void OnRep_SlotStruct_Core(FHInventorySlotStruct& PreviousValue);*/
 
 	UPROPERTY(Replicated)
 	TArray<FHNullEquipmentEntry> NullEquipmentStack;
