@@ -23,6 +23,8 @@ UHItemSlotComponent::UHItemSlotComponent(const FObjectInitializer& ObjectInitial
 	: Super(ObjectInitializer)
 {
 	SetIsReplicatedByDefault(true);
+
+	IsPendingServerConfirmation = false;
 }
 
 void UHItemSlotComponent::BeginPlay()
@@ -35,6 +37,12 @@ void UHItemSlotComponent::BeginPlay()
 		SetNumSlotsForEnum(EHInventorySlotType::Weapon_R, WeaponRStartingSlots);
 		SetNumSlotsForEnum(EHInventorySlotType::Temporary, TemporaryStartingSlots);
 	}
+}
+
+void UHItemSlotComponent::RequestSwapOperation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex)
+{
+	IsPendingServerConfirmation = true;
+	Server_SwapSlots(SourceIndex, TargetIndex);
 }
 
 void UHItemSlotComponent::CycleActiveSlotForward(EHInventorySlotType SlotType)
@@ -127,10 +135,12 @@ int32 UHItemSlotComponent::GetNextFreeItemSlot(EHInventorySlotType SlotType) con
 	return INDEX_NONE;
 }
 
-void UHItemSlotComponent::SwapSlots_Implementation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex)
+void UHItemSlotComponent::Server_SwapSlots_Implementation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex)
 {
 	FHInventorySlotStruct& SourceSlots = GetSlotStructForEnum(SourceIndex.SlotType);
 	FHInventorySlotStruct& TargetSlots = GetSlotStructForEnum(TargetIndex.SlotType);
+
+	bool bWasSuccessful = false;
 
 	if (SourceSlots.SlotArray.IsValidIndex(SourceIndex.SlotIndex) && TargetSlots.SlotArray.IsValidIndex(TargetIndex.SlotIndex))
 	{
@@ -154,6 +164,21 @@ void UHItemSlotComponent::SwapSlots_Implementation(FHInventorySlotIndex SourceIn
 			UnequipItemInSlot(TargetIndex.SlotType);
 			EquipItemInSlot(TargetIndex.SlotType);
 		}
+
+		bWasSuccessful = true;
+	}
+
+	Client_SwapSlots_Implementation(bWasSuccessful);
+}
+
+void UHItemSlotComponent::Client_SwapSlots_Implementation(bool bWasSuccessful)
+{
+	IsPendingServerConfirmation = false;
+
+	//Broadcast a message here
+	if(OnReceivedServerSwapConfirmation.IsBound())
+	{
+		OnReceivedServerSwapConfirmation.Broadcast(bWasSuccessful);
 	}
 }
 
@@ -284,7 +309,7 @@ void UHItemSlotComponent::EquipItemInSlot(EHInventorySlotType SlotType)
 
 
 	check(Slots.SlotArray.IsValidIndex(Slots.ActiveSlotIndex));
-	check(Slots.EquippedItem == nullptr);
+	//check(Slots.EquippedItem == nullptr);
 
 	if (UHInventoryItemInstance* SlotItem = Slots.SlotArray[Slots.ActiveSlotIndex])
 	{

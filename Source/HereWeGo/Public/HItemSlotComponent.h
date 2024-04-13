@@ -14,6 +14,9 @@ class UHEquipmentComponent;
 class UHEquipmentInstance;
 class UHInventoryItemInstance;
 
+// Delegate signature
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHOnReceivedServerSwapConfirmation, bool, bApproved);
+
 UENUM(BlueprintType)
 enum class EHInventorySlotType : uint8
 {
@@ -81,6 +84,9 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
+	void RequestSwapOperation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Slots")
 	void CycleActiveSlotForward(EHInventorySlotType SlotType);
 
 	UFUNCTION(BlueprintCallable, Category = "Slots")
@@ -113,9 +119,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	int32 GetNextFreeItemSlot(EHInventorySlotType SlotType) const;
 
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = Inventory)
-	void SwapSlots(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex);
-
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void SetNumSlotsForEnum(EHInventorySlotType SlotType, int32 InNum);
 
@@ -133,6 +136,12 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+public:
+	UPROPERTY(BlueprintAssignable)
+	FHOnReceivedServerSwapConfirmation OnReceivedServerSwapConfirmation;
+
+	
+
 private:
 
 	void UnequipItemInSlot(EHInventorySlotType SlotType);
@@ -149,6 +158,16 @@ private:
 	void Handle_OnRep_ActiveSlotIndexChanged(EHInventorySlotType SlotType);
 
 protected:
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = Inventory)
+	void Server_SwapSlots(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable, Category = Inventory)
+	void Client_SwapSlots(bool bWasSuccessful);
+
+	//Flag that is set and removed when sending a server swap request and recieving confirmation
+	UPROPERTY(BlueprintReadOnly)
+	bool IsPendingServerConfirmation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ItemSlots|Defaults")
 	int WeaponLStartingSlots = 0;
