@@ -50,6 +50,8 @@ void AHPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	OnPossessedPawnChanged.AddUniqueDynamic(this, &ThisClass::HandlePossessedPawnChanged);
+
+	FSlateApplication::Get().OnApplicationActivationStateChanged().AddUObject(this, &AHPlayerController::OnWindowFocusChanged);
 }
 
 void AHPlayerController::HandlePossessedPawnChanged(APawn* OldPawnBroadcasted, APawn* NewPawnBroadcasted)
@@ -210,6 +212,18 @@ void AHPlayerController::OnRep_PlayerState()
 	//In case Playerstate is repped before possession
 	//CreateHUD();
 
+}
+
+void AHPlayerController::OnWindowFocusChanged(bool bIsFocused)
+{
+	if (bIsFocused)
+	{
+		SetMouseLocation(SavedMousePosition.X, SavedMousePosition.Y);
+	}
+	else
+	{
+		GetMousePosition(SavedMousePosition.X, SavedMousePosition.Y);
+	}
 }
 
 

@@ -59,6 +59,8 @@ public:
 	virtual void OnRep_PlayerState() override;
 
 protected:
+	void OnWindowFocusChanged(bool bIsFocused);
+
 	//~APlayerController interface
 	virtual void UpdateHiddenComponents(const FVector& ViewLocation, TSet<FPrimitiveComponentId>& OutHiddenComponents) override;
 	//~End of APlayerController interface
@@ -78,6 +80,8 @@ protected:
 	FHOnPlayerStateChanged OnPlayerStateChangedDelegate;
 
 	bool bHideViewTargetPawnNextFrame = false;
+
+	FVector2D SavedMousePosition;
 
 private:
 	void BroadcastOnPlayerStateChanged();
