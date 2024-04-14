@@ -25,5 +25,5 @@ void UHCommonGameViewportClient::Init(FWorldContext& WorldContext, UGameInstance
 	// We have software cursors set up in our project settings for console/mobile use, but on desktop
 	// native hardware cursors are preferred.
 	const bool bUseHardwareCursor = ICommonUIModule::GetSettings().GetPlatformTraits().HasTag(GameViewportTags::TAG_Platform_Trait_Input_HardwareCursor);
-	SetUseSoftwareCursorWidgets(!bUseHardwareCursor);
+	SetUseSoftwareCursorWidgets(true); //!bUseHardwareCursor
 }
