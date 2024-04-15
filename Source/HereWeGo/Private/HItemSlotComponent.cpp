@@ -96,6 +96,13 @@ void UHItemSlotComponent::CycleActiveSlotBackward(EHInventorySlotType SlotType)
 	SetActiveSlotIndexForEnum(SlotType, GetNextFreeItemSlot(SlotType));
 }
 
+UHInventoryItemInstance* UHItemSlotComponent::GetItemAtIndex(FHInventorySlotIndex Index) const
+{
+	const FHInventorySlotStruct& Slots = GetSlotStructForEnum_Const(Index.SlotType);
+
+	return Slots.SlotArray.IsValidIndex(Index.SlotIndex) ? Slots.SlotArray[Index.SlotIndex] : nullptr;
+}
+
 void UHItemSlotComponent::SetActiveSlotIndexForEnum_Implementation(EHInventorySlotType SlotType, int32 NewIndex)
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);

@@ -117,6 +117,9 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	UHInventoryItemInstance* GetItemAtIndex(FHInventorySlotIndex Index) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	int32 GetNumSlotsForEnum(EHInventorySlotType SlotType) const
 	{
 		return GetSlotStructForEnum_Const(SlotType).NumSlots;
