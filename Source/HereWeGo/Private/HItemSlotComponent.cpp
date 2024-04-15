@@ -143,6 +143,27 @@ int32 UHItemSlotComponent::GetNextFreeItemSlot(EHInventorySlotType SlotType) con
 	return INDEX_NONE;
 }
 
+bool UHItemSlotComponent::TryFindIndexForItem(UHInventoryItemInstance* ItemToFind, FHInventorySlotIndex& OutIndex)
+{
+	for (EHInventorySlotType SlotType : TEnumRange<EHInventorySlotType>())
+	{
+		const FHInventorySlotStruct& Slots = GetSlotStructForEnum_Const(SlotType);
+
+		for (int i = 0; i < Slots.SlotArray.Num(); i++)
+		{
+			if(ItemToFind == Slots.SlotArray[i])
+			{
+				OutIndex.SlotIndex = i;
+				OutIndex.SlotType = SlotType;
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void UHItemSlotComponent::Server_SwapSlots_Implementation(FHInventorySlotIndex SourceIndex, FHInventorySlotIndex TargetIndex)
 {
 	FHInventorySlotStruct& SourceSlots = GetSlotStructForEnum(SourceIndex.SlotType);
@@ -254,7 +275,7 @@ void UHItemSlotComponent::AddItemToSlot(EHInventorySlotType SlotType, int32 Slot
 	}
 }
 
-UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlotType SlotType, int32 SlotIndex)
+void UHItemSlotComponent::RemoveItemAtSlotIndex(EHInventorySlotType SlotType, int32 SlotIndex)
 {
 	FHInventorySlotStruct& Slots = GetSlotStructForEnum(SlotType);
 
@@ -285,8 +306,15 @@ UHInventoryItemInstance* UHItemSlotComponent::RemoveItemFromSlot(EHInventorySlot
 		//Now equip the null weapon
 		EquipItemInSlot(SlotType);
 	}
+}
 
-	return Result;
+void UHItemSlotComponent::TryRemoveItemFromSlots(UHInventoryItemInstance* Item)
+{
+	FHInventorySlotIndex Index;
+	if(TryFindIndexForItem(Item, Index))
+	{
+		RemoveItemAtSlotIndex(Index.SlotType, Index.SlotIndex);
+	}
 }
 
 bool UHItemSlotComponent::GetIsPendingServerConfirmation()

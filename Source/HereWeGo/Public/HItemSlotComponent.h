@@ -25,6 +25,7 @@ enum class EHInventorySlotType : uint8
 	Temporary,
 	Item
 };
+ENUM_RANGE_BY_FIRST_AND_LAST(EHInventorySlotType, EHInventorySlotType::Weapon_L, EHInventorySlotType::Item);
 
 USTRUCT(BlueprintType)
 struct FHNullEquipmentEntry
@@ -137,6 +138,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false)
 	int32 GetNextFreeItemSlot(EHInventorySlotType SlotType) const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure = false)
+	bool TryFindIndexForItem(UHInventoryItemInstance* ItemToFind, FHInventorySlotIndex& OutIndex);
+
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void SetNumSlotsForEnum(EHInventorySlotType SlotType, int32 InNum);
 
@@ -150,7 +154,10 @@ public:
 	void RemoveNullEquipment(UHWeaponItemDefinition* EquipmentToRemove);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
-	UHInventoryItemInstance* RemoveItemFromSlot(EHInventorySlotType SlotType, int32 SlotIndex);
+	void RemoveItemAtSlotIndex(EHInventorySlotType SlotType, int32 SlotIndex);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	void TryRemoveItemFromSlots(UHInventoryItemInstance* Item);
 
 	UFUNCTION(BlueprintCallable, Category = "ItemSlots|Net")
 	bool GetIsPendingServerConfirmation();
