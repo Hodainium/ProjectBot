@@ -189,7 +189,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Mods|Definition|Display")
 	FText GetModDescription(float inLevel = 0.f);
 
-	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+	//virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
 protected:
 	//Need to remove just here for now. The function will just have mag=1

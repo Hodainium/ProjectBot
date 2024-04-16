@@ -59,9 +59,9 @@ void UHItemSlotComponent::CycleActiveSlotForward(EHInventorySlotType SlotType)
 	int32 NewIndex = Slots.ActiveSlotIndex;
 	do
 	{
-		if (Slots.SlotArray[NewIndex] != nullptr)
+		NewIndex = (NewIndex + 1) % Slots.SlotArray.Num();
+		if (Slots.SlotArray[NewIndex] != nullptr && (NewIndex != OldIndex))
 		{
-			NewIndex = (NewIndex + 1) % Slots.SlotArray.Num();
 			SetActiveSlotIndexForEnum(SlotType, NewIndex);
 			return;
 		}

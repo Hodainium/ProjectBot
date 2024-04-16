@@ -10,6 +10,7 @@
 #include "HGameplayAbility.h"
 #include "HLogChannels.h"
 #include "HereWeGo/HAssetManager.h"
+#include "Logging/StructuredLog.h"
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Ability.InputBlocked");
 

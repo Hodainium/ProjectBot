@@ -275,13 +275,13 @@ FText UHItemModDefinition::GetModDescription(float inLevel)
 {
 	return FText::Format(Description, GetDisplayMagnitude(inLevel));
 }
-
-EDataValidationResult UHItemModDefinition::IsDataValid(FDataValidationContext& Context) const
-{
-	if(bUseCurveMagnitude && !DisplayMagnitudeInfo.DisplayMagnitude.IsValid())
-	{
-		return EDataValidationResult::Invalid;
-	}
-
-	return Super::IsDataValid(Context);
-}
+//
+//EDataValidationResult UHItemModDefinition::IsDataValid(FDataValidationContext& Context) const
+//{
+//	if(bUseCurveMagnitude && !DisplayMagnitudeInfo.DisplayMagnitude.IsValid())
+//	{
+//		return EDataValidationResult::Invalid;
+//	}
+//
+//	return Super::IsDataValid(Context);
+//}
