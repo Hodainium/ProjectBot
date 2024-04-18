@@ -69,11 +69,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	AController* GetControllerFromActorInfo() const;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-	bool ActivateAbilityOnGranted = false;
-
-	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "H|Ability")

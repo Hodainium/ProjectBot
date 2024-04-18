@@ -85,16 +85,6 @@ AController* UHGameplayAbility::GetControllerFromActorInfo() const
 	return nullptr;
 }
 
-void UHGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	Super::OnAvatarSet(ActorInfo, Spec);
-
-	if (ActivateAbilityOnGranted)
-	{
-		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle, false);
-	}
-}
-
 UHAbilitySystemComponent* UHGameplayAbility::GetHAbilitySystemComponentFromActorInfo() const
 {
 	return (CurrentActorInfo ? Cast<UHAbilitySystemComponent>(CurrentActorInfo->AbilitySystemComponent.Get()) : nullptr);
