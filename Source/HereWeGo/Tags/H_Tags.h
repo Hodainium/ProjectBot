@@ -105,3 +105,8 @@ namespace H_Camera_Tags
 {
 	HEREWEGO_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_SteadyAimingCamera);
 }
+
+namespace H_Material_Tags
+{
+	HEREWEGO_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_Zone);
+}
