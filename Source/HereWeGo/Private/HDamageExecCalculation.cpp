@@ -4,6 +4,8 @@
 #include "HDamageExecCalculation.h"
 #include "HAbilitySystemComponent.h"
 #include "HAttributeSetBase.h"
+#include "HGameplayEffectContext.h"
+#include "HereWeGo/AttributeSets/HHealthSet.h"
 
 
 struct FHDamageStatics
@@ -40,37 +42,132 @@ UHDamageExecCalculation::UHDamageExecCalculation()
 void UHDamageExecCalculation::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
                                                      FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
-	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
-	UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
-
+#if WITH_SERVER_CODE
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
+	FHGameplayEffectContext* TypedContext = FHGameplayEffectContext::ExtractEffectContext(Spec.GetContext());
+	check(TypedContext);
 
-	FAggregatorEvaluateParameters EvalParams;
-	EvalParams.SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
-	EvalParams.TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
+	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
+	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 
-	float Armor = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().ArmorDef, EvalParams, Armor);
+	FAggregatorEvaluateParameters EvaluateParameters;
+	EvaluateParameters.SourceTags = SourceTags;
+	EvaluateParameters.TargetTags = TargetTags;
 
-	float Damage = 0.f; //Capture optional damage attribute from ge for calcmodifier under execcalc
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().DamageDef, EvalParams, Damage);
-	//Add setbycaller if it exists. Remember ror
-	Damage += FMath::Max<float>(Spec.GetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage")), false, -1.f), 0.f);
+	float BaseDamage = 0.0f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().DamageDef, EvaluateParameters, BaseDamage);
 
-	//We can multiply thi shere if we want like isaac
-	float FlatDamage = Damage;
+	const AActor* EffectCauser = TypedContext->GetEffectCauser();
+	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
-	float ArmorReducedDamage = (FlatDamage) * (100.f / (100.f + Armor));
+	AActor* HitActor = nullptr;
+	FVector ImpactLocation = FVector::ZeroVector;
+	FVector ImpactNormal = FVector::ZeroVector;
+	FVector StartTrace = FVector::ZeroVector;
+	FVector EndTrace = FVector::ZeroVector;
 
-	if (ArmorReducedDamage > 0.f)
+	// Calculation of hit actor, surface, zone, and distance all rely on whether the calculation has a hit result or not.
+	// Effects just being added directly w/o having been targeted will always come in without a hit result, which must default
+	// to some fallback information.
+	if (HitActorResult)
 	{
-		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().DamageProperty, EGameplayModOp::Additive, ArmorReducedDamage));
+		const FHitResult& CurHitResult = *HitActorResult;
+		HitActor = CurHitResult.HitObjectHandle.FetchActor();
+		if (HitActor)
+		{
+			ImpactLocation = CurHitResult.ImpactPoint;
+			ImpactNormal = CurHitResult.ImpactNormal;
+			StartTrace = CurHitResult.TraceStart;
+			EndTrace = CurHitResult.TraceEnd;
+		}
 	}
 
-	//UHAbilitySystemComponent* HTargetASC = Cast<UHAbilitySystemComponent>(TargetASC);
-	//if(HTargetASC)
-	//{
-	//	UHAbilitySystemComponent* HSourceASC = Cast<UHAbilitySystemComponent>(SourceASC);
-	//	TargetASC->ReceiveDamage //We can broadcast here but not implemented yet
-	//}
+	// Handle case of no hit result or hit result not actually returning an actor
+	UAbilitySystemComponent* TargetAbilitySystemComponent = ExecutionParams.GetTargetAbilitySystemComponent();
+	if (!HitActor)
+	{
+		HitActor = TargetAbilitySystemComponent ? TargetAbilitySystemComponent->GetAvatarActor_Direct() : nullptr;
+		if (HitActor)
+		{
+			ImpactLocation = HitActor->GetActorLocation();
+		}
+	}
+
+	// Apply rules for team damage/self damage/etc...
+	float DamageInteractionAllowedMultiplier = 1.0f; //0.0f
+	/*if (HitActor)
+	{
+		UHTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UHTeamSubsystem>();
+		if (ensure(TeamSubsystem))
+		{
+			DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
+		}
+	}*/
+
+	// Determine distance
+	double Distance = WORLD_MAX;
+
+	if (TypedContext->HasOrigin())
+	{
+		Distance = FVector::Dist(TypedContext->GetOrigin(), ImpactLocation);
+	}
+	else if (EffectCauser)
+	{
+		Distance = FVector::Dist(EffectCauser->GetActorLocation(), ImpactLocation);
+	}
+	else
+	{
+		ensureMsgf(false, TEXT("Damage Calculation cannot deduce a source location for damage coming from %s; Falling back to WORLD_MAX dist!"), *GetPathNameSafe(Spec.Def));
+	}
+
+	// Apply ability source modifiers
+	float PhysicalMaterialAttenuation = 1.0f;
+	float DistanceAttenuation = 1.0f;
+	/*if (const IHAbilitySourceInterface* AbilitySource = TypedContext->GetAbilitySource())
+	{
+		if (const UPhysicalMaterial* PhysMat = TypedContext->GetPhysicalMaterial())
+		{
+			PhysicalMaterialAttenuation = AbilitySource->GetPhysicalMaterialAttenuation(PhysMat, SourceTags, TargetTags);
+		}
+
+		DistanceAttenuation = AbilitySource->GetDistanceAttenuation(Distance, SourceTags, TargetTags);
+	}
+	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);*/
+
+	// Clamping is done when damage is converted to -health
+	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
+
+	if (DamageDone > 0.0f)
+	{
+		// Apply a damage modifier, this gets turned into - health on the target
+		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UHHealthSet::GetDamageAttribute(), EGameplayModOp::Additive, DamageDone));
+	}
+#endif // #if WITH_SERVER_CODE
 }
+
+//UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
+//UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
+//
+//const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
+//
+//FAggregatorEvaluateParameters EvalParams;
+//EvalParams.SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
+//EvalParams.TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
+//
+//float Armor = 0.f;
+//ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().ArmorDef, EvalParams, Armor);
+//
+//float Damage = 0.f; //Capture optional damage attribute from ge for calcmodifier under execcalc
+//ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().DamageDef, EvalParams, Damage);
+////Add setbycaller if it exists. Remember ror
+//Damage += FMath::Max<float>(Spec.GetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage")), false, -1.f), 0.f);
+//
+////We can multiply thi shere if we want like isaac
+//float FlatDamage = Damage;
+//
+//float ArmorReducedDamage = (FlatDamage) * (100.f / (100.f + Armor));
+//
+//if (ArmorReducedDamage > 0.f)
+//{
+//	OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(DamageStatics().DamageProperty, EGameplayModOp::Additive, ArmorReducedDamage));
+//}
