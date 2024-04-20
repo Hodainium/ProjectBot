@@ -48,7 +48,7 @@ float UHWeaponInstance::GetTimeSinceLastInteractedWith() const
 	return Result;
 }
 
-TSubclassOf<UAnimInstance> UHWeaponInstance::SelectBestAnimLayer(bool bEquipped,
+TSubclassOf<UAnimInstance> UHWeaponInstance::PickBestAnimLayer(bool bEquipped,
 	const FGameplayTagContainer& CosmeticTags) const
 {
 	const FHAnimLayerSelectionSet& SetToQuery = (bEquipped ? EquippedAnimSet : UnequippedAnimSet);

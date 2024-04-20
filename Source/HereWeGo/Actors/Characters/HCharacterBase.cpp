@@ -769,49 +769,6 @@ void AHCharacterBase::RemoveCharacterAbilities()
 	AbilitySystemComponent->bCharacterAbilitiesGranted = false;
 }
 
-void AHCharacterBase::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
-	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
-{
-#if WITH_SERVER_CODE
-	if (AbilitySystemComponent && DamageEffectSpec)
-	{
-		// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
-		{
-			FGameplayEventData Payload;
-			Payload.EventTag = H_GameplayEvent_Tags::TAG_GAMEPLAYEVENT_DEATH;
-			Payload.Instigator = DamageInstigator;
-			Payload.Target = AbilitySystemComponent->GetAvatarActor();
-			Payload.OptionalObject = DamageEffectSpec->Def;
-			Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
-			Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
-			Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
-			Payload.EventMagnitude = DamageMagnitude;
-
-			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
-			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-		}
-
-		// Send a standardized verb message that other systems can observe
-		{
-			FHVerbMessage Message;
-			Message.Verb = H_Message_Tags::TAG_ELIMINATION_MESSAGE;
-			Message.Instigator = DamageInstigator;
-			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
-			Message.Target = UHVerbMessageHelpers::GetPlayerStateFromObject(AbilitySystemComponent->GetAvatarActor());
-			Message.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
-			//@TODO: Fill out context tags, and any non-ability-system source/instigator tags
-			//@TODO: Determine if it's an opposing team kill, self-own, team kill, etc...
-
-			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-			MessageSystem.BroadcastMessage(Message.Verb, Message);
-		}
-
-		//@TODO: assist messages (could compute from damage dealt elsewhere)?
-	}
-
-#endif // #if WITH_SERVER_CODE
-}
-
 void AHCharacterBase::DeathStarted()
 {
 	//OnCharacterDeath.Broadcast(this);

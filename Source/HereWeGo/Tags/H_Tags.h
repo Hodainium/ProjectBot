@@ -101,3 +101,7 @@ namespace H_ItemQuality_Tags
 	HEREWEGO_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ITEM_QUALITY_5);
 }
 
+namespace H_Camera_Tags
+{
+	HEREWEGO_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_SteadyAimingCamera);
+}

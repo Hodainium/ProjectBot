@@ -116,3 +116,8 @@ namespace H_ItemQuality_Tags
 	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEM_QUALITY_4, "Item.Quality.4");
 	UE_DEFINE_GAMEPLAY_TAG(TAG_ITEM_QUALITY_5, "Item.Quality.5");
 }
+
+namespace H_Camera_Tags
+{
+	UE_DEFINE_GAMEPLAY_TAG(TAG_Weapon_SteadyAimingCamera, "Weapon.SteadyAimingCamera");
+}

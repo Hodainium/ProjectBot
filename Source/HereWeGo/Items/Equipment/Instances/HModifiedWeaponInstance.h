@@ -20,11 +20,13 @@ class HEREWEGO_API UHModifiedWeaponInstance : public UHWeaponInstance
 {
 	GENERATED_BODY()
 
+	
+
+public:
 	virtual void OnEquipped() override;
 
 	virtual void OnUnequipped() override;
 
-public:
 	void AddDamageGE(TSubclassOf<UGameplayEffect> Effect);
 
 	void RemoveDamageGE(TSubclassOf<UGameplayEffect> Effect);

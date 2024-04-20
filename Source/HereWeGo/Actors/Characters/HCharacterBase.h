@@ -264,8 +264,6 @@ public:
 
 	virtual void RemoveCharacterAbilities();
 
-	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
-
 	UFUNCTION()
 	virtual void DeathStarted();
 

@@ -43,7 +43,7 @@ protected:
 	FHAnimLayerSelectionSet UnequippedAnimSet;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category="Animation")
-	TSubclassOf<UAnimInstance> SelectBestAnimLayer(bool bEquipped, const FGameplayTagContainer& CosmeticTags) const;
+	TSubclassOf<UAnimInstance> PickBestAnimLayer(bool bEquipped, const FGameplayTagContainer& CosmeticTags) const;
 
 	
 
