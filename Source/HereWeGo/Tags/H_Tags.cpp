@@ -121,8 +121,3 @@ namespace H_Camera_Tags
 {
 	UE_DEFINE_GAMEPLAY_TAG(TAG_Weapon_SteadyAimingCamera, "Weapon.SteadyAimingCamera");
 }
-
-namespace H_Material_Tags
-{
-	UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_Zone, "Gameplay.Zone");
-}
