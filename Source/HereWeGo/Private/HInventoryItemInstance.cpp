@@ -80,6 +80,16 @@ FText UHInventoryItemInstance::GetItemName() const
 	return FText::GetEmpty();
 }
 
+float UHInventoryItemInstance::GetItemWeight() const
+{
+	if (ItemDefinition)
+	{
+		return ItemDefinition->Weight;
+	}
+
+	return 0.f;
+}
+
 UStaticMesh* UHInventoryItemInstance::GetDisplayMesh() const
 {
 	if(ItemDefinition)

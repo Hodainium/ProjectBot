@@ -22,6 +22,7 @@ public:
 	{
 		bUsesAmmo = false;
 		ItemType = EHItemType::Weapon;
+		Damage = 0.f;
 	}
 
 	/** Weapon actor to spawn */
@@ -31,6 +32,9 @@ public:
 	/** Does this weapon use ammo? */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon)
 	bool bUsesAmmo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon)
+	float Damage;
 
 
 };

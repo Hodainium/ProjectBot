@@ -21,8 +21,10 @@ void FHItemModDef_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpe
 
 void FHItemModDef_GrantedHandles::AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle)
 {
+	UE_LOGFMT(LogHGame, Warning, "Trying to store GE handle");
 	if (Handle.IsValid())
 	{
+		UE_LOGFMT(LogHGame, Warning, "Did store GE handle");
 		GameplayEffectHandles.Add(Handle);
 	}
 }
@@ -73,8 +75,10 @@ void FHItemModDef_GrantedHandles::RemoveModFromEquipmentInstance(UHModifiedWeapo
 
 	for (const FActiveGameplayEffectHandle& Handle : GameplayEffectHandles)
 	{
+		UE_LOGFMT(LogHGame, Warning, "Check: Remove effect");
 		if (Handle.IsValid())
 		{
+			UE_LOGFMT(LogHGame, Warning, "Remove effect");
 			HASC->RemoveActiveGameplayEffect(Handle);
 		}
 	}
@@ -93,6 +97,7 @@ void FHItemModDef_GrantedHandles::RemoveModFromEquipmentInstance(UHModifiedWeapo
 	{
 		Instance->RemoveDamageGE(DamageType.DamageGE);
 	}
+
 
 	UE_LOGFMT(LogHGame, Warning, "Need to implement texture override add and remove");
 	/*for (const FHItemModDef_TextureOverride& Tex : GrantedTextureOverrides)
@@ -173,6 +178,8 @@ void UHItemModDefinition::ApplyToEquipmentInstance(UHModifiedWeaponInstance* Ins
 
 		UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
 		const FActiveGameplayEffectHandle GameplayEffectHandle = HASC->ApplyGameplayEffectToSelf(GameplayEffect, Magnitude, HASC->MakeEffectContext());
+
+		UE_LOGFMT(LogHGame, Warning, "GE handle is: {0}", GameplayEffectHandle.ToString());
 
 		if (OutGrantedHandles)
 		{

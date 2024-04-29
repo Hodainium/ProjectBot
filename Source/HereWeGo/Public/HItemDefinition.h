@@ -60,8 +60,7 @@ public:
 	UHItemDefinition()
 		: BaseItemQuality(EHItemQuality::Quality0), Price(0)
 		  , CanBeStacked(false), MaxStack(1)
-		  , MaxDurability(0), InventorySizeX(1)
-		  , InventorySizeY(1)
+		  , MaxDurability(0)
 		  , Weight(0), MaxLevel(1)
 		  , AbilityLevel(1)
 	{
@@ -115,17 +114,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Durability)
 	float MaxDurability;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
-	int InventorySizeX;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
-	int InventorySizeY;
-
 	////Sound to play when picked up
 	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pickup")
 	//TObjectPtr<USoundBase> PickedUpSound;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Size")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
 	float Weight;
 
 	/** Returns if the item is consumable (MaxStack <= 0)*/

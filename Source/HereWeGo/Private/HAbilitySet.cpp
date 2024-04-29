@@ -4,6 +4,8 @@
 #include "HAbilitySet.h"
 #include "HGameplayAbility.h"
 #include "HAbilitySystemComponent.h"
+#include "HLogChannels.h"
+#include "Logging/StructuredLog.h"
 
 void FHAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
 {

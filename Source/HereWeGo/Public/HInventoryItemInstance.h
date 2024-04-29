@@ -65,6 +65,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	FText GetItemName() const;
 
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	float GetItemWeight() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Item|Display|World")
 	UStaticMesh* GetDisplayMesh() const;
 
